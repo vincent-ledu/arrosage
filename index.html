@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contrôle de la Citerne</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background: #f2f4f7;
+      }
+      .container {
+        max-width: 400px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      h2 {
+        text-align: center;
+      }
+      input,
+      button {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        font-size: 16px;
+      }
+      #message {
+        text-align: center;
+        color: green;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Contrôle de la Citerne</h2>
+      <div id="level">Chargement du niveau...</div>
+      <button onclick="getLevel()">Actualiser le niveau</button>
+
+      <input type="number" id="duration" placeholder="Durée (en secondes)" />
+      <button onclick="openWater()">Ouvrir la vanne</button>
+
+      <div id="message"></div>
+    </div>
+
+    <script>
+      const apiBase = "http://192.168.0.187:3000/api";
+
+      function getLevel() {
+        fetch(`${apiBase}/water-level`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.level !== undefined) {
+              document.getElementById(
+                "level"
+              ).textContent = `Niveau d'eau : ${data.level}%`;
+            } else {
+              document.getElementById("level").textContent =
+                "Erreur : impossible d'obtenir le niveau";
+            }
+          });
+      }
+
+      function openWater() {
+        const duration = document.getElementById("duration").value;
+        if (!duration) {
+          alert("Entrez une durée en secondes");
+          return;
+        }
+
+        fetch(`${apiBase}/open-water?duration=${duration}`)
+          .then((res) => res.json())
+          .then((data) => {
+            document.getElementById("message").textContent =
+              data.message || data.error;
+          });
+      }
+
+      // Auto-chargement du niveau au démarrage
+      window.onload = getLevel;
+    </script>
+  </body>
+</html>

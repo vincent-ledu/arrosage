@@ -34,10 +34,12 @@ GPIO.setup(PUMP, GPIO.OUT)
 def handler(signal_received, frame):
   # on gere un cleanup propre
   print('SIGINT or CTRL-C detected. Exiting gracefully')
+  print("GPIO Clean up")
   GPIO.cleanup()
   exit(0)
 
 def cleanup_app():
+  print("GPIO Clean up")
   GPIO.cleanup()
 
 @app.route("/checkWaterLevel")
@@ -66,13 +68,13 @@ Open water for 'delay' seconds, if there is enough water
 Delay must be under 300 seconds (5minutes)
 '''
 @app.route("/openwater")
-def OpenWaterDelay(delay):
-  delay = int(request.args.get('delay'))
+def OpenWaterDelay(duration):
+  duration = int(request.args.get('duration'))
   print("check if water")
   if not IfWater():
     print("There is not enough water")
     return   
-  if delay > 300:
+  if duration > 300:
     print("Delay is to high, risk to empty containter")
     return
   print("Turning On VANNE")
@@ -80,7 +82,7 @@ def OpenWaterDelay(delay):
   time.sleep(2)
   print("Turning On PUMP")
   GPIO.output(PUMP, GPIO.HIGH)
-  time.sleep(delay)
+  time.sleep(duration)
   print("Turning Off VANNE & PUMP")
   GPIO.output(VANNE, GPIO.LOW)
   GPIO.output(PUMP, GPIO.LOW)
