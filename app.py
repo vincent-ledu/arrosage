@@ -2,6 +2,14 @@ import RPi.GPIO as GPIO
 import time
 from signal import signal, SIGINT
 from sys import exit
+from flask import Flask, request
+import atexit
+
+app = Flask(__name__)
+
+@app.route("/")
+def hello_world():
+    return "<p>Hello, World!</p>"
 
 # Numérotation BCM (par GPIO, pas numéro de pin physique)
 GPIO.setmode(GPIO.BCM)
@@ -24,18 +32,30 @@ GPIO.setup(VANNE, GPIO.OUT)
 GPIO.setup(PUMP, GPIO.OUT)
 
 def handler(signal_received, frame):
-    # on gere un cleanup propre
-    print('SIGINT or CTRL-C detected. Exiting gracefully')
-    GPIO.cleanup()
-    exit(0)
+  # on gere un cleanup propre
+  print('SIGINT or CTRL-C detected. Exiting gracefully')
+  GPIO.cleanup()
+  exit(0)
 
+def cleanup_app():
+  GPIO.cleanup()
 
-
+@app.route("/checkWaterLevel")
 def CheckWaterLevel():
+  if GPIO.input(WATER_FULL):
+    print("Container full")
+    return 100
+  if not GPIO.input(WATER_HALF):
+    print("Container on half")
+    return 50
+  if not GPIO.input(WATER_QUARTER):
+    print("Container on quarter")
+    return 25
   if GPIO.input(WATER_EMPTY):
-    print("Niveau d'eau bas - ok")
-  else:
-    print("YA PLUS D'EAU")
+    print("Container nearly empty")
+    return 5
+  print("Container empty")
+  return 0
 
 
 def IfWater():
@@ -46,7 +66,9 @@ def IfWater():
 Open water for 'delay' seconds, if there is enough water
 Delay must be under 300 seconds (5minutes)
 '''
+@app.route("/openwater")
 def OpenWaterDelay(delay):
+  delay = int(request.args.get('delay'))
   print("check if water")
   if not IfWater():
     print("There is not enough water")
@@ -67,3 +89,6 @@ def OpenWaterDelay(delay):
 if __name__ == '__main__':
   # On prévient Python d'utiliser la method handler quand un signal SIGINT est reçu
   signal(SIGINT, handler)
+  #Register the function to be called on exit
+  atexit.register(cleanup_app)
+  app.run(host="0.0.0.0", port=3000)
