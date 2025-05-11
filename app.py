@@ -16,16 +16,16 @@ GPIO.setmode(GPIO.BCM)
 VANNE=20
 PUMP=21
 WATER_EMPTY = 23
-WATER_QUARTER = 24
-WATER_HALF = 25
+WATER_ATHIRD = 24
+WATER_TWOTHIRDS = 25
 WATER_FULL = 26
 
-WATER_LEVELS = [WATER_EMPTY, WATER_QUARTER, WATER_HALF, WATER_FULL]
+WATER_LEVELS = [WATER_EMPTY, WATER_ATHIRD, WATER_TWOTHIRDS, WATER_FULL]
 
 # Configurer le GPIO en entrée avec pull-down externe
 GPIO.setup(WATER_EMPTY, GPIO.IN)
-GPIO.setup(WATER_QUARTER, GPIO.IN)
-GPIO.setup(WATER_HALF, GPIO.IN)
+GPIO.setup(WATER_ATHIRD, GPIO.IN)
+GPIO.setup(WATER_TWOTHIRDS, GPIO.IN)
 GPIO.setup(WATER_FULL, GPIO.IN)
 GPIO.setup(VANNE, GPIO.OUT)
 GPIO.setup(PUMP, GPIO.OUT)
@@ -68,17 +68,23 @@ def CheckWaterLevel():
   if GPIO.input(WATER_FULL):
     print("Container full")
     return { "level": 100 }
-  if not GPIO.input(WATER_HALF):
+  if not GPIO.input(WATER_TWOTHIRDS):
     print("Container on half")
-    return { "level": 50 }
-  if not GPIO.input(WATER_QUARTER):
+    return { "level": 66 }
+  if not GPIO.input(WATER_ATHIRD):
     print("Container on quarter")
-    return { "level": 25 }
+    return { "level": 33 }
   if GPIO.input(WATER_EMPTY):
     print("Container nearly empty")
-    return { "level": 2 }
+    return { "level": 10 }
   print("Container empty")
   return { "level": 0 }
+
+
+@app.route('/api/task-status')
+def task_status():
+   return jsonify(tasks)
+
 
 @app.route('/api/task-status/<task_id>')
 def task_status(task_id):
