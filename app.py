@@ -44,19 +44,18 @@ def cleanup_app():
 def CheckWaterLevel():
   if GPIO.input(WATER_FULL):
     print("Container full")
-    return 100
+    return { "level": 100 }
   if not GPIO.input(WATER_HALF):
     print("Container on half")
-    return 50
+    return { "level": 50 }
   if not GPIO.input(WATER_QUARTER):
     print("Container on quarter")
-    return 25
+    return { "level": 25 }
   if GPIO.input(WATER_EMPTY):
     print("Container nearly empty")
-    return 5
+    return { "level": 2 }
   print("Container empty")
-  return 0
-
+  return { "level": 0 }
 
 def IfWater():
   return GPIO.input(WATER_EMPTY)
