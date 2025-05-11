@@ -122,7 +122,7 @@ def OpenWaterDelay():
   current_date = dt.date.today()
   
   task_id = str(uuid.uuid4())
-  tasks[task_id] = "Ouverture vanne lancée à ${date} pour ${duration}.".format(date=current_date.strftime("%H:%M"), duration=duration)
+  tasks[task_id] = "Ouverture vanne lancée à {date} pour {duration}.".format(date=current_date.strftime("%H:%M"), duration=duration)
 
   # Lancement en thread
   thread = threading.Thread(target=open_valve_task, args=(task_id, duration))
