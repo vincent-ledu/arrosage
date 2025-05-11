@@ -47,38 +47,39 @@
     </div>
 
     <script>
-      function getLevel() {
-        fetch("/api/checkWaterLevel")
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.level !== undefined) {
-              document.getElementById(
-                "level"
-              ).textContent = `Niveau d'eau : ${data.level}%`;
-            } else {
-              document.getElementById("level").textContent =
-                "Erreur : impossible d'obtenir le niveau";
-            }
-          });
-      }
-
       function startOpenWater() {
         const duration = document.getElementById("duration").value;
+        const button = document.querySelector("button:nth-of-type(2)");
+        button.disabled = true;
+
         if (!duration) {
           alert("Entrez une durée");
+          button.disabled = false;
           return;
         }
 
-        fetch(`/api/openwater?duration=${duration}`)
-          .then((res) => res.json())
+        fetch(`/api/open-water?duration=${duration}`)
+          .then((res) => {
+            if (!res.ok) {
+              return res.json().then((data) => {
+                throw new Error(data.error || "Erreur inconnue");
+              });
+            }
+            return res.json();
+          })
           .then((data) => {
             document.getElementById("message").textContent =
               "Tâche lancée. Suivi en cours...";
-            checkStatus(data.task_id);
+            checkStatus(data.task_id, button);
+          })
+          .catch((err) => {
+            document.getElementById("message").textContent =
+              "Erreur : " + err.message;
+            button.disabled = false;
           });
       }
 
-      function checkStatus(taskId) {
+      function checkStatus(taskId, button) {
         const interval = setInterval(() => {
           fetch(`/api/task-status/${taskId}`)
             .then((res) => res.json())
@@ -88,6 +89,7 @@
               ).textContent = `Statut : ${data.status}`;
               if (data.status !== "en cours") {
                 clearInterval(interval);
+                button.disabled = false;
               }
             });
         }, 3000);
