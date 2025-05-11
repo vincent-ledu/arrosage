@@ -70,7 +70,7 @@ Delay must be under 300 seconds (5minutes)
 '''
 @app.route("/api/openwater")
 def OpenWaterDelay():
-  duration = request.args.get("duration", "10")
+  duration = int(request.args.get("duration", "10"))
   print(duration)
                               
   print("check if water")
