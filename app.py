@@ -1,5 +1,5 @@
 import RPi.GPIO as GPIO
-from time import strftime, time
+import time
 from signal import signal, SIGINT
 from sys import exit
 from flask import Flask, request, render_template, jsonify
