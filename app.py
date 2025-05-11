@@ -82,7 +82,7 @@ def CheckWaterLevel():
 
 
 @app.route('/api/task-status')
-def task_status():
+def task_list():
    return jsonify(tasks)
 
 
