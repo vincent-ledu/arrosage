@@ -5,6 +5,7 @@ from sys import exit
 from flask import Flask, request, render_template, jsonify
 import uuid
 import threading
+import datetime as dt
 import atexit
 
 app = Flask(__name__)
@@ -117,9 +118,11 @@ def OpenWaterDelay():
   if duration > 300:
     print("Delay is to high, risk to empty containter")
     return
+  
+  current_date = dt.date.today()
+  
   task_id = str(uuid.uuid4())
-
-  tasks[task_id] = "en cours"
+  tasks[task_id] = "Ouverture vanne lancée à ${date} pour ${duration}.".format(date=current_date.strftime("%H:%M"), duration=duration)
 
   # Lancement en thread
   thread = threading.Thread(target=open_valve_task, args=(task_id, duration))
