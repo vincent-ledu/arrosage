@@ -89,6 +89,7 @@ def OpenWaterDelay():
   print("Turning Off VANNE & PUMP")
   GPIO.output(VANNE, GPIO.LOW)
   GPIO.output(PUMP, GPIO.LOW)
+  return {"message": "OK"}
 
 if __name__ == '__main__':
   # On prévient Python d'utiliser la method handler quand un signal SIGINT est reçu
