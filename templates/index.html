@@ -73,7 +73,7 @@
           return;
         }
 
-        fetch(`/api/open-water?duration=${duration}`)
+        fetch(`/api/openwater?duration=${duration}`)
           .then((res) => {
             if (!res.ok) {
               return res.json().then((data) => {
