@@ -1,11 +1,11 @@
 import RPi.GPIO as GPIO
-import time
+from time import strftime, time
 from signal import signal, SIGINT
 from sys import exit
 from flask import Flask, request, render_template, jsonify
 import uuid
 import threading
-import datetime as dt
+from datetime import datetime
 import atexit
 
 app = Flask(__name__)
@@ -119,10 +119,10 @@ def OpenWaterDelay():
     print("Delay is to high, risk to empty containter")
     return
   
-  current_date = dt.date.today()
+  now = datetime.now()
   
   task_id = str(uuid.uuid4())
-  tasks[task_id] = "Ouverture vanne lancée à {date} pour {duration}.".format(date=current_date.strftime("%H:%M"), duration=duration)
+  tasks[task_id] = "Ouverture vanne lancée à {date} pour {duration} secondes.".format(date=strftime("%H:%M:%S", now), duration=duration)
 
   # Lancement en thread
   thread = threading.Thread(target=open_valve_task, args=(task_id, duration))
