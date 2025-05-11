@@ -2,14 +2,11 @@ import RPi.GPIO as GPIO
 import time
 from signal import signal, SIGINT
 from sys import exit
-from flask import Flask, request
+from flask import Flask, request, render_template
 import atexit
 
 app = Flask(__name__)
 
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
 
 # Numérotation BCM (par GPIO, pas numéro de pin physique)
 GPIO.setmode(GPIO.BCM)
@@ -41,6 +38,10 @@ def handler(signal_received, frame):
 def cleanup_app():
   print("GPIO Clean up")
   GPIO.cleanup()
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route("/api/checkWaterLevel")
 def CheckWaterLevel():

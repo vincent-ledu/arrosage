@@ -48,10 +48,8 @@
     </div>
 
     <script>
-      const apiBase = "http://192.168.0.187:3000/api";
-
       function getLevel() {
-        fetch(`${apiBase}/water-level`)
+        fetch("/api/water-level")
           .then((res) => res.json())
           .then((data) => {
             if (data.level !== undefined) {
@@ -72,7 +70,7 @@
           return;
         }
 
-        fetch(`${apiBase}/open-water?duration=${duration}`)
+        fetch(`/api/open-water?duration=${duration}`)
           .then((res) => res.json())
           .then((data) => {
             document.getElementById("message").textContent =
@@ -80,7 +78,6 @@
           });
       }
 
-      // Auto-chargement du niveau au démarrage
       window.onload = getLevel;
     </script>
   </body>
