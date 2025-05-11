@@ -42,7 +42,7 @@ def cleanup_app():
   print("GPIO Clean up")
   GPIO.cleanup()
 
-@app.route("/checkWaterLevel")
+@app.route("/api/checkWaterLevel")
 def CheckWaterLevel():
   if GPIO.input(WATER_FULL):
     print("Container full")
@@ -67,7 +67,7 @@ def IfWater():
 Open water for 'delay' seconds, if there is enough water
 Delay must be under 300 seconds (5minutes)
 '''
-@app.route("/openwater")
+@app.route("/api/openwater")
 def OpenWaterDelay(duration):
   duration = int(request.args.get('duration'))
   print("check if water")
