@@ -47,6 +47,21 @@
     </div>
 
     <script>
+      function getLevel() {
+        fetch("/api/checkWaterLevel")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.level !== undefined) {
+              document.getElementById(
+                "level"
+              ).textContent = `Niveau d'eau : ${data.level}%`;
+            } else {
+              document.getElementById("level").textContent =
+                "Erreur : impossible d'obtenir le niveau";
+            }
+          });
+      }
+
       function startOpenWater() {
         const duration = document.getElementById("duration").value;
         const button = document.querySelector("button:nth-of-type(2)");
