@@ -2,7 +2,9 @@ import RPi.GPIO as GPIO
 import time
 from signal import signal, SIGINT
 from sys import exit
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
+import uuid
+import threading
 import atexit
 
 app = Flask(__name__)
@@ -28,6 +30,8 @@ GPIO.setup(WATER_FULL, GPIO.IN)
 GPIO.setup(VANNE, GPIO.OUT)
 GPIO.setup(PUMP, GPIO.OUT)
 
+tasks = {}  # Dictionnaire pour stocker l’état des tâches
+
 def handler(signal_received, frame):
   # on gere un cleanup propre
   print('SIGINT or CTRL-C detected. Exiting gracefully')
@@ -38,6 +42,22 @@ def handler(signal_received, frame):
 def cleanup_app():
   print("GPIO Clean up")
   GPIO.cleanup()
+
+
+def open_valve_task(task_id, duration):
+    try:
+      print("Turning On VANNE")
+      GPIO.output(VANNE, GPIO.HIGH)
+      time.sleep(2)
+      print("Turning On PUMP")
+      GPIO.output(PUMP, GPIO.HIGH)
+      time.sleep(duration)
+      print("Turning Off VANNE & PUMP")
+      GPIO.output(VANNE, GPIO.LOW)
+      GPIO.output(PUMP, GPIO.LOW)
+      tasks[task_id] = "terminée"
+    except Exception as e:
+        tasks[task_id] = f"erreur: {str(e)}"
 
 @app.route('/')
 def index():
@@ -60,9 +80,16 @@ def CheckWaterLevel():
   print("Container empty")
   return { "level": 0 }
 
+@app.route('/api/task-status/<task_id>')
+def task_status(task_id):
+    status = tasks.get(task_id)
+    if status is None:
+        return jsonify({"error": "Tâche inconnue"}), 404
+    return jsonify({"task_id": task_id, "status": status})
+
 def IfWater():
   return GPIO.input(WATER_EMPTY)
-   
+
 
 '''
 Open water for 'delay' seconds, if there is enough water
@@ -80,16 +107,16 @@ def OpenWaterDelay():
   if duration > 300:
     print("Delay is to high, risk to empty containter")
     return
-  print("Turning On VANNE")
-  GPIO.output(VANNE, GPIO.HIGH)
-  time.sleep(2)
-  print("Turning On PUMP")
-  GPIO.output(PUMP, GPIO.HIGH)
-  time.sleep(duration)
-  print("Turning Off VANNE & PUMP")
-  GPIO.output(VANNE, GPIO.LOW)
-  GPIO.output(PUMP, GPIO.LOW)
-  return {"message": "OK"}
+  task_id = str(uuid.uuid4())
+
+  tasks[task_id] = "en cours"
+
+  # Lancement en thread
+  thread = threading.Thread(target=open_valve_task, args=(task_id, duration))
+  thread.start()
+
+  return jsonify({"task_id": task_id, "status": "en cours"}), 202
+
 
 if __name__ == '__main__':
   # On prévient Python d'utiliser la method handler quand un signal SIGINT est reçu

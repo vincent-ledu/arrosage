@@ -30,7 +30,6 @@
       }
       #message {
         text-align: center;
-        color: green;
         margin-top: 10px;
       }
     </style>
@@ -42,7 +41,7 @@
       <button onclick="getLevel()">Actualiser le niveau</button>
 
       <input type="number" id="duration" placeholder="Durée (en secondes)" />
-      <button onclick="openWater()">Ouvrir la vanne</button>
+      <button onclick="startOpenWater()">Ouvrir la vanne</button>
 
       <div id="message"></div>
     </div>
@@ -63,10 +62,10 @@
           });
       }
 
-      function openWater() {
+      function startOpenWater() {
         const duration = document.getElementById("duration").value;
         if (!duration) {
-          alert("Entrez une durée en secondes");
+          alert("Entrez une durée");
           return;
         }
 
@@ -74,8 +73,24 @@
           .then((res) => res.json())
           .then((data) => {
             document.getElementById("message").textContent =
-              data.message || data.error;
+              "Tâche lancée. Suivi en cours...";
+            checkStatus(data.task_id);
           });
+      }
+
+      function checkStatus(taskId) {
+        const interval = setInterval(() => {
+          fetch(`/api/task-status/${taskId}`)
+            .then((res) => res.json())
+            .then((data) => {
+              document.getElementById(
+                "message"
+              ).textContent = `Statut : ${data.status}`;
+              if (data.status !== "en cours") {
+                clearInterval(interval);
+              }
+            });
+        }, 3000);
       }
 
       window.onload = getLevel;
