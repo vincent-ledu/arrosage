@@ -49,7 +49,7 @@
 
     <script>
       function getLevel() {
-        fetch("/api/water-level")
+        fetch("/api/checkWaterLevel")
           .then((res) => res.json())
           .then((data) => {
             if (data.level !== undefined) {
@@ -70,7 +70,7 @@
           return;
         }
 
-        fetch(`/api/open-water?duration=${duration}`)
+        fetch(`/api/openwater?duration=${duration}`)
           .then((res) => res.json())
           .then((data) => {
             document.getElementById("message").textContent =
