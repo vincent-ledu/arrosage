@@ -119,10 +119,8 @@ def OpenWaterDelay():
     print("Delay is to high, risk to empty containter")
     return
   
-  now = datetime.now()
-  
   task_id = str(uuid.uuid4())
-  tasks[task_id] = "Ouverture vanne lancée à {date} pour {duration} secondes.".format(date=strftime("%H:%M:%S", now), duration=duration)
+  tasks[task_id] = "Ouverture vanne lancée à {date} pour {duration} secondes.".format(date=strftime("%H:%M:%S", datetime.now()), duration=duration)
 
   # Lancement en thread
   thread = threading.Thread(target=open_valve_task, args=(task_id, duration))
