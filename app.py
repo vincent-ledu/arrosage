@@ -33,17 +33,21 @@ GPIO.setup(PUMP, GPIO.OUT)
 
 tasks = {}  # Dictionnaire pour stocker l’état des tâches
 cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Event()}
-
+isCleaned = False
 def handler(signal_received, frame):
   # on gere un cleanup propre
   print('SIGINT or CTRL-C detected. Exiting gracefully')
   print("GPIO Clean up sigint")
-  GPIO.cleanup()
+  if not isCleaned:
+    GPIO.cleanup()
+    isCleaned = True
   exit(0)
 
 def cleanup_app():
   print("GPIO Clean up app")
-  GPIO.cleanup()
+  if not isCleaned:
+    GPIO.cleanup()
+    isCleaned = True
 
 
 def open_water_task(task_id, duration, cancel_event):
