@@ -192,7 +192,7 @@ def closeWaterSupply():
       cancel_event.set()
       update_status(task.get("id"), "annulé")
       cancelled_tasks.append(task.get("id"))
-  if cancelled_tasks.count() > 0:
+  if len(cancelled_tasks) > 0:
     return jsonify({"message": f"Tâche {cancelled_tasks} arrêtée"}), 200
   return jsonify({"message": "Aucune tâche en cours à arrêter"}), 400
 
