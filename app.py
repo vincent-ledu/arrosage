@@ -7,6 +7,7 @@ import uuid
 import threading
 from datetime import datetime
 import atexit
+from collections import defaultdict
 
 app = Flask(__name__)
 
@@ -34,6 +35,13 @@ GPIO.setup(PUMP, GPIO.OUT)
 tasks = {}  # Dictionnaire pour stocker l’état des tâches
 cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Event()}
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+@app.route('/history')
+def history_page():
+    return render_template("history.html")
+
 def handler(signal_received, frame):
   # on gere un cleanup propre
   print('SIGINT or CTRL-C detected. Exiting gracefully')
@@ -44,7 +52,6 @@ def handler(signal_received, frame):
 def cleanup_app():
   print("GPIO Clean up app")
   GPIO.cleanup()
-
 
 def open_water_task(task_id, duration, cancel_event):
   try:
@@ -69,9 +76,6 @@ def open_water_task(task_id, duration, cancel_event):
   except Exception as e:
       tasks[task_id]["status"] = f"erreur: {str(e)}"
 
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 @app.route("/api/water-level")
 def CheckWaterLevel():
@@ -173,6 +177,18 @@ def closeWaterSupply():
         task["status"] = "annulé"
         return jsonify({"message": f"Tâche {task_id} arrêtée"}), 200
   return jsonify({"message": "Aucune tâche en cours à arrêter"}), 400
+
+@app.route('/api/history')
+def get_history():
+  history = defaultdict(int)
+  for task in tasks.values():
+    if task.get("status") == "terminé":
+      day = datetime.fromtimestamp(task["start_time"]).strftime('%Y-%m-%d')
+      history[day] += task.get("duration", 0)
+
+  # Convert durations en minutes, rounded
+  result = [{"date": day, "duration": round(seconds / 60, 1)} for day, seconds in sorted(history.items())]
+  return jsonify(result)
 
    
 
