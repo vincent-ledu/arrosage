@@ -196,7 +196,7 @@ def get_history():
   history = defaultdict(int)
   for task in tasks.values():
     logger.debug(task)
-    if task.get("status") == "terminé":
+    if task.get("status") == "terminée":
       day = datetime.fromtimestamp(task["start_time"]).strftime('%Y-%m-%d')
       history[day] += task.get("duration", 0)
 
