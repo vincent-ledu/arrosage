@@ -44,7 +44,7 @@
           data[ts] = Math.round(rawData[ts] / 60);
         }
 
-        const cal = new CalHeatmap.CalHeatmap();
+        const cal = new CalHeatmap();
         cal.paint({
           itemSelector: "#cal-heatmap",
           domain: "month",
@@ -65,7 +65,7 @@
             start: new Date(),
           },
           plugin: [
-            CalHeatmap.Tooltip({
+            Tooltip({
               text: (date, value) =>
                 `${date.toLocaleDateString("fr-FR")} : ${value || 0} min`,
             }),
