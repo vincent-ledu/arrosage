@@ -33,14 +33,12 @@ GPIO.setup(PUMP, GPIO.OUT)
 
 tasks = {}  # Dictionnaire pour stocker l’état des tâches
 cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Event()}
-isCleaned = False
+
 def handler(signal_received, frame):
   # on gere un cleanup propre
   print('SIGINT or CTRL-C detected. Exiting gracefully')
   print("GPIO Clean up sigint")
-  if not isCleaned:
-    GPIO.cleanup()
-    isCleaned = True
+  GPIO.cleanup()
   exit(0)
 
 def cleanup_app():
