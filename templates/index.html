@@ -156,8 +156,8 @@
       function startOpenWater() {
         const duration = document.getElementById("duration").value;
         const button = document.getElementById("open-btn");
-        button.disabled = true;
-        document.getElementById("close-btn").disabled = false;
+        button.disabled = true; // désactive "Arroser"
+        document.getElementById("close-btn").disabled = false; // active "Arrêter"
 
         if (!duration || parseInt(duration) <= 0) {
           alert("Entrez une durée valide.");
@@ -199,6 +199,7 @@
           .then((data) => {
             document.getElementById("message").textContent =
               "Vanne fermée manuellement.";
+
             document.getElementById("open-btn").disabled = false;
             document.getElementById("close-btn").disabled = true;
           })
@@ -228,7 +229,8 @@
       window.onload = () => {
         getLevel();
         setInterval(getLevel, 30000); // Rafraîchit toutes les 30s
-        document.getElementById("close-btn").disabled = true; // désactivé au démarrage
+        document.getElementById("open-btn").disabled = false;
+        document.getElementById("close-btn").disabled = true;
       };
     </script>
   </body>
