@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Historique d’Arrosage</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+        background-color: #f0f0f0;
+        max-width: 600px;
+        margin: auto;
+      }
+      canvas {
+        max-width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Historique d’arrosage (minutes / jour)</h2>
+    <canvas id="historyChart"></canvas>
+
+    <script>
+      async function fetchHistory() {
+        const response = await fetch("/api/history");
+        const data = await response.json();
+
+        const labels = data.map((entry) => entry.date);
+        const durations = data.map((entry) => entry.duration);
+
+        const ctx = document.getElementById("historyChart").getContext("2d");
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Minutes d’arrosage",
+                data: durations,
+                backgroundColor: "rgba(75, 192, 192, 0.6)",
+                borderColor: "rgba(75, 192, 192, 1)",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              x: { title: { display: true, text: "Date" } },
+              y: {
+                title: { display: true, text: "Durée (minutes)" },
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+      }
+
+      window.onload = fetchHistory;
+    </script>
+  </body>
+</html>
