@@ -196,7 +196,7 @@ def closeWaterSupply():
 @app.route('/api/history')
 def get_history():
   history = defaultdict(int)
-  for task in get_tasks_by_status("en cours"):
+  for task in get_tasks_by_status("terminé"):
     day = datetime.fromtimestamp(task["start_time"]).strftime('%Y-%m-%d')
     history[day] += task.get("duration", 0)
 
