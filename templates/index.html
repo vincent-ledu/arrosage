@@ -32,6 +32,35 @@
         text-align: center;
         margin-top: 10px;
       }
+      .tank-container {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
+      }
+      .tank {
+        position: relative;
+        width: 100px;
+        height: 200px;
+        border: 4px solid #333;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #eee;
+      }
+      .water {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        background: linear-gradient(to top, #4fc3f7, #81d4fa);
+        transition: height 1s ease;
+      }
+      .level-label {
+        position: absolute;
+        top: 10px;
+        width: 100%;
+        text-align: center;
+        font-weight: bold;
+        color: #333;
+      }
     </style>
   </head>
   <body>
@@ -44,17 +73,30 @@
       <button onclick="startOpenWater()">Ouvrir la vanne</button>
 
       <div id="message"></div>
+      <div class="tank-container">
+        <div class="tank">
+          <div class="water" id="water-fill"></div>
+          <div class="level-label" id="level-label">--%</div>
+        </div>
+      </div>
     </div>
 
     <script>
       function getLevel() {
-        fetch("/api/checkWaterLevel")
+        fetch("/api/water-level")
           .then((res) => res.json())
           .then((data) => {
             if (data.level !== undefined) {
+              const level = data.level;
               document.getElementById(
                 "level"
-              ).textContent = `Niveau d'eau : ${data.level}%`;
+              ).textContent = `Niveau d'eau : ${level}%`;
+
+              const waterFill = document.getElementById("water-fill");
+              const levelLabel = document.getElementById("level-label");
+
+              waterFill.style.height = `${level}%`;
+              levelLabel.textContent = `${level}%`;
             } else {
               document.getElementById("level").textContent =
                 "Erreur : impossible d'obtenir le niveau";
