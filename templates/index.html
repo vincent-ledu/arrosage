@@ -83,7 +83,7 @@
 
     <script>
       function getLevel() {
-        fetch("/api/water-level")
+        fetch("/api/checkWaterLevel")
           .then((res) => res.json())
           .then((data) => {
             if (data.level !== undefined) {
