@@ -6,9 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Cal-Heatmap CSS -->
+
     <link
       rel="stylesheet"
-      href="https://unpkg.com/cal-heatmap@4.3.4/cal-heatmap.css"
+      href="https://unpkg.com/cal-heatmap/dist/cal-heatmap.css"
     />
 
     <style>
@@ -32,8 +33,7 @@
     <div id="cal-heatmap"></div>
 
     <!-- Cal-Heatmap + D3 Bundle UMD -->
-    <script src="https://unpkg.com/cal-heatmap@4.3.4/dist/bundle.min.js"></script>
-
+    <script src="https://unpkg.com/cal-heatmap/dist/cal-heatmap.min.js"></script>
     <script>
       async function loadHeatmap() {
         const response = await fetch("/api/history-heatmap");
