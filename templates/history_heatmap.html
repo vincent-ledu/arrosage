@@ -2,9 +2,58 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <title>Historique d’arrosage - Heatmap</title>
+    <title>Historique d’arrosage</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.jsdelivr.net/npm/cal-heatmap@4/dist/cal-heatmap.min.js"></script>
+    <script type="module">
+      import CalHeatmap from "https://cdn.skypack.dev/cal-heatmap";
+      import Tooltip from "https://cdn.skypack.dev/cal-heatmap/plugins/Tooltip";
+
+      async function loadHeatmap() {
+        const response = await fetch("/api/history-heatmap");
+        const rawData = await response.json();
+
+        // Convertit les durées (en secondes) vers minutes
+        const data = {};
+        for (const ts in rawData) {
+          data[ts] = Math.round(rawData[ts] / 60); // minutes d’arrosage
+        }
+
+        const cal = new CalHeatmap();
+        cal.paint({
+          itemSelector: "#cal-heatmap",
+          domain: "month",
+          subDomain: "day",
+          range: 3,
+          data: {
+            source: data,
+            type: "json",
+          },
+          scale: {
+            color: {
+              type: "linear",
+              domain: [0, 30],
+              range: ["#e0f7fa", "#006064"],
+            },
+          },
+          tooltip: {
+            enabled: true,
+            plugin: Tooltip,
+            options: {
+              text: (date, value) => {
+                return `${date.toLocaleDateString("fr-FR")} : ${
+                  value || 0
+                } min`;
+              },
+            },
+          },
+          date: {
+            start: new Date(),
+          },
+        });
+      }
+
+      loadHeatmap();
+    </script>
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/cal-heatmap@4/dist/cal-heatmap.css"
@@ -12,8 +61,8 @@
     <style>
       body {
         font-family: sans-serif;
-        max-width: 800px;
         margin: 2rem auto;
+        max-width: 800px;
         padding: 1rem;
       }
       #cal-heatmap {
@@ -24,46 +73,6 @@
   <body>
     <h2>Historique d’arrosage</h2>
     <p>Durée d’arrosage par jour (en minutes)</p>
-
     <div id="cal-heatmap"></div>
-
-    <script>
-      async function loadHeatmap() {
-        const response = await fetch("/api/history-heatmap");
-        const rawData = await response.json();
-
-        // Convertir les secondes en minutes pour la heatmap
-        const data = {};
-        for (const ts in rawData) {
-          data[+ts] = Math.round(rawData[ts] / 60);
-        }
-
-        const cal = new CalHeatmap();
-        cal.paint({
-          itemSelector: "#cal-heatmap",
-          domain: "month",
-          subDomain: "day",
-          range: 3,
-          data: { source: data, type: "json" },
-          scale: {
-            color: {
-              type: "linear",
-              domain: [0, 30],
-              range: ["#e0f7fa", "#006064"],
-            },
-          },
-          tooltip: {
-            enabled: true,
-            template: ({ date, value }) => {
-              const d = date.toLocaleDateString();
-              return `${d} : ${value || 0} min d’arrosage`;
-            },
-          },
-          date: { start: new Date() },
-        });
-      }
-
-      loadHeatmap();
-    </script>
   </body>
 </html>
