@@ -58,7 +58,7 @@ def history_page():
   return render_template("history.html")
 
 @app.route('/history_heatmap')
-def history_page():
+def history_heatmap_page():
   return render_template("history_heatmap.html")
 
 def handler(signal_received, frame):
