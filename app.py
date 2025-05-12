@@ -101,7 +101,7 @@ def task_status(task_id):
   task = tasks.get(task_id)
   if not task:
       return jsonify({"error": "Tâche introuvable"}), 404
-
+  print(task)
   return jsonify({
       "status": task["status"],
       "start_time": task["start_time"],
