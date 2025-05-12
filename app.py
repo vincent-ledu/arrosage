@@ -9,6 +9,9 @@ from datetime import datetime
 import atexit
 from collections import defaultdict
 import logging
+from db import get_tasks_by_status, init_db, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day
+
+init_db()
 
 # Configuration globale du logger
 logging.basicConfig(
@@ -47,7 +50,7 @@ GPIO.setup(WATER_FULL, GPIO.IN)
 GPIO.setup(VANNE, GPIO.OUT)
 GPIO.setup(PUMP, GPIO.OUT)
 
-tasks = {}  # Dictionnaire pour stocker l’état des tâches
+#tasks = {}  # Dictionnaire pour stocker l’état des tâches
 cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Event()}
 
 @app.route('/')
@@ -83,16 +86,16 @@ def open_water_task(task_id, duration, cancel_event):
     GPIO.output(PUMP, GPIO.HIGH)
     while elapsed < duration:
       if cancel_event.is_set():
-          tasks[task_id]["status"] = "annulé"
+          update_status(task_id, "annulé")
           return
       time.sleep(interval)
       elapsed += interval
     logger.info("Turning Off VANNE & PUMP")
     GPIO.output(VANNE, GPIO.LOW)
     GPIO.output(PUMP, GPIO.LOW)
-    tasks[task_id]["status"] = "terminée"
+    update_status(task_id, "terminée")
   except Exception as e:
-      tasks[task_id]["status"] = f"erreur: {str(e)}"
+      update_status(task_id, f"erreur: {str(e)}")
 
 
 @app.route("/api/water-level")
@@ -125,12 +128,12 @@ def CheckWaterLevels():
 
 @app.route('/api/tasks')
 def task_list():
-   return jsonify(tasks)
+   return jsonify(get_all_tasks())
 
 
 @app.route('/api/task-status/<task_id>')
 def task_status(task_id):
-  task = tasks.get(task_id)
+  task = get_task(task_id)
   if not task:
       return jsonify({"error": "Tâche introuvable"}), 404
   logger.debug(task)
@@ -151,7 +154,7 @@ Delay must be under 300 seconds (5minutes)
 @app.route("/api/open-water")
 def OpenWaterDelay():
   # Vérifie s’il existe déjà une tâche en cours
-  if any(status == "en cours" for status in tasks.values()):
+  if any(status == "en cours" for status in get_all_tasks()):
     return jsonify({"error": "Une vanne est déjà ouverte. Attendez qu'elle se referme."}), 409
 
   duration = int(request.args.get("duration", "0"))
@@ -169,11 +172,7 @@ def OpenWaterDelay():
   cancel_flags[task_id] = cancel_event
 
   start_time = time.time()
-  tasks[task_id] = {
-    "status": "en cours",
-    "start_time": start_time,
-    "duration": duration
-  }
+  add_task(task_id, start_time, duration, "en cours")
   # Lancement en thread
   thread = threading.Thread(target=open_water_task, args=(task_id, duration, cancel_event))
   thread.start()
@@ -186,20 +185,18 @@ def closeWaterSupply():
   GPIO.output(VANNE, GPIO.LOW)
   GPIO.output(PUMP, GPIO.LOW)
   
-  for task_id, task in tasks.items():
-    if task["status"] == "en cours":
-      cancel_event = cancel_flags.get(task_id)
-      if cancel_event:
-        cancel_event.set()
-        task["status"] = "annulé"
-        return jsonify({"message": f"Tâche {task_id} arrêtée"}), 200
+  for task_id, task in get_tasks_by_status("en cours"):
+    cancel_event = cancel_flags.get(task_id)
+    if cancel_event:
+      cancel_event.set()
+      task["status"] = "annulé"
+      return jsonify({"message": f"Tâche {task_id} arrêtée"}), 200
   return jsonify({"message": "Aucune tâche en cours à arrêter"}), 400
 
 @app.route('/api/history')
 def get_history():
   history = defaultdict(int)
-  for task in tasks.values():
-    logger.debug(task)
+  for task in get_all_tasks():
     if task.get("status") == "terminée":
       day = datetime.fromtimestamp(task["start_time"]).strftime('%Y-%m-%d')
       history[day] += task.get("duration", 0)
@@ -210,16 +207,7 @@ def get_history():
 
 @app.route('/api/history-heatmap')
 def history_heatmap():
-  from collections import defaultdict
-
-  history = defaultdict(int)
-  for task in tasks.values():
-    if task.get("status") == "terminée":
-      ts = int(task["start_time"])
-      history[ts - ts % 86400] += task.get("duration", 0)  # arrondi à minuit
-
-  # Format attendu par Cal-Heatmap : {timestamp (sec): valeur numérique}
-  return jsonify(history)
+  return jsonify(get_tasks_summary_by_day())
 
 
 if __name__ == '__main__':
