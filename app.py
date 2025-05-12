@@ -166,8 +166,8 @@ def clodeWaterSupply():
   GPIO.output(PUMP, GPIO.LOW)
   print(tasks)
   for task_id, status in tasks.items():
-    print(task_id)
-    print(status)
+    print("task_id: {task_id}".format(task_id))
+    print("status : {status}".format(status))
     if status == "en cours" and task_id in cancel_flags:
         cancel_flags[task_id].set()  # active le flag d’annulation
         tasks[task_id] = "annulé"
