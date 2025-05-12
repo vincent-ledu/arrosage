@@ -160,19 +160,19 @@ def OpenWaterDelay():
   return jsonify({"task_id": task_id, "status": "en cours"}), 202
 
 @app.route("/api/close-water")
-def clodeWaterSupply():
+def closeWaterSupply():
   print("Turning Off VANNE & PUMP")
   GPIO.output(VANNE, GPIO.LOW)
   GPIO.output(PUMP, GPIO.LOW)
-  print(tasks)
-  for task_id, status in tasks.items():
-    print("task_id: {task_id}".format(task_id))
-    print("status : {status}".format(status))
-    if status == "en cours" and task_id in cancel_flags:
-        cancel_flags[task_id].set()  # active le flag d’annulation
-        tasks[task_id] = "annulé"
-        return jsonify({"message": "Arrosage arrêté"}), 200
-  return jsonify({"message": "Aucun arrosage en cours"}), 400
+  
+  for task_id, task in tasks.items():
+    if task["status"] == "en cours":
+      cancel_event = cancel_flags.get(task_id)
+      if cancel_event:
+        cancel_event.set()
+        task["status"] = "annulé"
+        return jsonify({"message": f"Tâche {task_id} arrêtée"}), 200
+  return jsonify({"message": "Aucune tâche en cours à arrêter"}), 400
 
    
 
