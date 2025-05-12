@@ -37,12 +37,12 @@ cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Even
 def handler(signal_received, frame):
   # on gere un cleanup propre
   print('SIGINT or CTRL-C detected. Exiting gracefully')
-  print("GPIO Clean up")
+  print("GPIO Clean up sigint")
   GPIO.cleanup()
   exit(0)
 
 def cleanup_app():
-  print("GPIO Clean up")
+  print("GPIO Clean up app")
   GPIO.cleanup()
 
 
