@@ -13,7 +13,35 @@
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
+nav {
+  background-color: #4db6ac;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
 
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+}
+
+nav li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+nav li a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  nav ul {
+    flex-direction: column;
+  }
+}
 h2 {
   text-align: center;
 }
