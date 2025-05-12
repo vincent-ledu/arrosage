@@ -45,9 +45,7 @@ def handler(signal_received, frame):
 
 def cleanup_app():
   print("GPIO Clean up app")
-  if not isCleaned:
-    GPIO.cleanup()
-    isCleaned = True
+  GPIO.cleanup()
 
 
 def open_water_task(task_id, duration, cancel_event):
