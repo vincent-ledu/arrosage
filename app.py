@@ -52,10 +52,14 @@ cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Even
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+  return render_template('index.html')
 @app.route('/history')
 def history_page():
-    return render_template("history.html")
+  return render_template("history.html")
+
+@app.route('/history_heatmap')
+def history_page():
+  return render_template("history_heatmap.html")
 
 def handler(signal_received, frame):
   # on gere un cleanup propre
@@ -204,7 +208,19 @@ def get_history():
   result = [{"date": day, "duration": round(seconds / 60, 1)} for day, seconds in sorted(history.items())]
   return jsonify(result)
 
-   
+@app.route('/api/history-heatmap')
+def history_heatmap():
+  from collections import defaultdict
+
+  history = defaultdict(int)
+  for task in tasks.values():
+    if task.get("status") == "terminée":
+      ts = int(task["start_time"])
+      history[ts - ts % 86400] += task.get("duration", 0)  # arrondi à minuit
+
+  # Format attendu par Cal-Heatmap : {timestamp (sec): valeur numérique}
+  return jsonify(history)
+
 
 if __name__ == '__main__':
   # On prévient Python d'utiliser la method handler quand un signal SIGINT est reçu
