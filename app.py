@@ -65,9 +65,9 @@ def open_water_task(task_id, duration, cancel_event):
     print("Turning Off VANNE & PUMP")
     GPIO.output(VANNE, GPIO.LOW)
     GPIO.output(PUMP, GPIO.LOW)
-    tasks[task_id] = "terminée"
+    tasks[task_id]["status"] = "terminée"
   except Exception as e:
-      tasks[task_id] = f"erreur: {str(e)}"
+      tasks[task_id]["status"] = f"erreur: {str(e)}"
 
 @app.route('/')
 def index():
