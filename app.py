@@ -64,7 +64,7 @@ def open_valve_task(task_id, duration):
 def index():
     return render_template('index.html')
 
-@app.route("/api/checkWaterLevel")
+@app.route("/api/water-level")
 def CheckWaterLevel():
   if GPIO.input(WATER_FULL):
     print("Container full")
@@ -102,7 +102,7 @@ def IfWater():
 Open water for 'delay' seconds, if there is enough water
 Delay must be under 300 seconds (5minutes)
 '''
-@app.route("/api/openwater")
+@app.route("/api/open-water")
 def OpenWaterDelay():
   # Vérifie s’il existe déjà une tâche en cours
   if any(status == "en cours" for status in tasks.values()):
