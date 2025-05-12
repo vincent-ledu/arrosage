@@ -93,7 +93,7 @@ def open_water_task(task_id, duration, cancel_event):
     logger.info("Turning Off VANNE & PUMP")
     GPIO.output(VANNE, GPIO.LOW)
     GPIO.output(PUMP, GPIO.LOW)
-    update_status(task_id, "terminée")
+    update_status(task_id, "terminé")
   except Exception as e:
       update_status(task_id, f"erreur: {str(e)}")
 
@@ -197,7 +197,7 @@ def closeWaterSupply():
 def get_history():
   history = defaultdict(int)
   for task in get_all_tasks():
-    if task.get("status") == "terminée":
+    if task.get("status") == "terminé":
       day = datetime.fromtimestamp(task["start_time"]).strftime('%Y-%m-%d')
       history[day] += task.get("duration", 0)
 
