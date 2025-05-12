@@ -74,7 +74,7 @@ def open_water_task(task_id, duration, cancel_event):
 def index():
     return render_template('index.html')
 
-@app.route("/api/water-level")
+@app.route("/api/check-water-level")
 def CheckWaterLevel():
   if GPIO.input(WATER_FULL):
     print("Container full")
