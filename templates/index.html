@@ -2,235 +2,160 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
+    <title>Gestion d'Arrosage</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contrôle de la Citerne</title>
     <style>
       body {
-        font-family: Arial, sans-serif;
+        font-family: sans-serif;
         padding: 20px;
-        background: #f2f4f7;
-      }
-
-      .container {
         max-width: 400px;
         margin: auto;
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        background-color: #f4f4f4;
       }
-
-      h2 {
+      h1 {
         text-align: center;
       }
-
-      .tank-container {
-        display: flex;
-        justify-content: center;
-        margin: 20px 0;
-      }
-
       .tank {
-        position: relative;
-        width: 100px;
-        height: 200px;
-        border: 4px solid #333;
-        border-radius: 10px;
-        overflow: hidden;
-        background: #eee;
-      }
-
-      .water {
-        position: absolute;
-        bottom: 0;
         width: 100%;
-        background: linear-gradient(to top, #4fc3f7, #81d4fa);
-        transition: height 1s ease;
+        max-width: 300px;
+        margin: 20px auto;
       }
-
-      .level-label {
-        position: absolute;
-        top: 10px;
+      #water-level {
         width: 100%;
-        text-align: center;
-        font-weight: bold;
-        color: #333;
+        height: auto;
       }
-
+      input,
       button {
         width: 100%;
-        padding: 12px;
-        margin-top: 10px;
-        font-size: 16px;
-        background: #4fc3f7;
-        border: none;
-        border-radius: 8px;
-        color: white;
-        cursor: pointer;
-      }
-
-      button:disabled {
-        background: #ccc;
-        cursor: not-allowed;
-      }
-
-      .flex-row {
-        display: flex;
-        gap: 8px;
-        margin-top: 10px;
-      }
-
-      .flex-row input[type="number"] {
-        flex: 1;
         padding: 10px;
+        margin: 10px 0;
         font-size: 16px;
       }
-
-      .flex-row button {
-        flex-shrink: 0;
-        padding: 10px 16px;
-        font-size: 16px;
-      }
-
-      #message {
+      #status-info {
         text-align: center;
+        font-size: 14px;
         margin-top: 10px;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <h2>Contrôle de la Citerne</h2>
+    <h1>Gestion d'Arrosage</h1>
 
-      <div class="tank-container">
-        <div class="tank">
-          <div class="water" id="water-fill" style="height: 0%"></div>
-          <div class="level-label" id="level-label">--%</div>
-        </div>
-      </div>
-
-      <div id="level" style="text-align: center">Chargement du niveau...</div>
-      <button onclick="getLevel()">Actualiser le niveau</button>
-
-      <div style="margin-top: 10px">
-        <input
-          type="number"
-          id="duration"
-          placeholder="Durée (s)"
-          min="1"
-          style="width: 100%; padding: 10px; font-size: 16px"
-        />
-      </div>
-      <button id="open-btn" onclick="startOpenWater()">Arroser</button>
-
-      <button id="close-btn" onclick="stopOpenWater()">
-        Arrêter l'arrosage
-      </button>
-
-      <div id="message"></div>
+    <div class="tank">
+      <img
+        id="water-level"
+        src="{{ url_for('static', filename='tank_empty.png') }}"
+        alt="Niveau d'eau"
+      />
     </div>
 
+    <input
+      type="number"
+      id="duration"
+      placeholder="Durée (s)"
+      min="1"
+      max="300"
+    />
+
+    <button id="open-btn" onclick="startOpenWater()">Arroser</button>
+    <button id="close-btn" onclick="stopOpenWater()">Arrêter l’arrosage</button>
+
+    <div id="message"></div>
+    <div id="status-info"></div>
+
     <script>
-      function getLevel() {
-        fetch("/api/water-level")
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.level !== undefined) {
-              const level = data.level;
-              document.getElementById(
-                "level"
-              ).textContent = `Niveau d'eau : ${level}%`;
+      let currentTaskId = null;
+      let intervalCheck = null;
 
-              const waterFill = document.getElementById("water-fill");
-              const levelLabel = document.getElementById("level-label");
-
-              waterFill.style.height = `${level}%`;
-              levelLabel.textContent = `${level}%`;
-            } else {
-              document.getElementById("level").textContent =
-                "Erreur : impossible d'obtenir le niveau";
-            }
-          });
+      async function getWaterLevel() {
+        try {
+          const response = await fetch("/api/check-water-level");
+          const data = await response.json();
+          updateTankImage(data.level);
+        } catch (err) {
+          console.error("Erreur récupération niveau:", err);
+        }
       }
 
-      function startOpenWater() {
-        const duration = document.getElementById("duration").value;
-        const button = document.getElementById("open-btn");
-        button.disabled = true; // désactive "Arroser"
-        document.getElementById("close-btn").disabled = false; // active "Arrêter"
+      function updateTankImage(level) {
+        let image = "tank_empty.png";
+        if (level > 90) image = "tank_full.png";
+        else if (level > 66) image = "tank_2_3.png";
+        else if (level > 33) image = "tank_1_3.png";
+        else if (level > 10) image = "tank_low.png";
+        document.getElementById("water-level").src = "/static/" + image;
+      }
 
-        if (!duration || parseInt(duration) <= 0) {
-          alert("Entrez une durée valide.");
-          button.disabled = false;
+      async function startOpenWater() {
+        const duration = parseInt(document.getElementById("duration").value);
+        if (!duration || duration <= 0 || duration > 300) {
+          alert("Durée invalide (max 300s)");
           return;
         }
+        const button = document.getElementById("open-btn");
+        button.disabled = true;
+        document.getElementById("close-btn").disabled = false;
 
-        fetch(`/api/open-water?duration=${duration}`)
-          .then((res) => {
-            if (!res.ok) {
-              return res.json().then((data) => {
-                throw new Error(data.error || "Erreur inconnue");
-              });
-            }
-            return res.json();
-          })
-          .then((data) => {
-            document.getElementById("message").textContent =
-              "Tâche lancée. Suivi en cours...";
-            checkStatus(data.task_id, button);
-          })
-          .catch((err) => {
-            document.getElementById("message").textContent =
-              "Erreur : " + err.message;
-            button.disabled = false;
-          });
+        const response = await fetch(`/api/open-water?duration=${duration}`);
+        const data = await response.json();
+        currentTaskId = data.task_id;
+        checkStatus();
+
+        intervalCheck = setInterval(() => {
+          checkStatus();
+        }, 30000);
       }
 
-      function stopOpenWater() {
-        fetch("/api/close-water")
-          .then((res) => {
-            if (!res.ok) {
-              return res.json().then((data) => {
-                throw new Error(data.error || "Erreur inconnue");
-              });
-            }
-            return res.json();
-          })
-          .then((data) => {
-            document.getElementById("message").textContent =
-              "Vanne fermée manuellement.";
+      async function checkStatus() {
+        if (!currentTaskId) return;
 
-            document.getElementById("open-btn").disabled = false;
-            document.getElementById("close-btn").disabled = true;
-          })
-          .catch((err) => {
-            document.getElementById("message").textContent =
-              "Erreur : " + err.message;
-          });
+        const response = await fetch(`/api/task-status/${currentTaskId}`);
+        const data = await response.json();
+
+        const statusText = {
+          "en cours": "Arrosage en cours",
+          terminé: "Arrosage terminé",
+          annulé: "Arrosage annulé",
+        };
+
+        document.getElementById("message").textContent =
+          statusText[data.status] || data.status;
+
+        if (data.status === "en cours") {
+          const now = Math.floor(Date.now() / 1000);
+          const elapsed = now - Math.floor(data.start_time);
+          const remaining = Math.max(0, data.duration - elapsed);
+
+          const startTimeStr = new Date(
+            data.start_time * 1000
+          ).toLocaleTimeString();
+          document.getElementById(
+            "status-info"
+          ).textContent = `Démarré à : ${startTimeStr} — Temps restant : ${remaining} sec`;
+        } else {
+          document.getElementById("open-btn").disabled = false;
+          document.getElementById("close-btn").disabled = true;
+          clearInterval(intervalCheck);
+          currentTaskId = null;
+          document.getElementById("status-info").textContent = "";
+        }
       }
 
-      function checkStatus(taskId, button) {
-        const interval = setInterval(() => {
-          fetch(`/api/task-status/${taskId}`)
-            .then((res) => res.json())
-            .then((data) => {
-              document.getElementById(
-                "message"
-              ).textContent = `Statut : ${data.status}`;
-              if (data.status !== "en cours") {
-                clearInterval(interval);
-                button.disabled = false;
-                document.getElementById("close-btn").disabled = true;
-              }
-            });
-        }, 3000);
+      async function stopOpenWater() {
+        const response = await fetch("/api/close-water");
+        const data = await response.json();
+        document.getElementById("message").textContent = data.message;
+        document.getElementById("open-btn").disabled = false;
+        document.getElementById("close-btn").disabled = true;
+        clearInterval(intervalCheck);
+        document.getElementById("status-info").textContent = "";
       }
 
       window.onload = () => {
-        getLevel();
-        setInterval(getLevel, 30000); // Rafraîchit toutes les 30s
         document.getElementById("open-btn").disabled = false;
         document.getElementById("close-btn").disabled = true;
+        getWaterLevel();
+        setInterval(getWaterLevel, 30000);
       };
     </script>
   </body>

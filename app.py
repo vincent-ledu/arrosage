@@ -32,6 +32,7 @@ GPIO.setup(VANNE, GPIO.OUT)
 GPIO.setup(PUMP, GPIO.OUT)
 
 tasks = {}  # Dictionnaire pour stocker l’état des tâches
+cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Event()}
 
 def handler(signal_received, frame):
   # on gere un cleanup propre
@@ -45,20 +46,29 @@ def cleanup_app():
   GPIO.cleanup()
 
 
-def open_valve_task(task_id, duration):
-    try:
-      print("Turning On VANNE")
-      GPIO.output(VANNE, GPIO.HIGH)
-      time.sleep(2)
-      print("Turning On PUMP")
-      GPIO.output(PUMP, GPIO.HIGH)
-      time.sleep(duration)
-      print("Turning Off VANNE & PUMP")
-      GPIO.output(VANNE, GPIO.LOW)
-      GPIO.output(PUMP, GPIO.LOW)
-      tasks[task_id] = "terminée"
-    except Exception as e:
-        tasks[task_id] = f"erreur: {str(e)}"
+def open_water_task(task_id, duration, cancel_event):
+  try:
+    interval = 1
+    elapsed = 0
+
+    tasks[task_id]["status"] = "terminé"
+    print("Turning On VANNE")
+    GPIO.output(VANNE, GPIO.HIGH)
+    time.sleep(2)
+    print("Turning On PUMP")
+    GPIO.output(PUMP, GPIO.HIGH)
+    while elapsed < duration:
+      if cancel_event.is_set():
+          tasks[task_id]["status"] = "annulé"
+          return
+      time.sleep(interval)
+      elapsed += interval
+    print("Turning Off VANNE & PUMP")
+    GPIO.output(VANNE, GPIO.LOW)
+    GPIO.output(PUMP, GPIO.LOW)
+    tasks[task_id] = "terminée"
+  except Exception as e:
+      tasks[task_id] = f"erreur: {str(e)}"
 
 @app.route('/')
 def index():
@@ -82,17 +92,22 @@ def CheckWaterLevel():
   return { "level": 0 }
 
 
-@app.route('/api/task-status')
+@app.route('/api/tasks')
 def task_list():
    return jsonify(tasks)
 
 
 @app.route('/api/task-status/<task_id>')
 def task_status(task_id):
-    status = tasks.get(task_id)
-    if status is None:
-        return jsonify({"error": "Tâche inconnue"}), 404
-    return jsonify({"task_id": task_id, "status": status})
+  task = tasks.get(task_id)
+  if not task:
+      return jsonify({"error": "Tâche introuvable"}), 404
+
+  return jsonify({
+      "status": task["status"],
+      "start_time": task["start_time"],
+      "duration": task["duration"]
+  })
 
 def IfWater():
   return GPIO.input(WATER_EMPTY)
@@ -106,32 +121,52 @@ Delay must be under 300 seconds (5minutes)
 def OpenWaterDelay():
   # Vérifie s’il existe déjà une tâche en cours
   if any(status == "en cours" for status in tasks.values()):
-      return jsonify({"error": "Une vanne est déjà ouverte. Attendez qu'elle se referme."}), 409
+    return jsonify({"error": "Une vanne est déjà ouverte. Attendez qu'elle se referme."}), 409
 
-  duration = int(request.args.get("duration", "10"))
+  duration = int(request.args.get("duration", "0"))
   print(duration)
                               
   print("check if water")
   if not IfWater():
     print("There is not enough water")
-    return   
-  if duration > 300:
-    print("Delay is to high, risk to empty containter")
-    return
+    return jsonify({"error": "Il n'y a pas assez d'eau."}), 507   
+  if duration <= 0 or duration > 300:
+    print("Delay is to high, risk to empty container")
+    return jsonify({"error": "Durée invalide"}), 400
   
   task_id = str(uuid.uuid4())
-  tasks[task_id] = "Ouverture vanne lancée à {date} pour {duration} secondes.".format(date=datetime.now().strftime("%H:%M:%S"), duration=duration)
+  cancel_event = threading.Event()
+  cancel_flags[task_id] = cancel_event
 
+  start_time = time.time()
+  tasks[task_id] = {
+    "status": "en cours",
+    "start_time": start_time,
+    "duration": duration
+  }
   # Lancement en thread
-  thread = threading.Thread(target=open_valve_task, args=(task_id, duration))
+  thread = threading.Thread(target=open_water_task, args=(task_id, duration, cancel_event))
   thread.start()
 
   return jsonify({"task_id": task_id, "status": "en cours"}), 202
 
+@app.route("/api/close-water")
+def clodeWaterSupply():
+  print("Turning Off VANNE & PUMP")
+  GPIO.output(VANNE, GPIO.LOW)
+  GPIO.output(PUMP, GPIO.LOW)
+  for task_id, status in tasks.items():
+    if status == "en cours" and task_id in cancel_flags:
+        cancel_flags[task_id].set()  # active le flag d’annulation
+        tasks[task_id] = "annulé"
+        return jsonify({"message": "Arrosage arrêté"}), 200
+  return jsonify({"message": "Aucun arrosage en cours"}), 400
+
+   
 
 if __name__ == '__main__':
   # On prévient Python d'utiliser la method handler quand un signal SIGINT est reçu
   signal(SIGINT, handler)
   #Register the function to be called on exit
   atexit.register(cleanup_app)
-  app.run(host="0.0.0.0", port=3000)
+  app.run(host="0.0.0.0", port=3000, debug=True)
