@@ -8,7 +8,7 @@
     <!-- Cal-Heatmap CSS -->
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/cal-heatmap@4.4.4/dist/cal-heatmap.css"
+      href="https://cdn.jsdelivr.net/npm/cal-heatmap@4.4.0/dist/cal-heatmap.css"
     />
 
     <style>
@@ -28,50 +28,45 @@
 
     <!-- Cal-Heatmap & Tooltip Plugin -->
     <script type="module">
-      import CalHeatmap from "https://cdn.jsdelivr.net/npm/cal-heatmap@4.4.4/dist/cal-heatmap.min.js";
-      import Tooltip from "https://cdn.jsdelivr.net/npm/cal-heatmap@4.4.4/dist/plugins/Tooltip.min.js";
+      import CalHeatmap from "https://cdn.jsdelivr.net/npm/cal-heatmap@4.4.0/dist/cal-heatmap.esm.js";
+      import Tooltip from "https://cdn.jsdelivr.net/npm/cal-heatmap@4.4.0/dist/plugins/Tooltip.esm.js";
 
       async function loadHeatmap() {
-        try {
-          const response = await fetch("/api/history-heatmap");
-          const rawData = await response.json();
+        const response = await fetch("/api/history-heatmap");
+        const rawData = await response.json();
 
-          // Convert durations from seconds to minutes
-          const data = {};
-          for (const ts in rawData) {
-            data[ts] = Math.round(rawData[ts] / 60);
-          }
-
-          const cal = new CalHeatmap();
-          cal.paint({
-            itemSelector: "#cal-heatmap",
-            domain: "month",
-            subDomain: "day",
-            range: 3, // Affiche 3 mois
-            data: {
-              source: data,
-              type: "json",
-            },
-            scale: {
-              color: {
-                type: "linear",
-                domain: [0, 30],
-                range: ["#e0f7fa", "#006064"],
-              },
-            },
-            date: {
-              start: new Date(),
-            },
-            plugin: [
-              Tooltip({
-                text: (date, value) =>
-                  `${date.toLocaleDateString("fr-FR")} : ${value || 0} min`,
-              }),
-            ],
-          });
-        } catch (error) {
-          console.error("Erreur lors du chargement de la heatmap :", error);
+        const data = {};
+        for (const ts in rawData) {
+          data[ts] = Math.round(rawData[ts] / 60);
         }
+
+        const cal = new CalHeatmap();
+        cal.paint({
+          itemSelector: "#cal-heatmap",
+          domain: "month",
+          subDomain: "day",
+          range: 3,
+          data: {
+            source: data,
+            type: "json",
+          },
+          scale: {
+            color: {
+              type: "linear",
+              domain: [0, 30],
+              range: ["#e0f7fa", "#006064"],
+            },
+          },
+          date: {
+            start: new Date(),
+          },
+          plugin: [
+            Tooltip({
+              text: (date, value) =>
+                `${date.toLocaleDateString("fr-FR")} : ${value || 0} min`,
+            }),
+          ],
+        });
       }
 
       loadHeatmap();
