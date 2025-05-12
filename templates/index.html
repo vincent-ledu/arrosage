@@ -28,6 +28,22 @@
         margin: 10px 0;
         font-size: 16px;
       }
+      .flex-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .flex-row input[type="number"] {
+        flex: 1;
+        padding: 10px;
+        font-size: 16px;
+      }
+      .flex-row button {
+        flex-shrink: 0;
+        padding: 10px 16px;
+        font-size: 16px;
+      }
+
       #message {
         text-align: center;
         margin-top: 10px;
@@ -69,8 +85,10 @@
       <div id="level">Chargement du niveau...</div>
       <button onclick="getLevel()">Actualiser le niveau</button>
 
-      <input type="number" id="duration" placeholder="Durée (en secondes)" />
-      <button onclick="startOpenWater()">Ouvrir la vanne</button>
+      <div class="flex-row">
+        <input type="number" id="duration" placeholder="Durée (s)" />
+        <button onclick="startOpenWater()">Arroser</button>
+      </div>
 
       <div id="message"></div>
       <div class="tank-container">
