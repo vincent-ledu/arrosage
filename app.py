@@ -91,6 +91,16 @@ def CheckWaterLevel():
   return { "level": 0 }
 
 
+@app.route("/api/water-levels")
+def CheckWaterLevels():
+  water_states = {}
+  water_states["WATER_FULL"] = {"gpio_pin": WATER_FULL, "state": GPIO.input(WATER_FULL)}
+  water_states["WATER_TWOTHIRDS"] = {"gpio_pin": WATER_TWOTHIRDS, "state": GPIO.input(WATER_TWOTHIRDS)}
+  water_states["WATER_ATHIRD"] = {"gpio_pin": WATER_ATHIRD, "state": GPIO.input(WATER_ATHIRD)}
+  water_states["WATER_EMPTY"] = {"gpio_pin": WATER_EMPTY, "state": GPIO.input(WATER_EMPTY)}
+  return jsonify(water_states), 200
+
+
 @app.route('/api/tasks')
 def task_list():
    return jsonify(tasks)
