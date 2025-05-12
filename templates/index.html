@@ -2,90 +2,156 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <title>Gestion d'Arrosage</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contrôle de l'arrosage</title>
     <style>
       body {
-        font-family: sans-serif;
+        font-family: Arial, sans-serif;
         padding: 20px;
+        background: #f2f4f7;
+      }
+
+      .container {
         max-width: 400px;
         margin: auto;
-        background-color: #f4f4f4;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       }
-      h1 {
+
+      h2 {
         text-align: center;
       }
+
+      .tank-container {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
+      }
+
       .tank {
-        width: 100%;
-        max-width: 300px;
-        margin: 20px auto;
+        position: relative;
+        width: 100px;
+        height: 200px;
+        border: 4px solid #333;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #eee;
       }
-      #water-level {
+
+      .water {
+        position: absolute;
+        bottom: 0;
         width: 100%;
-        height: auto;
+        background: linear-gradient(to top, #4fc3f7, #81d4fa);
+        transition: height 1s ease;
       }
-      input,
+
+      .level-label {
+        position: absolute;
+        top: 10px;
+        width: 100%;
+        text-align: center;
+        font-weight: bold;
+        color: #333;
+      }
+
       button {
         width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        font-size: 16px;
+        background: #4fc3f7;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+
+      .flex-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .flex-row input[type="number"] {
+        flex: 1;
         padding: 10px;
-        margin: 10px 0;
         font-size: 16px;
       }
-      #status-info {
+
+      .flex-row button {
+        flex-shrink: 0;
+        padding: 10px 16px;
+        font-size: 16px;
+      }
+
+      #message {
         text-align: center;
-        font-size: 14px;
         margin-top: 10px;
       }
     </style>
   </head>
   <body>
-    <h1>Gestion d'Arrosage</h1>
+    <div class="container">
+      <h2>Contrôle de la Citerne</h2>
 
-    <div class="tank">
-      <img
-        id="water-level"
-        src="{{ url_for('static', filename='tank_empty.png') }}"
-        alt="Niveau d'eau"
-      />
+      <div class="tank-container">
+        <div class="tank">
+          <div class="water" id="water-fill" style="height: 0%"></div>
+          <div class="level-label" id="level-label">--%</div>
+        </div>
+      </div>
+
+      <div id="level" style="text-align: center">Chargement du niveau...</div>
+      <button onclick="getLevel()">Actualiser le niveau</button>
+
+      <div style="margin-top: 10px">
+        <input
+          type="number"
+          id="duration"
+          placeholder="Durée (s)"
+          min="1"
+          style="width: 100%; padding: 10px; font-size: 16px"
+        />
+      </div>
+      <button id="open-btn" onclick="startOpenWater()">Arroser</button>
+
+      <button id="close-btn" onclick="stopOpenWater()">
+        Arrêter l'arrosage
+      </button>
+
+      <div id="message"></div>
     </div>
 
-    <input
-      type="number"
-      id="duration"
-      placeholder="Durée (s)"
-      min="1"
-      max="300"
-    />
-
-    <button id="open-btn" onclick="startOpenWater()">Arroser</button>
-    <button id="close-btn" onclick="stopOpenWater()">Arrêter l’arrosage</button>
-
-    <div id="message"></div>
-    <div id="status-info"></div>
-
     <script>
-      let currentTaskId = null;
-      let intervalCheck = null;
+      function getLevel() {
+        fetch("/api/water-level")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.level !== undefined) {
+              const level = data.level;
+              document.getElementById(
+                "level"
+              ).textContent = `Niveau d'eau : ${level}%`;
 
-      async function getWaterLevel() {
-        try {
-          const response = await fetch("/api/check-water-level");
-          const data = await response.json();
-          updateTankImage(data.level);
-        } catch (err) {
-          console.error("Erreur récupération niveau:", err);
-        }
+              const waterFill = document.getElementById("water-fill");
+              const levelLabel = document.getElementById("level-label");
+
+              waterFill.style.height = `${level}%`;
+              levelLabel.textContent = `${level}%`;
+            } else {
+              document.getElementById("level").textContent =
+                "Erreur : impossible d'obtenir le niveau";
+            }
+          });
       }
-
-      function updateTankImage(level) {
-        let image = "tank_empty.png";
-        if (level > 90) image = "tank_full.png";
-        else if (level > 66) image = "tank_2_3.png";
-        else if (level > 33) image = "tank_1_3.png";
-        else if (level > 10) image = "tank_low.png";
-        document.getElementById("water-level").src = "/static/" + image;
-      }
-
       async function startOpenWater() {
         const duration = parseInt(document.getElementById("duration").value);
         if (!duration || duration <= 0 || duration > 300) {
@@ -152,10 +218,10 @@
       }
 
       window.onload = () => {
+        getLevel();
+        setInterval(getLevel, 30000); // Rafraîchit toutes les 30s
         document.getElementById("open-btn").disabled = false;
         document.getElementById("close-btn").disabled = true;
-        getWaterLevel();
-        setInterval(getWaterLevel, 30000);
       };
     </script>
   </body>
