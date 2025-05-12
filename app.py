@@ -8,9 +8,24 @@ import threading
 from datetime import datetime
 import atexit
 from collections import defaultdict
+import logging
 
+# Configuration globale du logger
+logging.basicConfig(
+  level=logging.DEBUG,  # DEBUG pour + de détails
+  format="%(asctime)s [%(levelname)s] %(message)s",
+  handlers=[
+    logging.FileHandler("arrosage.log"),   # Log dans un fichier
+    logging.StreamHandler()                # Log dans la console aussi
+  ]
+)
+
+logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
+@app.before_request
+def log_request_info():
+    logger.info(f"Requête reçue: {request.method} {request.path}")
 
 # Numérotation BCM (par GPIO, pas numéro de pin physique)
 GPIO.setmode(GPIO.BCM)
@@ -44,13 +59,12 @@ def history_page():
 
 def handler(signal_received, frame):
   # on gere un cleanup propre
-  print('SIGINT or CTRL-C detected. Exiting gracefully')
-  print("GPIO Clean up sigint")
+  logger.warning('SIGINT or CTRL-C detected. Exiting gracefully')
   GPIO.cleanup()
   exit(0)
 
 def cleanup_app():
-  print("GPIO Clean up app")
+  logger.warning("GPIO Clean up app")
   GPIO.cleanup()
 
 def open_water_task(task_id, duration, cancel_event):
@@ -58,10 +72,10 @@ def open_water_task(task_id, duration, cancel_event):
     interval = 1
     elapsed = 0
 
-    print("Turning On VANNE")
+    logger.info("Turning On VANNE")
     GPIO.output(VANNE, GPIO.HIGH)
     time.sleep(2)
-    print("Turning On PUMP")
+    logger.info("Turning On PUMP")
     GPIO.output(PUMP, GPIO.HIGH)
     while elapsed < duration:
       if cancel_event.is_set():
@@ -69,7 +83,7 @@ def open_water_task(task_id, duration, cancel_event):
           return
       time.sleep(interval)
       elapsed += interval
-    print("Turning Off VANNE & PUMP")
+    logger.info("Turning Off VANNE & PUMP")
     GPIO.output(VANNE, GPIO.LOW)
     GPIO.output(PUMP, GPIO.LOW)
     tasks[task_id]["status"] = "terminée"
@@ -80,18 +94,18 @@ def open_water_task(task_id, duration, cancel_event):
 @app.route("/api/water-level")
 def CheckWaterLevel():
   if not GPIO.input(WATER_FULL):
-    print("Container full")
+    logger.info("Container full")
     return { "level": 100 }
   if not GPIO.input(WATER_TWOTHIRDS):
-    print("Container on half")
+    logger.info("Container on half")
     return { "level": 66 }
   if not GPIO.input(WATER_ATHIRD):
-    print("Container on quarter")
+    logger.info("Container on quarter")
     return { "level": 33 }
   if not GPIO.input(WATER_EMPTY):
-    print("Container nearly empty")
+    logger.info("Container nearly empty")
     return { "level": 10 }
-  print("Container empty")
+  logger.info("Container empty")
   return { "level": 0 }
 
 
@@ -115,7 +129,7 @@ def task_status(task_id):
   task = tasks.get(task_id)
   if not task:
       return jsonify({"error": "Tâche introuvable"}), 404
-  print(task)
+  logger.debug(task)
   return jsonify({
       "status": task["status"],
       "start_time": task["start_time"],
@@ -137,14 +151,13 @@ def OpenWaterDelay():
     return jsonify({"error": "Une vanne est déjà ouverte. Attendez qu'elle se referme."}), 409
 
   duration = int(request.args.get("duration", "0"))
-  print(duration)
                               
-  print("check if water")
+  logger.debug("check if water")
   if not IfWater():
-    print("There is not enough water")
+    logger.warning("There is not enough water")
     return jsonify({"error": "Il n'y a pas assez d'eau."}), 507   
   if duration <= 0 or duration > 300:
-    print("Delay is to high, risk to empty container")
+    logger.warning("Delay is to high, risk to empty container")
     return jsonify({"error": "Durée invalide"}), 400
   
   task_id = str(uuid.uuid4())
@@ -165,7 +178,7 @@ def OpenWaterDelay():
 
 @app.route("/api/close-water")
 def closeWaterSupply():
-  print("Turning Off VANNE & PUMP")
+  logger.info("Turning Off VANNE & PUMP")
   GPIO.output(VANNE, GPIO.LOW)
   GPIO.output(PUMP, GPIO.LOW)
   
@@ -182,6 +195,7 @@ def closeWaterSupply():
 def get_history():
   history = defaultdict(int)
   for task in tasks.values():
+    logger.debug(task)
     if task.get("status") == "terminé":
       day = datetime.fromtimestamp(task["start_time"]).strftime('%Y-%m-%d')
       history[day] += task.get("duration", 0)
