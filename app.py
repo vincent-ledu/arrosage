@@ -51,7 +51,6 @@ def open_water_task(task_id, duration, cancel_event):
     interval = 1
     elapsed = 0
 
-    tasks[task_id]["status"] = "terminé"
     print("Turning On VANNE")
     GPIO.output(VANNE, GPIO.HIGH)
     time.sleep(2)
