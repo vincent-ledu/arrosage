@@ -154,7 +154,7 @@ Delay must be under 300 seconds (5minutes)
 @app.route("/api/open-water")
 def OpenWaterDelay():
   # Vérifie s’il existe déjà une tâche en cours
-  if any(status == "en cours" for status in get_all_tasks()):
+  if (get_tasks_by_status("en cours")):
     return jsonify({"error": "Une vanne est déjà ouverte. Attendez qu'elle se referme."}), 409
 
   duration = int(request.args.get("duration", "0"))
