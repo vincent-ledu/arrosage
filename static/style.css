@@ -1,10 +1,10 @@
 /* index.html */
-body {
+/*body {
   font-family: Arial, sans-serif;
   padding: 20px;
   background: #f2f4f7;
 }
-
+*/
 .container {
   max-width: 400px;
   margin: auto;
@@ -109,7 +109,6 @@ button:disabled {
 }
 
 /* history */
-/*
 body {
   font-family: sans-serif;
   padding: 20px;
@@ -117,7 +116,7 @@ body {
   max-width: 600px;
   margin: auto;
 }
-*/
+
 canvas {
   max-width: 100%;
 }
