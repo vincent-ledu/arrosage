@@ -75,7 +75,7 @@ def index():
 
 @app.route("/api/water-level")
 def CheckWaterLevel():
-  if GPIO.input(WATER_FULL):
+  if not GPIO.input(WATER_FULL):
     print("Container full")
     return { "level": 100 }
   if not GPIO.input(WATER_TWOTHIRDS):
@@ -84,7 +84,7 @@ def CheckWaterLevel():
   if not GPIO.input(WATER_ATHIRD):
     print("Container on quarter")
     return { "level": 33 }
-  if GPIO.input(WATER_EMPTY):
+  if not GPIO.input(WATER_EMPTY):
     print("Container nearly empty")
     return { "level": 10 }
   print("Container empty")
