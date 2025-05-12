@@ -50,7 +50,6 @@ GPIO.setup(WATER_FULL, GPIO.IN)
 GPIO.setup(VANNE, GPIO.OUT)
 GPIO.setup(PUMP, GPIO.OUT)
 
-#tasks = {}  # Dictionnaire pour stocker l’état des tâches
 cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Event()}
 
 @app.route('/')
@@ -185,12 +184,15 @@ def closeWaterSupply():
   GPIO.output(VANNE, GPIO.LOW)
   GPIO.output(PUMP, GPIO.LOW)
   
-  for task_id, task in get_tasks_by_status("en cours"):
-    cancel_event = cancel_flags.get(task_id)
+  cancelled_tasks = []
+  for task in get_tasks_by_status("en cours"):
+    cancel_event = cancel_flags.get(task.id)
     if cancel_event:
       cancel_event.set()
-      task["status"] = "annulé"
-      return jsonify({"message": f"Tâche {task_id} arrêtée"}), 200
+      update_status(task.id, "annulé")
+      cancelled_tasks.append(task.id)
+  if cancelled_tasks.count() > 0:
+    return jsonify({"message": f"Tâche {cancelled_tasks} arrêtée"}), 200
   return jsonify({"message": "Aucune tâche en cours à arrêter"}), 400
 
 @app.route('/api/history')
