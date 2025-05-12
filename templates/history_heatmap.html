@@ -8,7 +8,7 @@
     <!-- Cal-Heatmap CSS -->
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/cal-heatmap@4.4.0/dist/cal-heatmap.css"
+      href="https://unpkg.com/cal-heatmap@4.3.4/cal-heatmap.css"
     />
 
     <style>
@@ -25,12 +25,16 @@
         margin-top: 1rem;
       }
     </style>
+  </head>
+  <body>
+    <h2>Historique des arrosages</h2>
+    <p>Chaque case représente la durée d’arrosage par jour (en minutes).</p>
+    <div id="cal-heatmap"></div>
 
-    <!-- Cal-Heatmap & Tooltip Plugin -->
-    <script type="module">
-      import CalHeatmap from "https://cdn.jsdelivr.net/npm/cal-heatmap@4.4.0/dist/cal-heatmap.esm.js";
-      import Tooltip from "https://cdn.jsdelivr.net/npm/cal-heatmap@4.4.0/dist/plugins/Tooltip.esm.js";
+    <!-- Cal-Heatmap + D3 Bundle UMD -->
+    <script src="https://unpkg.com/cal-heatmap@4.3.4/dist/bundle.min.js"></script>
 
+    <script>
       async function loadHeatmap() {
         const response = await fetch("/api/history-heatmap");
         const rawData = await response.json();
@@ -40,7 +44,7 @@
           data[ts] = Math.round(rawData[ts] / 60);
         }
 
-        const cal = new CalHeatmap();
+        const cal = new CalHeatmap.CalHeatmap();
         cal.paint({
           itemSelector: "#cal-heatmap",
           domain: "month",
@@ -61,7 +65,7 @@
             start: new Date(),
           },
           plugin: [
-            Tooltip({
+            CalHeatmap.Tooltip({
               text: (date, value) =>
                 `${date.toLocaleDateString("fr-FR")} : ${value || 0} min`,
             }),
@@ -71,10 +75,5 @@
 
       loadHeatmap();
     </script>
-  </head>
-  <body>
-    <h2>Historique des arrosages</h2>
-    <p>Chaque case représente la durée d’arrosage par jour (en minutes).</p>
-    <div id="cal-heatmap"></div>
   </body>
 </html>
