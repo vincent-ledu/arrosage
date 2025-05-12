@@ -112,12 +112,20 @@
       <div id="level" style="text-align: center">Chargement du niveau...</div>
       <button onclick="getLevel()">Actualiser le niveau</button>
 
-      <div class="flex-row">
-        <input type="number" id="duration" placeholder="Durée (s)" min="1" />
-        <button id="open-btn" onclick="startOpenWater()">Ouvrir</button>
+      <div style="margin-top: 10px">
+        <input
+          type="number"
+          id="duration"
+          placeholder="Durée (s)"
+          min="1"
+          style="width: 100%; padding: 10px; font-size: 16px"
+        />
       </div>
+      <button id="open-btn" onclick="startOpenWater()">Arroser</button>
 
-      <button id="close-btn" onclick="stopOpenWater()">Fermer la vanne</button>
+      <button id="close-btn" onclick="stopOpenWater()">
+        Arrêter l'arrosage
+      </button>
 
       <div id="message"></div>
     </div>
