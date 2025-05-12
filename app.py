@@ -186,6 +186,7 @@ def closeWaterSupply():
   
   cancelled_tasks = []
   for task in get_tasks_by_status("en cours"):
+    logger.debug(f"task to cancel: {task}")
     cancel_event = cancel_flags.get(task.id)
     if cancel_event:
       cancel_event.set()
