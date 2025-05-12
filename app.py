@@ -164,6 +164,7 @@ def clodeWaterSupply():
   print("Turning Off VANNE & PUMP")
   GPIO.output(VANNE, GPIO.LOW)
   GPIO.output(PUMP, GPIO.LOW)
+  print(tasks)
   for task_id, status in tasks.items():
     if status == "en cours" and task_id in cancel_flags:
         cancel_flags[task_id].set()  # active le flag d’annulation
