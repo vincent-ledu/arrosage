@@ -119,7 +119,7 @@ def task_status(task_id):
   })
 
 def IfWater():
-  return GPIO.input(WATER_EMPTY)
+  return not GPIO.input(WATER_EMPTY)
 
 
 '''
