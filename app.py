@@ -1,4 +1,4 @@
-from gpiozero import Button, LED
+import RPi.GPIO as GPIO
 import time
 from signal import signal, SIGINT
 from sys import exit
@@ -30,6 +30,9 @@ app = Flask(__name__)
 def log_request_info():
     logger.info(f"Requête reçue: {request.method} {request.path}")
 
+# Numérotation BCM (par GPIO, pas numéro de pin physique)
+GPIO.setmode(GPIO.BCM)
+
 VANNE=20
 PUMP=21
 WATER_EMPTY = 23
@@ -40,12 +43,12 @@ WATER_FULL = 26
 WATER_LEVELS = [WATER_EMPTY, WATER_ATHIRD, WATER_TWOTHIRDS, WATER_FULL]
 
 # Configurer le GPIO en entrée avec pull-down externe
-water_level_empty = Button(WATER_EMPTY)
-water_level_athird = Button(WATER_ATHIRD)
-water_level_twothird = Button(WATER_TWOTHIRDS)
-water_level_full = Button(WATER_FULL)
-vanneLed = LED(VANNE)
-pumpLed = LED(PUMP)
+GPIO.setup(WATER_EMPTY, GPIO.IN)
+GPIO.setup(WATER_ATHIRD, GPIO.IN)
+GPIO.setup(WATER_TWOTHIRDS, GPIO.IN)
+GPIO.setup(WATER_FULL, GPIO.IN)
+GPIO.setup(VANNE, GPIO.OUT)
+GPIO.setup(PUMP, GPIO.OUT)
 
 cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Event()}
 
@@ -60,16 +63,26 @@ def history_page():
 def history_heatmap_page():
   return render_template("history_heatmap.html")
 
+def handler(signal_received, frame):
+  # on gere un cleanup propre
+  logger.warning('SIGINT or CTRL-C detected. Exiting gracefully')
+  GPIO.cleanup()
+  exit(0)
+
+def cleanup_app():
+  logger.warning("GPIO Clean up app")
+  GPIO.cleanup()
+
 def open_water_task(task_id, duration, cancel_event):
   try:
     interval = 1
     elapsed = 0
 
     logger.info("Turning On VANNE")
-    vanneLed.on()
+    GPIO.output(VANNE, GPIO.HIGH)
     time.sleep(2)
     logger.info("Turning On PUMP")
-    pumpLed.on()
+    GPIO.output(PUMP, GPIO.HIGH)
     while elapsed < duration:
       if cancel_event.is_set():
           update_status(task_id, "annulé")
@@ -77,8 +90,8 @@ def open_water_task(task_id, duration, cancel_event):
       time.sleep(interval)
       elapsed += interval
     logger.info("Turning Off VANNE & PUMP")
-    vanneLed.off()
-    pumpLed.off()
+    GPIO.output(VANNE, GPIO.LOW)
+    GPIO.output(PUMP, GPIO.LOW)
     update_status(task_id, "terminé")
   except Exception as e:
       update_status(task_id, f"erreur: {str(e)}")
@@ -86,16 +99,16 @@ def open_water_task(task_id, duration, cancel_event):
 
 @app.route("/api/water-level")
 def CheckWaterLevel():
-  if not water_level_full.is_pressed:
+  if not GPIO.input(WATER_FULL):
     logger.info("Container full")
     return { "level": 100 }
-  if not water_level_twothird.is_pressed:
-    logger.info("Container 2/3")
+  if not GPIO.input(WATER_TWOTHIRDS):
+    logger.info("Container on half")
     return { "level": 66 }
-  if not water_level_athird.is_pressed:
-    logger.info("Container 1/3")
+  if not GPIO.input(WATER_ATHIRD):
+    logger.info("Container on quarter")
     return { "level": 33 }
-  if not water_level_empty.is_pressed:
+  if not GPIO.input(WATER_EMPTY):
     logger.info("Container nearly empty")
     return { "level": 10 }
   logger.info("Container empty")
@@ -105,10 +118,10 @@ def CheckWaterLevel():
 @app.route("/api/water-levels")
 def CheckWaterLevels():
   water_states = {}
-  water_states["WATER_FULL"] = {"gpio_pin": WATER_FULL, "state": water_level_full.is_pressed}
-  water_states["WATER_TWOTHIRDS"] = {"gpio_pin": WATER_TWOTHIRDS, "state": water_level_twothird.is_pressed}
-  water_states["WATER_ATHIRD"] = {"gpio_pin": WATER_ATHIRD, "state": water_level_athird.is_pressed}
-  water_states["WATER_EMPTY"] = {"gpio_pin": WATER_EMPTY, "state": water_level_empty.is_pressed}
+  water_states["WATER_FULL"] = {"gpio_pin": WATER_FULL, "state": GPIO.input(WATER_FULL)}
+  water_states["WATER_TWOTHIRDS"] = {"gpio_pin": WATER_TWOTHIRDS, "state": GPIO.input(WATER_TWOTHIRDS)}
+  water_states["WATER_ATHIRD"] = {"gpio_pin": WATER_ATHIRD, "state": GPIO.input(WATER_ATHIRD)}
+  water_states["WATER_EMPTY"] = {"gpio_pin": WATER_EMPTY, "state": GPIO.input(WATER_EMPTY)}
   return jsonify(water_states), 200
 
 
@@ -130,7 +143,7 @@ def task_status(task_id):
   })
 
 def IfWater():
-  return not water_level_empty.is_pressed
+  return not GPIO.input(WATER_EMPTY)
 
 
 '''
@@ -168,9 +181,9 @@ def OpenWaterDelay():
 @app.route("/api/close-water")
 def closeWaterSupply():
   logger.info("Turning Off VANNE & PUMP")
-  vanneLed.off()
-  pumpLed.off()
-
+  GPIO.output(VANNE, GPIO.LOW)
+  GPIO.output(PUMP, GPIO.LOW)
+  
   cancelled_tasks = []
   for task in get_tasks_by_status("en cours"):
     logger.debug(f"task to cancel: {task}")
@@ -200,4 +213,8 @@ def history_heatmap():
 
 
 if __name__ == '__main__':
+  # On prévient Python d'utiliser la method handler quand un signal SIGINT est reçu
+  signal(SIGINT, handler)
+  #Register the function to be called on exit
+  atexit.register(cleanup_app)
   app.run(host="0.0.0.0", port=3000, debug=True)
