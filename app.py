@@ -33,12 +33,12 @@ def log_request_info():
 # Numérotation BCM (par GPIO, pas numéro de pin physique)
 GPIO.setmode(GPIO.BCM)
 
-VANNE=20
-PUMP=21
-WATER_EMPTY = 23
-WATER_ATHIRD = 24
-WATER_TWOTHIRDS = 25
-WATER_FULL = 26
+VANNE=3
+PUMP=2
+WATER_EMPTY = 7
+WATER_ATHIRD = 8
+WATER_TWOTHIRDS = 9
+WATER_FULL = 10
 
 WATER_LEVELS = [WATER_EMPTY, WATER_ATHIRD, WATER_TWOTHIRDS, WATER_FULL]
 
@@ -85,8 +85,13 @@ def open_water_task(task_id, duration, cancel_event):
     GPIO.output(PUMP, GPIO.HIGH)
     while elapsed < duration:
       if cancel_event.is_set():
-          update_status(task_id, "annulé")
-          return
+        update_status(task_id, "annulé")
+        return
+      if not IfWater():
+        GPIO.output(VANNE, GPIO.LOW)
+        GPIO.output(PUMP, GPIO.LOW)
+        update_status(task_id, "réservoir vide")
+        return
       time.sleep(interval)
       elapsed += interval
     logger.info("Turning Off VANNE & PUMP")
