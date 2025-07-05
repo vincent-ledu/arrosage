@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 import time
 from signal import signal, SIGINT
 from sys import exit
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, redirect, url_for, flash
 import uuid
 import threading
 from datetime import datetime
@@ -10,7 +10,10 @@ import atexit
 from collections import defaultdict
 import logging
 from db import get_tasks_by_status, init_db, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day
+from config import load_config, save_config
+from gpio_control import setup_gpio, gpio_state
 
+setup_gpio()
 init_db()
 
 # Configuration globale du logger
@@ -30,31 +33,28 @@ app = Flask(__name__)
 def log_request_info():
     logger.info(f"Requête reçue: {request.method} {request.path}")
 
-# Numérotation BCM (par GPIO, pas numéro de pin physique)
-GPIO.setmode(GPIO.BCM)
-
-VANNE=3
-PUMP=2
-WATER_EMPTY = 7
-WATER_ATHIRD = 8
-WATER_TWOTHIRDS = 9
-WATER_FULL = 10
-
-WATER_LEVELS = [WATER_EMPTY, WATER_ATHIRD, WATER_TWOTHIRDS, WATER_FULL]
-
-# Configurer le GPIO en entrée avec pull-down externe
-GPIO.setup(WATER_EMPTY, GPIO.IN)
-GPIO.setup(WATER_ATHIRD, GPIO.IN)
-GPIO.setup(WATER_TWOTHIRDS, GPIO.IN)
-GPIO.setup(WATER_FULL, GPIO.IN)
-GPIO.setup(VANNE, GPIO.OUT)
-GPIO.setup(PUMP, GPIO.OUT)
-
 cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Event()}
 
 @app.route('/')
 def index():
   return render_template('index.html')
+
+@app.route('/config', methods=["GET", "POST"])
+def config_page():
+  config = load_config()
+  if request.method == "POST":
+    config["pump"] = int(request.form.get("pump", 2))
+    config["valve"] = int(request.form.get("valve", 3))
+    config["levels"] = [
+      int(request.form.get(f"level{i}", 7 + i))
+      for i in range(4)
+    ]
+    save_config(config)
+    setup_gpio()
+    flash("Configuration enregistrée avec succès.")
+    return redirect(url_for("config_page"))
+  return render_template("config.html", config=config)
+
 @app.route('/history')
 def history_page():
   return render_template("history.html")
@@ -78,25 +78,25 @@ def open_water_task(task_id, duration, cancel_event):
     interval = 1
     elapsed = 0
 
-    logger.info("Turning On VANNE")
-    GPIO.output(VANNE, GPIO.HIGH)
+    logger.info("Turning On valve")
+    GPIO.output(gpio_state["valve"], GPIO.HIGH)
     time.sleep(2)
-    logger.info("Turning On PUMP")
-    GPIO.output(PUMP, GPIO.HIGH)
+    logger.info("Turning On pump")
+    GPIO.output(gpio_state["pump"], GPIO.HIGH)
     while elapsed < duration:
       if cancel_event.is_set():
         update_status(task_id, "annulé")
         return
       if not IfWater():
-        GPIO.output(VANNE, GPIO.LOW)
-        GPIO.output(PUMP, GPIO.LOW)
+        GPIO.output(gpio_state["valve"], GPIO.LOW)
+        GPIO.output(gpio_state["pump"], GPIO.LOW)
         update_status(task_id, "réservoir vide")
         return
       time.sleep(interval)
       elapsed += interval
-    logger.info("Turning Off VANNE & PUMP")
-    GPIO.output(VANNE, GPIO.LOW)
-    GPIO.output(PUMP, GPIO.LOW)
+    logger.info("Turning Off valve & pump")
+    GPIO.output(gpio_state["valve"], GPIO.LOW)
+    GPIO.output(gpio_state["pump"], GPIO.LOW)
     update_status(task_id, "terminé")
   except Exception as e:
       update_status(task_id, f"erreur: {str(e)}")
@@ -104,16 +104,16 @@ def open_water_task(task_id, duration, cancel_event):
 
 @app.route("/api/water-level")
 def CheckWaterLevel():
-  if not GPIO.input(WATER_FULL):
+  if not GPIO.input(gpio_state["levels"][3]):
     logger.info("Container full")
     return { "level": 100 }
-  if not GPIO.input(WATER_TWOTHIRDS):
+  if not GPIO.input(gpio_state["levels"][2]):
     logger.info("Container on half")
     return { "level": 66 }
-  if not GPIO.input(WATER_ATHIRD):
+  if not GPIO.input(gpio_state["levels"][1]):
     logger.info("Container on quarter")
     return { "level": 33 }
-  if not GPIO.input(WATER_EMPTY):
+  if not GPIO.input(gpio_state["levels"][0]):
     logger.info("Container nearly empty")
     return { "level": 10 }
   logger.info("Container empty")
@@ -123,10 +123,10 @@ def CheckWaterLevel():
 @app.route("/api/water-levels")
 def CheckWaterLevels():
   water_states = {}
-  water_states["WATER_FULL"] = {"gpio_pin": WATER_FULL, "state": GPIO.input(WATER_FULL)}
-  water_states["WATER_TWOTHIRDS"] = {"gpio_pin": WATER_TWOTHIRDS, "state": GPIO.input(WATER_TWOTHIRDS)}
-  water_states["WATER_ATHIRD"] = {"gpio_pin": WATER_ATHIRD, "state": GPIO.input(WATER_ATHIRD)}
-  water_states["WATER_EMPTY"] = {"gpio_pin": WATER_EMPTY, "state": GPIO.input(WATER_EMPTY)}
+  water_states["levels 3"] = {"gpio_pin": gpio_state["levels"][3], "state": GPIO.input(gpio_state["levels"][3])}
+  water_states["levels 2"] = {"gpio_pin": gpio_state["levels"][2], "state": GPIO.input(gpio_state["levels"][2])}
+  water_states["levels 1"] = {"gpio_pin": gpio_state["levels"][1], "state": GPIO.input(gpio_state["levels"][1])}
+  water_states["levels 0"] = {"gpio_pin": gpio_state["levels"][0], "state": GPIO.input(gpio_state["levels"][0])}
   return jsonify(water_states), 200
 
 
@@ -148,7 +148,7 @@ def task_status(task_id):
   })
 
 def IfWater():
-  return not GPIO.input(WATER_EMPTY)
+  return not GPIO.input(gpio_state["levels"][0])
 
 
 '''
@@ -185,9 +185,9 @@ def OpenWaterDelay():
 
 @app.route("/api/close-water")
 def closeWaterSupply():
-  logger.info("Turning Off VANNE & PUMP")
-  GPIO.output(VANNE, GPIO.LOW)
-  GPIO.output(PUMP, GPIO.LOW)
+  logger.info("Turning Off valve & pump")
+  GPIO.output(gpio_state["valve"], GPIO.LOW)
+  GPIO.output(gpio_state["pump"], GPIO.LOW)
   
   cancelled_tasks = []
   for task in get_tasks_by_status("en cours"):
