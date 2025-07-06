@@ -1,6 +1,10 @@
 # config.py
 import json
 import os
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 CONFIG_FILE = "config.json"
 DEFAULT_CONFIG = {
@@ -18,3 +22,4 @@ def load_config():
 def save_config(config):
     with open(CONFIG_FILE, "w") as f:
         json.dump(config, f, indent=2)
+        logger.debug(config)
