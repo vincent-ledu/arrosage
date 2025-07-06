@@ -51,7 +51,7 @@ def config_page():
     ]
     save_config(config)
     setup_gpio()
-    flash("Configuration enregistrée avec succès.")
+    # flash("Configuration enregistrée avec succès.")
     return redirect(url_for("config_page"))
   return render_template("config.html", config=config)
 
