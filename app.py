@@ -104,16 +104,16 @@ def open_water_task(task_id, duration, cancel_event):
 
 @app.route("/api/water-level")
 def CheckWaterLevel():
-  if not GPIO.input(gpio_state["levels"][3]):
+  if GPIO.input(gpio_state["levels"][3]):
     logger.info("Container full")
     return { "level": 100 }
-  if not GPIO.input(gpio_state["levels"][2]):
+  if GPIO.input(gpio_state["levels"][2]):
     logger.info("Container on half")
     return { "level": 66 }
-  if not GPIO.input(gpio_state["levels"][1]):
+  if GPIO.input(gpio_state["levels"][1]):
     logger.info("Container on quarter")
     return { "level": 33 }
-  if not GPIO.input(gpio_state["levels"][0]):
+  if GPIO.input(gpio_state["levels"][0]):
     logger.info("Container nearly empty")
     return { "level": 10 }
   logger.info("Container empty")
@@ -148,7 +148,7 @@ def task_status(task_id):
   })
 
 def IfWater():
-  return not GPIO.input(gpio_state["levels"][0])
+  return GPIO.input(gpio_state["levels"][0])
 
 
 '''
