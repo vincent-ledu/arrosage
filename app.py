@@ -88,15 +88,17 @@ def open_water_task(task_id, duration, cancel_event):
         update_status(task_id, "annulé")
         return
       if not IfWater():
-        GPIO.output(gpio_state["valve"], GPIO.LOW)
         GPIO.output(gpio_state["pump"], GPIO.LOW)
+        time.sleep(2)
+        GPIO.output(gpio_state["valve"], GPIO.LOW)
         update_status(task_id, "réservoir vide")
         return
       time.sleep(interval)
       elapsed += interval
     logger.info("Turning Off valve & pump")
-    GPIO.output(gpio_state["valve"], GPIO.LOW)
     GPIO.output(gpio_state["pump"], GPIO.LOW)
+    time.sleep(2)
+    GPIO.output(gpio_state["valve"], GPIO.LOW)
     update_status(task_id, "terminé")
   except Exception as e:
       update_status(task_id, f"erreur: {str(e)}")
@@ -186,8 +188,9 @@ def OpenWaterDelay():
 @app.route("/api/close-water")
 def closeWaterSupply():
   logger.info("Turning Off valve & pump")
-  GPIO.output(gpio_state["valve"], GPIO.LOW)
   GPIO.output(gpio_state["pump"], GPIO.LOW)
+  time.sleep(2)
+  GPIO.output(gpio_state["valve"], GPIO.LOW)
   
   cancelled_tasks = []
   for task in get_tasks_by_status("en cours"):
