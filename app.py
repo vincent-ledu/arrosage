@@ -107,7 +107,7 @@ def open_water_task(task_id, duration, cancel_event):
 @app.route("/api/water-level")
 def CheckWaterLevel():
   level = 0
-  for i in range(3):
+  for i in range(4):
     logger.info(f"Checking level {i}")
     if GPIO.input(gpio_state["levels"][i]):
       level += 1
