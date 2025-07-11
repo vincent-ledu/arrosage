@@ -106,24 +106,16 @@ def open_water_task(task_id, duration, cancel_event):
 
 @app.route("/api/water-level")
 def CheckWaterLevel():
-  if GPIO.input(gpio_state["levels"][3]):
-    logger.info("Container full")
-    return { "level": 100 }
-  if GPIO.input(gpio_state["levels"][2]):
-    logger.info("Container on half")
-    return { "level": 66 }
-  if GPIO.input(gpio_state["levels"][1]):
-    logger.info("Container on quarter")
-    return { "level": 33 }
-  if GPIO.input(gpio_state["levels"][0]):
-    logger.info("Container nearly empty")
-    return { "level": 10 }
-  logger.info("Container empty")
-  return { "level": 0 }
+  level = 0
+  for i in range(3):
+    if GPIO.input(gpio_state["levels"][i]):
+      level += 1
+  logger.info(f"Container is at: {level}")
+  return { "level": level*25 }
 
 
 @app.route("/api/water-levels")
-def CheckWaterLevels():
+def DebugkWaterLevels():
   water_states = {}
   water_states["levels 3"] = {"gpio_pin": gpio_state["levels"][3], "state": GPIO.input(gpio_state["levels"][3])}
   water_states["levels 2"] = {"gpio_pin": gpio_state["levels"][2], "state": GPIO.input(gpio_state["levels"][2])}
@@ -150,7 +142,7 @@ def task_status(task_id):
   })
 
 def IfWater():
-  return GPIO.input(gpio_state["levels"][0])
+  return CheckWaterLevel() > 0
 
 
 '''
