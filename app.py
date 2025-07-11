@@ -108,6 +108,7 @@ def open_water_task(task_id, duration, cancel_event):
 def CheckWaterLevel():
   level = 0
   for i in range(3):
+    logger.info(f"Checking level {i}")
     if GPIO.input(gpio_state["levels"][i]):
       level += 1
   logger.info(f"Container is at: {level}")
