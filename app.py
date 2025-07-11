@@ -143,7 +143,7 @@ def task_status(task_id):
   })
 
 def IfWater():
-  return CheckWaterLevel() > 0
+  return CheckWaterLevel()["level"] > 0
 
 
 '''
