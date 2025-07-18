@@ -12,7 +12,7 @@ content %}
   </div>
 
   <div id="level" style="text-align: center">Chargement du niveau...</div>
-  <div id="max-temperature" style="text-align: center">
+  <div id="temperature-max" style="text-align: center">
     Température max aujourd'hui...
   </div>
   <div id="watering-type" style="text-align: center">Type d'arrosage...</div>
@@ -51,7 +51,7 @@ content %}
         document.getElementById(
           "temperature-max"
         ).textContent = `Température maximale : ${res}`;
-        getWatering(res)
+        getWatering(res);
       } else {
         document.getElementById(
           "temperature-max"
