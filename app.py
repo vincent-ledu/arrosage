@@ -63,10 +63,10 @@ def get_temperature_max():
     resp = requests.get(url, timeout=5)
     resp.raise_for_status()
     data = resp.json()
-    return data["daily"]["temperature_2m_max"][0]
+    return jsonify(data["daily"]["temperature_2m_max"][0])
   except Exception as e:
     logger.error("Erreur météo :", e)
-    return None
+    return jsonify({"error": "Error in calling open-meteo api"})
 
 @app.route("/api/watering-type")
 def classify_watering():
