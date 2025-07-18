@@ -70,7 +70,7 @@ def get_temperature_max():
 
 @app.route("/api/watering-type")
 def classify_watering():
-  temp = get_temperature_max()
+  temp = request.args.get("temp", type=float)
   if temp is None:
     return "unknown"
   if temp < 15:

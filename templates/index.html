@@ -45,12 +45,13 @@ content %}
     reinforced: "Renforcé",
     high: "Elevé",
   };
-  function getTemperature() {
+  function getTemperatureWatering() {
     fetch("/api/temperature-max").then((res) => {
       if (res !== undefined) {
         document.getElementById(
           "temperature-max"
         ).textContent = `Température maximale : ${res}`;
+        getWatering(res)
       } else {
         document.getElementById(
           "temperature-max"
@@ -58,8 +59,8 @@ content %}
       }
     });
   }
-  function getWatering() {
-    fetch("/api/watering-type").then((res) => {
+  function getWatering(temp) {
+    fetch(`/api/watering-type?temp=${temp}`).then((res) => {
       if (res !== undefined) {
         document.getElementById(
           "watering-type"
@@ -168,8 +169,7 @@ content %}
 
   window.onload = () => {
     getLevel();
-    getTemperature();
-    getWatering();
+    getTemperatureWatering();
     setInterval(getLevel, 30000); // Rafraîchit toutes les 30s
     document.getElementById("open-btn").disabled = false;
     document.getElementById("close-btn").disabled = true;
