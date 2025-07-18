@@ -26,21 +26,6 @@ content %}
   <button id="open-btn" onclick="startOpenWater()">Arroser</button>
 
   <button id="close-btn" onclick="stopOpenWater()">Arrêter l'arrosage</button>
-  <form method="POST" action="/set-default-duration" style="margin-top: 2rem">
-    <label for="default_duration"
-      >⏱️ Durée d’arrosage par défaut (secondes) :</label
-    >
-    <input
-      type="number"
-      id="default_duration"
-      name="default_duration"
-      value="{{ default_duration }}"
-      min="1"
-      required
-    />
-    <button type="submit">💾 Enregistrer</button>
-  </form>
-
   <div id="message"></div>
   <div id="status-info"></div>
   <div id="progress-container">

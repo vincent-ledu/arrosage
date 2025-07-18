@@ -215,7 +215,7 @@ def get_history():
 def history_heatmap():
   return jsonify(get_tasks_summary_by_day())
 
-@app.route("/set-default-duration", methods=["POST"])
+@app.route("/config/set-default-duration", methods=["POST"])
 def set_default_duration():
     value = request.form.get("default_duration", type=int)
     if value and value > 0:
