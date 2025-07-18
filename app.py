@@ -53,7 +53,7 @@ def get_coordinates():
 @app.route("/api/temperature-max")
 def get_temperature_max():
   try:
-    lat, long = get_coordinates().values()
+    lat, lon = get_coordinates().values()
     url = (
       "https://api.open-meteo.com/v1/forecast"
       f"?latitude={lat}&longitude={lon}"
@@ -64,7 +64,7 @@ def get_temperature_max():
     data = resp.json()
     return data["daily"]["temperature_2m_max"][0]
   except Exception as e:
-    print("Erreur météo :", e)
+    logger.error("Erreur météo :", e)
     return None
 
 @app.route("/api/watering-type")
