@@ -38,11 +38,11 @@ cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Even
 
 @app.route('/')
 def index():
-  default_duration = get_setting("default_duration", default=60)
-  return render_template("index.html", default_duration=default_duration)
+  return render_template("index.html")
 
 @app.route('/config', methods=["GET", "POST"])
 def config_page():
+  default_duration = get_setting("default_duration", default=60)
   config = load_config()
   if request.method == "POST":
     config["pump"] = int(request.form.get("pump", 2))
@@ -55,7 +55,7 @@ def config_page():
     setup_gpio()
     # flash("Configuration enregistrée avec succès.")
     return redirect(url_for("config_page"))
-  return render_template("config.html", config=config)
+  return render_template("config.html", config=config, default_duration=default_duration)
 
 @app.route('/history')
 def history_page():
