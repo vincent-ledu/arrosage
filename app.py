@@ -42,13 +42,12 @@ cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Even
 def index():
   return render_template("index.html")
 
-@app.route("/config/coordinates")
 def get_coordinates():
   lat = os.getenv("LATITUDE")
   lon = os.getenv("LONGITUDE")
   if not lat or not lon:
-    return jsonify({"error": "LATITUDE or LONGITUDE not set"}), 500
-  return jsonify({"latitude": float(lat), "longitude": float(lon)})
+    return {"error": "LATITUDE or LONGITUDE not set"}
+  return {"latitude": float(lat), "longitude": float(lon)}
 
 @app.route("/api/temperature-max")
 def get_temperature_max():
