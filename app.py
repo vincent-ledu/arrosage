@@ -220,7 +220,7 @@ def set_default_duration():
     value = request.form.get("default_duration", type=int)
     if value and value > 0:
         set_setting("default_duration", value)
-    return redirect(url_for("config"))
+    return redirect(url_for("config_page"))
 
 
 if __name__ == '__main__':
