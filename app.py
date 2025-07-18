@@ -9,7 +9,7 @@ from datetime import datetime
 import atexit
 from collections import defaultdict
 import logging
-from db import get_tasks_by_status, init_db, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day
+from db import get_tasks_by_status, init_db, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day, get_setting, set_setting
 from config import load_config, save_config
 from gpio_control import setup_gpio, gpio_state
 
@@ -37,7 +37,8 @@ cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Even
 
 @app.route('/')
 def index():
-  return render_template('index.html')
+  default_duration = get_setting("default_duration", default=60)
+  return render_template("index.html", default_duration=default_duration)
 
 @app.route('/config', methods=["GET", "POST"])
 def config_page():
@@ -156,8 +157,9 @@ def OpenWaterDelay():
   if (get_tasks_by_status("en cours")):
     return jsonify({"error": "Une vanne est déjà ouverte. Attendez qu'elle se referme."}), 409
 
-  duration = int(request.args.get("duration", "0"))
-                              
+  duration = request.args.get("duration", type=int)
+  if duration is None:
+    duration = get_setting("default_duration", default=60)                            
   logger.debug("check if water")
   if not IfWater():
     logger.warning("There is not enough water")
@@ -211,6 +213,16 @@ def get_history():
 @app.route('/api/history-heatmap')
 def history_heatmap():
   return jsonify(get_tasks_summary_by_day())
+
+@app.route("/set-default-duration", methods=["POST"])
+def set_default_duration():
+    value = request.form.get("default_duration", type=int)
+    if value and value > 0:
+        set_setting("default_duration", value)
+        flash("⏱️ Durée par défaut mise à jour !")
+    else:
+        flash("❌ Valeur invalide.")
+    return redirect(url_for("index"))
 
 
 if __name__ == '__main__':

@@ -15,9 +15,25 @@ def init_db():
             start_time INTEGER,
             duration INTEGER,
             status TEXT
-        )
+        );
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+            )
         ''')
         conn.commit()
+def set_setting(key, value):
+    with get_connection() as conn:
+        conn.execute('''
+            INSERT INTO settings (key, value) VALUES (?, ?)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value
+        ''', (key, str(value)))
+
+def get_setting(key, default=None):
+    with get_connection() as conn:
+        cur = conn.execute('SELECT value FROM settings WHERE key = ?', (key,))
+        row = cur.fetchone()
+        return int(row[0]) if row else default
 
 def add_task(task_id, start_time, duration, status):
     with get_connection() as conn:
