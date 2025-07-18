@@ -42,7 +42,7 @@ cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Even
 def index():
   return render_template("index.html")
 
-@app.route("/config/get-coordinates")
+@app.route("/config/coordinates")
 def get_coordinates():
   lat = os.getenv("LATITUDE")
   lon = os.getenv("LONGITUDE")
@@ -53,7 +53,9 @@ def get_coordinates():
 @app.route("/api/temperature-max")
 def get_temperature_max():
   try:
-    lat, lon = get_coordinates().values()
+    coordinates = get_coordinates()
+    logger.info(f"coordinates: ${coordinates}")
+    lat, lon = coordinates.values()
     url = (
       "https://api.open-meteo.com/v1/forecast"
       f"?latitude={lat}&longitude={lon}"
