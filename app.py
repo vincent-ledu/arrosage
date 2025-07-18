@@ -220,9 +220,6 @@ def set_default_duration():
     value = request.form.get("default_duration", type=int)
     if value and value > 0:
         set_setting("default_duration", value)
-        flash("⏱️ Durée par défaut mise à jour !")
-    else:
-        flash("❌ Valeur invalide.")
     return redirect(url_for("index"))
 
 
