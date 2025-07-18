@@ -12,6 +12,10 @@ content %}
   </div>
 
   <div id="level" style="text-align: center">Chargement du niveau...</div>
+  <div id="max-temperature" style="text-align: center">
+    Température max aujourd'hui...
+  </div>
+  <div id="watering-type" style="text-align: center">Type d'arrosage...</div>
   <button onclick="getLevel()">Actualiser le niveau</button>
 
   <div style="margin-top: 10px">
@@ -34,6 +38,39 @@ content %}
 </div>
 
 <script>
+  const watering = {
+    low: "Bas",
+    moderate: "Modéré",
+    standard: "Standard",
+    reinforced: "Renforcé",
+    high: "Elevé",
+  };
+  function getTemperature() {
+    fetch("/api/temperature-max").then((res) => {
+      if (res !== undefined) {
+        document.getElementById(
+          "temperature-max"
+        ).textContent = `Température maximale : ${res}`;
+      } else {
+        document.getElementById(
+          "temperature-max"
+        ).textContent = `Erreur : Impossible de récupérer la température.`;
+      }
+    });
+  }
+  function getWatering() {
+    fetch("/api/watering-type").then((res) => {
+      if (res !== undefined) {
+        document.getElementById(
+          "watering-type"
+        ).textContent = `Type d'arrosage : ${watering[res]}`;
+      } else {
+        document.getElementById(
+          "watering-type"
+        ).textContent = `Erreur : Impossible de récupérer le type d'arrosage.`;
+      }
+    });
+  }
   function getLevel() {
     fetch("/api/water-level")
       .then((res) => res.json())

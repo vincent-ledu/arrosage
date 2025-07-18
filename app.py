@@ -1,3 +1,4 @@
+import os
 import RPi.GPIO as GPIO
 import time
 from signal import signal, SIGINT
@@ -12,6 +13,7 @@ import logging
 from db import get_tasks_by_status, init_db, init_settings, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day, get_setting, set_setting
 from config import load_config, save_config
 from gpio_control import setup_gpio, gpio_state
+import requests
 
 setup_gpio()
 init_db()
@@ -39,6 +41,48 @@ cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Even
 @app.route('/')
 def index():
   return render_template("index.html")
+
+@app.route("/config/get-coordinates")
+def get_coordinates():
+  lat = os.getenv("LATITUDE")
+  lon = os.getenv("LONGITUDE")
+  if not lat or not lon:
+    return jsonify({"error": "LATITUDE or LONGITUDE not set"}), 500
+  return jsonify({"latitude": float(lat), "longitude": float(lon)})
+
+@app.route("/api/temperature-max")
+def get_temperature_max():
+  try:
+    lat, long = get_coordinates().values()
+    url = (
+      "https://api.open-meteo.com/v1/forecast"
+      f"?latitude={lat}&longitude={lon}"
+      "&daily=temperature_2m_max&forecast_days=1&timezone=Europe/Paris"
+    )
+    resp = requests.get(url, timeout=5)
+    resp.raise_for_status()
+    data = resp.json()
+    return data["daily"]["temperature_2m_max"][0]
+  except Exception as e:
+    print("Erreur météo :", e)
+    return None
+
+@app.route("/api/watering-type")
+def classify_watering():
+  temp = get_temperature_max()
+  if temp is None:
+    return "unknown"
+  if temp < 15:
+    return "low"
+  elif temp < 22:
+    return "moderate"
+  elif temp < 27:
+    return "standard"
+  elif temp < 32:
+    return "reinforced"
+  else:
+    return "high"
+
 
 @app.route('/config', methods=["GET", "POST"])
 def config_page():
