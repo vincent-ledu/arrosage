@@ -7,6 +7,15 @@ DB_PATH = "arrosage.db"
 def get_connection():
     return sqlite3.connect(DB_PATH)
 
+def init_settings():
+    with get_connection() as conn:
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )
+        ''')
+
 def init_db():
     with get_connection() as conn:
         conn.execute('''
@@ -15,12 +24,7 @@ def init_db():
             start_time INTEGER,
             duration INTEGER,
             status TEXT
-        );
-        CREATE TABLE IF NOT EXISTS settings (
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL
-            )
-        ''')
+        )''')
         conn.commit()
 def set_setting(key, value):
     with get_connection() as conn:

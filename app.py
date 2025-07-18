@@ -9,12 +9,13 @@ from datetime import datetime
 import atexit
 from collections import defaultdict
 import logging
-from db import get_tasks_by_status, init_db, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day, get_setting, set_setting
+from db import get_tasks_by_status, init_db, init_settings, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day, get_setting, set_setting
 from config import load_config, save_config
 from gpio_control import setup_gpio, gpio_state
 
 setup_gpio()
 init_db()
+init_settings()
 
 # Configuration globale du logger
 logging.basicConfig(
