@@ -168,6 +168,8 @@ content %}
 
   window.onload = () => {
     getLevel();
+    getTemperature();
+    getWatering();
     setInterval(getLevel, 30000); // Rafraîchit toutes les 30s
     document.getElementById("open-btn").disabled = false;
     document.getElementById("close-btn").disabled = true;
