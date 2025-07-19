@@ -71,5 +71,5 @@ else:
 # Appel conditionnel à l'API d'arrosage
 if arrosage_needed:
     print(f"Appel API pour l'arrosage du {time_of_day}...")
-    response_arrosage = requests.get(f"http://localhost/api/open-water?duration={duration}")
+    response_arrosage = requests.get(f"http://localhost/api/command/open-water?duration={duration}")
     print(f"Arrosage effectué le {time_of_day} pour {duration} secondes.")

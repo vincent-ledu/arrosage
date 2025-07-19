@@ -197,7 +197,7 @@ def IfWater():
 Open water for 'delay' seconds, if there is enough water
 Delay must be under 300 seconds (5minutes)
 '''
-@app.route("/api/open-water")
+@app.route("/api/command/open-water")
 def OpenWaterDelay():
   # Vérifie s’il existe déjà une tâche en cours
   if (get_tasks_by_status("en cours")):
@@ -226,7 +226,7 @@ def OpenWaterDelay():
 
   return jsonify({"task_id": task_id, "status": "en cours"}), 202
 
-@app.route("/api/close-water")
+@app.route("/api/command/close-water")
 def closeWaterSupply():
   logger.info("Turning Off valve & pump")
   GPIO.output(gpio_state["pump"], GPIO.LOW)

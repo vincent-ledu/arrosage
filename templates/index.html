@@ -68,7 +68,7 @@ content %}
         if (wateringtype !== undefined) {
           document.getElementById(
             "watering-type"
-          ).textContent = `💧​ : ${watering[wateringtype]}`;
+          ).textContent = `🚿​ : ${watering[wateringtype]}`;
         } else {
           document.getElementById(
             "watering-type"
@@ -107,7 +107,7 @@ content %}
     button.disabled = true;
     document.getElementById("close-btn").disabled = false;
 
-    const response = await fetch(`/api/open-water?duration=${duration}`);
+    const response = await fetch(`/api/command/open-water?duration=${duration}`);
     const data = await response.json();
     currentTaskId = data.task_id;
     checkStatus();
@@ -162,7 +162,7 @@ content %}
   }
 
   async function stopOpenWater() {
-    const response = await fetch("/api/close-water");
+    const response = await fetch("/api/command/close-water");
     const data = await response.json();
     document.getElementById("message").textContent = data.message;
     document.getElementById("open-btn").disabled = false;
