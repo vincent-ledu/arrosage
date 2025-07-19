@@ -30,36 +30,37 @@ duration = 0
 # Logique pour l'arrosage en fonction du moment de la journée (matin ou soir)
 if temp_max < 15:
     if time_of_day == 'morning':
-        arrosage_needed = False
+        arrosage_needed = True
+        duration = 30
     if time_of_day == 'evening':
         arrosage_needed = False
 elif temp_max < 20:
     if time_of_day == 'morning':
         arrosage_needed = True
-        duration = 120  # 120 secondes le matin
+        duration = 60
     if time_of_day == 'evening':
         arrosage_needed = False
 elif temp_max < 25:
     if time_of_day == 'morning':
         arrosage_needed = True
-        duration = 180  # 180 secondes le matin
+        duration = 120
     if time_of_day == 'evening':
         arrosage_needed = True
-        duration = 120  # 120 secondes le soir
+        duration = 60
 elif temp_max < 30:
     if time_of_day == 'morning':
         arrosage_needed = True
-        duration = 240  # 240 secondes le matin
+        duration = 180
     if time_of_day == 'evening':
         arrosage_needed = True
-        duration = 240  # 240 secondes le soir
+        duration = 120
 else:
     if time_of_day == 'morning':
         arrosage_needed = True
-        duration = 300  # 300 secondes le matin
+        duration = 240
     if time_of_day == 'evening':
         arrosage_needed = True
-        duration = 300  # 300 secondes le soir
+        duration = 180
 
 # Affichage de la température et du type d'arrosage
 print(f"Température maximale prévue : {temp_max}°C.")
