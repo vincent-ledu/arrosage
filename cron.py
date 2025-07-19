@@ -49,10 +49,10 @@ elif temp_max < 25:
 elif temp_max < 30:
     if time_of_day == 'morning':
         arrosage_needed = True
-        duration = 300  # 300 secondes le matin
+        duration = 240  # 240 secondes le matin
     if time_of_day == 'evening':
         arrosage_needed = True
-        duration = 300  # 300 secondes le soir
+        duration = 240  # 240 secondes le soir
 else:
     if time_of_day == 'morning':
         arrosage_needed = True
