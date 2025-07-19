@@ -48,9 +48,10 @@ content %}
   function getTemperatureWatering() {
     fetch("/api/temperature-max").then((res) => {
       if (res !== undefined) {
+        console.log(JSON.stringify(res));
         document.getElementById(
           "temperature-max"
-        ).textContent = `Température maximale : ${res}`;
+        ).textContent = `Température maximale : ${JSON.stringify(res)}`;
         getWatering(res);
       } else {
         document.getElementById(
@@ -62,7 +63,6 @@ content %}
   function getWatering(temp) {
     fetch(`/api/watering-type?temp=${temp}`).then((res) => {
       if (res !== undefined) {
-        JSON.stringify(res);
         document.getElementById(
           "watering-type"
         ).textContent = `Type d'arrosage : ${watering[res]}`;
