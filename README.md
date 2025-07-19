@@ -4,6 +4,18 @@ This is an automatic watering device from a rainwater collector.
 
 This project is completely inspired by Frederic JELMONI's project, available here: https://www.fred-j.org/index0364.html?p=364
 
+# Configuration
+
+Tested on raspberry 1 and 4.
+
+Middleware installed:
+
+- nginx
+
+Specific configuration
+
+- Adding www-data user to gpio group
+
 # Inventory
 
 ## Electrical devices
@@ -65,7 +77,3 @@ Total: ~220€
   ~ 10€
 
 Total: 100€
-
-# Wiring
-
-# Program
