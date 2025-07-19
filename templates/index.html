@@ -46,33 +46,35 @@ content %}
     high: "Elevé",
   };
   function getTemperatureWatering() {
-    fetch("/api/temperature-max").then((res) => {
-      if (res !== undefined) {
-        const temp = res.text();
-        document.getElementById(
-          "temperature-max"
-        ).textContent = `Température maximale : ${temp}`;
-        getWatering(temp);
-      } else {
-        document.getElementById(
-          "temperature-max"
-        ).textContent = `Erreur : Impossible de récupérer la température.`;
-      }
-    });
+    fetch("/api/temperature-max")
+      .then((res) => res.text())
+      .then((temp) => {
+        if (temp !== undefined) {
+          document.getElementById(
+            "temperature-max"
+          ).textContent = `Température maximale : ${temp}`;
+          getWatering(temp);
+        } else {
+          document.getElementById(
+            "temperature-max"
+          ).textContent = `Erreur : Impossible de récupérer la température.`;
+        }
+      });
   }
   function getWatering(temp) {
-    fetch(`/api/watering-type?temp=${temp}`).then((res) => {
-      if (res !== undefined) {
-        wateringtype = watering[res.text()];
-        document.getElementById(
-          "watering-type"
-        ).textContent = `Type d'arrosage : ${wateringtype}`;
-      } else {
-        document.getElementById(
-          "watering-type"
-        ).textContent = `Erreur : Impossible de récupérer le type d'arrosage.`;
-      }
-    });
+    fetch(`/api/watering-type?temp=${temp}`)
+      .then((res) => res.text())
+      .then((wateringtype) => {
+        if (wateringtype !== undefined) {
+          document.getElementById(
+            "watering-type"
+          ).textContent = `Type d'arrosage : ${watering[wateringtype]}`;
+        } else {
+          document.getElementById(
+            "watering-type"
+          ).textContent = `Erreur : Impossible de récupérer le type d'arrosage.`;
+        }
+      });
   }
   function getLevel() {
     fetch("/api/water-level")
