@@ -24,7 +24,7 @@ logging.basicConfig(
   level=logging.DEBUG,  # DEBUG pour + de détails
   format="%(asctime)s [%(levelname)s] %(message)s",
   handlers=[
-    logging.FileHandler("arrosage.log"),   # Log dans un fichier
+    logging.FileHandler("/var/log/gunicorn/arrosage.log"),   # Log dans un fichier
     logging.StreamHandler()                # Log dans la console aussi
   ]
 )
@@ -87,6 +87,7 @@ def classify_watering():
 
 @app.route('/config', methods=["GET", "POST"])
 def config_page():
+  logger.info("getting config page")
   default_duration = get_setting("default_duration", default=60)
   config = load_config()
   if request.method == "POST":
