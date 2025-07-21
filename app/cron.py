@@ -12,7 +12,9 @@ time_of_day = sys.argv[1]
 # Coordonnées pour Alex (74290)
 latitude = 45.9370
 longitude = 6.1710
-
+headers = {
+    "X-Real-IP": "192.168.0.105"
+}
 # URL pour obtenir la température maximale de la journée
 url = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&daily=temperature_2m_max&forecast_days=1&timezone=Europe/Paris"
 
@@ -71,6 +73,7 @@ else:
 
 # Appel conditionnel à l'API d'arrosage
 if arrosage_needed:
+
     print(f"Appel API pour l'arrosage du {time_of_day}...")
-    response_arrosage = requests.get(f"http://localhost/api/command/open-water?duration={duration}")
+    response_arrosage = requests.get(f"http://localhost/api/command/open-water?duration={duration}", headers=headers)
     print(f"Arrosage effectué le {time_of_day} pour {duration} secondes.")
