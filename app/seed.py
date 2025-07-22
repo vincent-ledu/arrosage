@@ -21,8 +21,8 @@ for day_offset in range(30):
 
         duration = random.randint(60, 300)  # Durée entre 1 et 5 min
         task_id = str(uuid.uuid4())
-        status = random.choices(["terminé", "annulé", "erreur"], weights=[0.8, 0.1, 0.1])[0]
+        status = random.choices(["completed", "canceled", "error"], weights=[0.8, 0.1, 0.1])[0]
 
         add_task(task_id, start_time, duration, status)
 
-print("✅ Données factices insérées dans la base.")
+print("✅ Fake data inserted.")

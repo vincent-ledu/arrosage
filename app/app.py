@@ -1,5 +1,4 @@
 import os
-import RPi.GPIO as GPIO
 import time
 from signal import signal, SIGINT
 from sys import exit
@@ -10,14 +9,26 @@ from datetime import datetime
 import atexit
 from collections import defaultdict
 import logging
-from db import get_tasks_by_status, init_db, init_settings, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day, get_setting, set_setting
+from db import get_tasks_by_status, init_db,add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day
 from config import load_config, save_config
-from gpio_control import setup_gpio, gpio_state
 import requests
+from flask_babel import Babel, gettext as _, lazy_gettext as _l
 
-setup_gpio()
+
+ctlInst = None
+if os.environ.get("TESTING") == "1":
+  import control_fake as ctl
+  ctlInst = ctl.FakeControl()
+else:
+  import control_gpio as ctl
+  ctlInst = ctl.GPIOControl()
+
+ctlInst.setup()
 init_db()
-init_settings()
+
+# on s'assure que le dossier de logs existe
+if not os.path.exists("/var/log/gunicorn"):
+  os.makedirs("/var/log/gunicorn")
 
 # Configuration globale du logger
 logging.basicConfig(
@@ -32,9 +43,21 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
+# Détection de la langue par l'URL ou les headers
+def get_locale():
+    lang = request.args.get("lang")
+    if lang in ["fr", "en"]:
+        return lang
+    return request.accept_languages.best_match(["fr", "en"])
+
+app.config['BABEL_DEFAULT_LOCALE'] = 'fr'
+app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'translations'
+
+babel = Babel(app, locale_selector=get_locale)
+
 @app.before_request
 def log_request_info():
-    logger.info(f"Requête reçue: {request.method} {request.path}")
+    logger.info(f"Request received: {request.method} {request.path}")
 
 cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Event()}
 
@@ -42,18 +65,18 @@ cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Even
 def index():
   return render_template("index.html")
 
+@app.route('/api/coordinates')
 def get_coordinates():
-  lat = os.getenv("LATITUDE")
-  lon = os.getenv("LONGITUDE")
-  if not lat or not lon:
-    return {"error": "LATITUDE or LONGITUDE not set"}
-  return {"latitude": float(lat), "longitude": float(lon)}
+  coordinates = load_config()["coordinates"]
+  LATITIUDE = coordinates.get("latitude", 48.866667)  
+  LONGITUDE = coordinates.get("longitude", 2.333333)
+  return {"latitude": float(LATITIUDE), "longitude": float(LONGITUDE)}
 
 @app.route("/api/temperature-max")
 def get_temperature_max():
   try:
     coordinates = get_coordinates()
-    logger.info(f"coordinates: ${coordinates}")
+    logger.debug(f"Coordinates: ${coordinates}")
     lat, lon = coordinates.values()
     url = (
       "https://api.open-meteo.com/v1/forecast"
@@ -65,30 +88,23 @@ def get_temperature_max():
     data = resp.json()
     return jsonify(data["daily"]["temperature_2m_max"][0])
   except Exception as e:
-    logger.error("Erreur météo :", e)
+    logger.error("Forecast error :", e)
     return jsonify({"error": "Error in calling open-meteo api"})
 
 @app.route("/api/watering-type")
 def classify_watering():
-  temp = request.args.get("temp", type=float)
+  temp = get_temperature_max().get_json()
+  watering = load_config()["watering"]
+
   if temp is None:
     return "unknown"
-  if temp < 15:
-    return "low"
-  elif temp < 22:
-    return "moderate"
-  elif temp < 27:
-    return "standard"
-  elif temp < 32:
-    return "reinforced"
-  else:
-    return "high"
+  for watering_type, settings in watering.items():
+    logger.debug(f"Checking if {temp} < {settings["threshold"]} for {watering_type}")
+    if temp < settings["threshold"]:
+      return watering_type
 
-
-@app.route('/config', methods=["GET", "POST"])
-def config_page():
-  logger.info("getting config page")
-  default_duration = get_setting("default_duration", default=60)
+@app.route('/settings/', methods=["GET", "POST"])
+def settings_page():
   config = load_config()
   if request.method == "POST":
     config["pump"] = int(request.form.get("pump", 2))
@@ -97,11 +113,19 @@ def config_page():
       int(request.form.get(f"level{i}", 7 + i))
       for i in range(4)
     ]
+    for watering_type in config["watering"]:
+      config["watering"][watering_type]["threshold"] = int(request.form.get(f"{watering_type}_threshold", 20))
+      config["watering"][watering_type]["morning-duration"] = int(request.form.get(f"{watering_type}_morning-duration", 60))
+      config["watering"][watering_type]["evening-duration"] = int(request.form.get(f"{watering_type}_evening-duration", 60))
+    config["coordinates"] = {
+      "latitude": float(request.form.get("latitude", 48.866667)),
+      "longitude": float(request.form.get("longitude", 2.333333))
+    }
     save_config(config)
-    setup_gpio()
+    ctlInst.setup()
     # flash("Configuration enregistrée avec succès.")
-    return redirect(url_for("config_page"))
-  return render_template("config.html", config=config, default_duration=default_duration)
+    return redirect(url_for("settings_page"))
+  return render_template("settings.html", config=config)
 
 @app.route('/history')
 def history_page():
@@ -114,63 +138,46 @@ def history_heatmap_page():
 def handler(signal_received, frame):
   # on gere un cleanup propre
   logger.warning('SIGINT or CTRL-C detected. Exiting gracefully')
-  GPIO.cleanup()
+  ctlInst.cleanup()
   exit(0)
 
 def cleanup_app():
   logger.warning("GPIO Clean up app")
-  GPIO.cleanup()
+  ctlInst.cleanup()
 
 def open_water_task(task_id, duration, cancel_event):
   try:
     interval = 1
     elapsed = 0
 
-    logger.info("Turning On valve")
-    GPIO.output(gpio_state["valve"], GPIO.HIGH)
-    time.sleep(2)
-    logger.info("Turning On pump")
-    GPIO.output(gpio_state["pump"], GPIO.HIGH)
+    open
     while elapsed < duration:
       if cancel_event.is_set():
-        update_status(task_id, "annulé")
+        update_status(task_id, "canceled")
         return
       if not IfWater():
-        GPIO.output(gpio_state["pump"], GPIO.LOW)
-        time.sleep(2)
-        GPIO.output(gpio_state["valve"], GPIO.LOW)
-        update_status(task_id, "réservoir vide")
+        logger.warning("Not enough water to continue")
+        ctlInst.closeWater()
+        update_status(task_id, "canceled")
         return
       time.sleep(interval)
       elapsed += interval
-    logger.info("Turning Off valve & pump")
-    GPIO.output(gpio_state["pump"], GPIO.LOW)
-    time.sleep(2)
-    GPIO.output(gpio_state["valve"], GPIO.LOW)
-    update_status(task_id, "terminé")
+    ctlInst.closeWater()
+    update_status(task_id, "completed")
   except Exception as e:
-      update_status(task_id, f"erreur: {str(e)}")
+      update_status(task_id, f"error: {str(e)}")
 
 
 @app.route("/api/water-level")
 def CheckWaterLevel():
-  level = 0
-  for i in range(4):
-    logger.info(f"Checking level {i}")
-    if GPIO.input(gpio_state["levels"][i]):
-      level += 1
+  level = ctlInst.getLevel()
   logger.info(f"Container is at: {level}")
   return { "level": level*25 }
 
 
 @app.route("/api/water-levels")
-def DebugkWaterLevels():
-  water_states = {}
-  water_states["levels 3"] = {"gpio_pin": gpio_state["levels"][3], "state": GPIO.input(gpio_state["levels"][3])}
-  water_states["levels 2"] = {"gpio_pin": gpio_state["levels"][2], "state": GPIO.input(gpio_state["levels"][2])}
-  water_states["levels 1"] = {"gpio_pin": gpio_state["levels"][1], "state": GPIO.input(gpio_state["levels"][1])}
-  water_states["levels 0"] = {"gpio_pin": gpio_state["levels"][0], "state": GPIO.input(gpio_state["levels"][0])}
-  return jsonify(water_states), 200
+def DebugWaterLevels():
+  return jsonify(ctlInst.DebugWaterLevels()), 200
 
 
 @app.route('/api/tasks')
@@ -178,11 +185,11 @@ def task_list():
    return jsonify(get_all_tasks())
 
 
-@app.route('/api/task-status/<task_id>')
+@app.route('/api/tasks/<task_id>')
 def task_status(task_id):
   task = get_task(task_id)
   if not task:
-      return jsonify({"error": "Tâche introuvable"}), 404
+      return jsonify({"error": f"Task {task_id} not found"}), 404
   logger.debug(task)
   return jsonify({
       "status": task["status"],
@@ -198,58 +205,54 @@ def IfWater():
 Open water for 'delay' seconds, if there is enough water
 Delay must be under 300 seconds (5minutes)
 '''
-@app.route("/api/command/open-water")
+@app.route("/api/command/open-water", methods=["GET"])
 def OpenWaterDelay():
-  # Vérifie s’il existe déjà une tâche en cours
-  if (get_tasks_by_status("en cours")):
-    return jsonify({"error": "Une vanne est déjà ouverte. Attendez qu'elle se referme."}), 409
 
   duration = request.args.get("duration", type=int)
   if duration is None:
-    duration = get_setting("default_duration", default=60)                            
-  logger.debug("check if water")
-  if not IfWater():
-    logger.warning("There is not enough water")
-    return jsonify({"error": "Il n'y a pas assez d'eau."}), 507   
+    logger.warning("No duration provided")
+    return jsonify({"error": "Duration parameter is required"}), 400                       
+
   if duration <= 0 or duration > 300:
     logger.warning("Delay is to high, risk to empty container")
-    return jsonify({"error": "Durée invalide"}), 400
+    return jsonify({"error": "Invalid duration"}), 400
+  # Vérifie s’il existe déjà une tâche en cours
+  if (get_tasks_by_status("in progress")):
+    return jsonify({"error": "Watering is already in progress."}), 409
+  if not IfWater():
+    logger.warning("There is not enough water")
+    return jsonify({"error": "Not enough water."}), 507   
   
-  task_id = str(uuid.uuid4())
+  start_time = time.time()
+  task_id = add_task(start_time, duration, "in progress")
   cancel_event = threading.Event()
   cancel_flags[task_id] = cancel_event
 
-  start_time = time.time()
-  add_task(task_id, start_time, duration, "en cours")
   # Lancement en thread
   thread = threading.Thread(target=open_water_task, args=(task_id, duration, cancel_event))
   thread.start()
 
-  return jsonify({"task_id": task_id, "status": "en cours"}), 202
+  return jsonify({"task_id": task_id, "status": "in progress"}), 202
 
 @app.route("/api/command/close-water")
 def closeWaterSupply():
-  logger.info("Turning Off valve & pump")
-  GPIO.output(gpio_state["pump"], GPIO.LOW)
-  time.sleep(2)
-  GPIO.output(gpio_state["valve"], GPIO.LOW)
-  
+  ctlInst.closeWater()
+
   cancelled_tasks = []
-  for task in get_tasks_by_status("en cours"):
-    logger.debug(f"task to cancel: {task}")
+  for task in get_tasks_by_status("in progress"):
     cancel_event = cancel_flags.get(task.get("id"))
     if cancel_event:
       cancel_event.set()
-      update_status(task.get("id"), "annulé")
+      update_status(task.get("id"), "canceled")
       cancelled_tasks.append(task.get("id"))
   if len(cancelled_tasks) > 0:
-    return jsonify({"message": f"Tâche {cancelled_tasks} arrêtée"}), 200
-  return jsonify({"message": "Aucune tâche en cours à arrêter"}), 400
+    return jsonify({"message": f"Task {cancelled_tasks} terminated"}), 200
+  return jsonify({"error": "Water is already closed"}), 404
 
 @app.route('/api/history')
 def get_history():
   history = defaultdict(int)
-  for task in get_tasks_by_status("terminé"):
+  for task in get_tasks_by_status("completed"):
     day = datetime.fromtimestamp(task["start_time"]).strftime('%Y-%m-%d')
     history[day] += task.get("duration", 0)
 
@@ -260,14 +263,6 @@ def get_history():
 @app.route('/api/history-heatmap')
 def history_heatmap():
   return jsonify(get_tasks_summary_by_day())
-
-@app.route("/config/set-default-duration", methods=["POST"])
-def set_default_duration():
-    value = request.form.get("default_duration", type=int)
-    if value and value > 0:
-        set_setting("default_duration", value)
-    return redirect(url_for("config_page"))
-
 
 if __name__ == '__main__':
   # On prévient Python d'utiliser la method handler quand un signal SIGINT est reçu

@@ -1,0 +1,94 @@
+{% extends "base.html" %} {% block title %}Configuration GPIO{% endblock %} {%
+block content %}
+<h2>{{ _('Settings') }}</h2>
+
+<form method="POST">
+  <p>
+  <label for="pump">{{ _('Pump pin:')}}</label>
+  <input
+    type="number"
+    name="pump"
+    id="pump"
+    value="{{ config.pump }}"
+    min="0"
+    max="27"
+    required
+  />
+  </p>
+  <p>
+  <label for="valve">{{ _('Valve pin:') }}</label>
+  <input
+    type="number"
+    name="valve"
+    id="valve"
+    value="{{ config.valve }}"
+    min="0"
+    max="27"
+    required
+  />
+  </p>
+  <p>
+  <fieldset style="margin-top: 1rem">
+    <legend>{{ _('Water level pins:') }}</legend>
+    {% for i in range(4) %}
+    <label for="level{{ i }}">{{ _('level') }} {{ i+1 }} :</label>
+    <input
+      type="number"
+      name="level{{ i }}"
+      id="level{{ i }}"
+      value="{{ config.levels[i] }}"
+      min="0"
+      max="27"
+      required
+    />
+    {% endfor %}
+  </fieldset>
+  </p>
+  <p>
+    <fieldset style="margin-top: 1rem">
+      <legend>{{ _('Coordinates')}}</legend>
+      <label for="latitude">{{ _('Latitude:') }}</label>
+      <input
+        type="text"
+        name="latitude"
+        id="latitude"
+        value="{{ config.coordinates.latitude }}"
+        required
+      />
+      <label for="longitude">{{ _('Longitude:')}}</label>
+      <input
+        type="text"
+        name="longitude"
+        id="longitude"
+        value="{{ config.coordinates.longitude }}"
+        required
+      />
+    </fieldset>
+  </p>
+  <p>
+  <fieldset style="margin-top: 1rem">
+    <legend>{{ _('Watering duration:') }}</legend>
+    <table>
+      <tr>
+        <th>{{ _('Type')}}</th>
+        <th>{{ _('Threshold') }} (°C)</th>
+        <th>⏱️ {{ _('Morning') }} (s)</th>
+        <th>⏱️ {{ _('Evening') }} (s)</th>
+      </tr>
+      {% for watering_type, settings in config["watering"].items() %}
+      <tr>
+        <td>{{ watering_type }}</td>
+        <td><input type="number" min="0" max="100" name="{{ watering_type }}_threshold" id="{{ watering_type }}_threshold" value="{{ settings['threshold'] }}"></td>
+        <td><input type="number" min="0" max="600" name="{{ watering_type }}_morning-duration" id="{{ watering_type }}_morning-duration" value="{{ settings['morning-duration'] }}"></td>
+        <td><input type="number" min="0" max="600" name="{{ watering_type }}_evening-duration" id="{{ watering_type }}_evening-duration" value="{{ settings['evening-duration'] }}"></td>
+      </tr>
+      {% endfor %}
+    </table>
+  </fieldset>
+  </p>
+  <p>
+  </p>
+  <button type="submit">💾 {{ _('Save')}}</button>
+</form>
+
+{% endblock %}

@@ -1,109 +1,92 @@
 # db.py
 import sqlite3
-import time
+import uuid
+import os
 
-DB_PATH = "arrosage.db"
+DB_PATH = os.environ.get("DB_PATH", "arrosage.db")  # tu peux surcharger dans tes tests
+
 
 def get_connection():
-    return sqlite3.connect(DB_PATH)
-
-def init_settings():
-    with get_connection() as conn:
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS settings (
-                key TEXT PRIMARY KEY,
-                value TEXT NOT NULL
-            )
-        ''')
+  return sqlite3.connect(DB_PATH)
 
 def init_db():
-    with get_connection() as conn:
-        conn.execute('''
-        CREATE TABLE IF NOT EXISTS tasks (
-            id TEXT PRIMARY KEY,
-            start_time INTEGER,
-            duration INTEGER,
-            status TEXT
-        )''')
-        conn.commit()
-def set_setting(key, value):
-    with get_connection() as conn:
-        conn.execute('''
-            INSERT INTO settings (key, value) VALUES (?, ?)
-            ON CONFLICT(key) DO UPDATE SET value = excluded.value
-        ''', (key, str(value)))
+  with get_connection() as conn:
+    conn.execute('''
+    CREATE TABLE IF NOT EXISTS tasks (
+      id TEXT PRIMARY KEY,
+      start_time INTEGER,
+      duration INTEGER,
+      status TEXT
+    )''')
+    conn.commit()
 
-def get_setting(key, default=None):
-    with get_connection() as conn:
-        cur = conn.execute('SELECT value FROM settings WHERE key = ?', (key,))
-        row = cur.fetchone()
-        return int(row[0]) if row else default
-
-def add_task(task_id, start_time, duration, status):
-    with get_connection() as conn:
-        conn.execute('''
-        INSERT INTO tasks (id, start_time, duration, status)
-        VALUES (?, ?, ?, ?)
-        ''', (task_id, int(start_time), duration, status))
-        conn.commit()
+def add_task(start_time, duration, status):
+  task_id = str(uuid.uuid4())
+  with get_connection() as conn:
+    conn.execute('''
+    INSERT INTO tasks (id, start_time, duration, status)
+    VALUES (?, ?, ?, ?)
+    ''', (task_id, int(start_time), duration, status))
+    conn.commit()
+  return task_id
 
 def get_tasks_by_status(status):
-    with get_connection() as conn:
-        cursor = conn.execute('''
-            SELECT * FROM tasks
-            WHERE status = ?
-            ORDER BY start_time DESC
-        ''', (status,))
-        return [
-            {
-                "id": row[0],
-                "start_time": row[1],
-                "duration": row[2],
-                "status": row[3]
-            }
-            for row in cursor.fetchall()
-        ]
+  with get_connection() as conn:
+    cursor = conn.execute('''
+      SELECT * FROM tasks
+      WHERE status = ?
+      ORDER BY start_time DESC
+    ''', (status,))
+    return [
+      {
+        "id": row[0],
+        "start_time": row[1],
+        "duration": row[2],
+        "status": row[3]
+      }
+      for row in cursor.fetchall()
+      ]
 
 def update_status(task_id, new_status):
-    with get_connection() as conn:
-        conn.execute('''
-        UPDATE tasks SET status = ?
-        WHERE id = ?
-        ''', (new_status, task_id))
-        conn.commit()
+  with get_connection() as conn:
+    conn.execute('''
+    UPDATE tasks SET status = ?
+    WHERE id = ?
+    ''', (new_status, task_id))
+    conn.commit()
 
 def get_task(task_id):
-    with get_connection() as conn:
-        cursor = conn.execute('SELECT * FROM tasks WHERE id = ?', (task_id,))
-        row = cursor.fetchone()
-        if row:
-            return {
-                "id": row[0],
-                "start_time": row[1],
-                "duration": row[2],
-                "status": row[3]
-            }
-    return None
+  with get_connection() as conn:
+    cursor = conn.execute('SELECT * FROM tasks WHERE id = ?', (task_id,))
+    row = cursor.fetchone()
+    if row:
+      return {
+        "id": row[0],
+        "start_time": row[1],
+        "duration": row[2],
+        "status": row[3]
+      }
+  return None
 
 def get_all_tasks():
-    with get_connection() as conn:
-        cursor = conn.execute('SELECT * FROM tasks ORDER BY start_time DESC')
-        return [
-            {
-                "id": row[0],
-                "start_time": row[1],
-                "duration": row[2],
-                "status": row[3]
-            }
-            for row in cursor.fetchall()
-        ]
+  with get_connection() as conn:
+    cursor = conn.execute('SELECT * FROM tasks ORDER BY start_time DESC')
+    return [
+      {
+        "id": row[0],
+        "start_time": row[1],
+        "duration": row[2],
+        "status": row[3]
+      }
+      for row in cursor.fetchall()
+    ]
 
 def get_tasks_summary_by_day():
-    with get_connection() as conn:
-        cursor = conn.execute('''
-            SELECT (start_time / 86400) * 86400 as day, SUM(duration)
-            FROM tasks
-            WHERE status = 'terminé'
-            GROUP BY day
-        ''')
-        return {int(row[0]): int(row[1]) for row in cursor.fetchall()}
+  with get_connection() as conn:
+    cursor = conn.execute('''
+      SELECT (start_time / 86400) * 86400 as day, SUM(duration)
+      FROM tasks
+      WHERE status = 'terminated'
+      GROUP BY day
+    ''')
+    return {int(row[0]): int(row[1]) for row in cursor.fetchall()}

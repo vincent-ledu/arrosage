@@ -11,12 +11,14 @@ content %}
     </div>
   </div>
 
-  <div id="level" style="text-align: center">Chargement du niveau...</div>
+  <div id="level" style="text-align: center">{{ _('Loading levels...') }}</div>
   <div id="temperature-max" style="text-align: center">
-    Température max aujourd'hui...
+    {{ _('Loading max temperature...') }}
   </div>
-  <div id="watering-type" style="text-align: center">Type d'arrosage...</div>
-  <button onclick="getLevel()">Actualiser le niveau</button>
+  <div id="watering-type" style="text-align: center">
+    {{ _('Loading watering type')}}
+  </div>
+  <button onclick="getLevel()">{{ _('Refresh levels')}}</button>
 
   <div style="margin-top: 10px">
     <input
@@ -27,9 +29,11 @@ content %}
       style="width: 100%; padding: 10px; font-size: 16px"
     />
   </div>
-  <button id="open-btn" onclick="startOpenWater()">Arroser</button>
+  <button id="open-btn" onclick="startOpenWater()">{{ _('Watering') }}</button>
 
-  <button id="close-btn" onclick="stopOpenWater()">Arrêter l'arrosage</button>
+  <button id="close-btn" onclick="stopOpenWater()">
+    {{ _('Stop watering') }}
+  </button>
   <div id="message"></div>
   <div id="status-info"></div>
   <div id="progress-container">
@@ -57,7 +61,7 @@ content %}
         } else {
           document.getElementById(
             "temperature-max"
-          ).textContent = `Erreur : Impossible de récupérer la température.`;
+          ).textContent = `{{ _('Error: Unable to retrieve temperature') }}`;
         }
       });
   }
@@ -72,7 +76,7 @@ content %}
         } else {
           document.getElementById(
             "watering-type"
-          ).textContent = `Erreur : Impossible de récupérer le type d'arrosage.`;
+          ).textContent = `{{ _('Error: Unable to retrieve watering type') }}`;
         }
       });
   }
@@ -84,7 +88,7 @@ content %}
           const level = data.level;
           document.getElementById(
             "level"
-          ).textContent = `Niveau d'eau : ${level}%`;
+          ).textContent = `{{ _('Water level') }} : ${level}%`;
 
           const waterFill = document.getElementById("water-fill");
           const levelLabel = document.getElementById("level-label");
@@ -93,21 +97,25 @@ content %}
           levelLabel.textContent = `${level}%`;
         } else {
           document.getElementById("level").textContent =
-            "Erreur : impossible d'obtenir le niveau";
+            "{{ _('Error: Unable to retrieve water level') }}";
         }
       });
   }
   async function startOpenWater() {
     const duration = parseInt(document.getElementById("duration").value);
     if (!duration || duration <= 0 || duration > 300) {
-      alert("Durée invalide (max 300s)");
+      alert(
+        "{{ _('Please enter a valid duration between 1 and 300 seconds') }}"
+      );
       return;
     }
     const button = document.getElementById("open-btn");
     button.disabled = true;
     document.getElementById("close-btn").disabled = false;
 
-    const response = await fetch(`/api/command/open-water?duration=${duration}`);
+    const response = await fetch(
+      `/api/command/open-water?duration=${duration}`
+    );
     const data = await response.json();
     currentTaskId = data.task_id;
     checkStatus();
@@ -120,13 +128,13 @@ content %}
   async function checkStatus() {
     if (!currentTaskId) return;
 
-    const response = await fetch(`/api/task-status/${currentTaskId}`);
+    const response = await fetch(`/api/tasks/${currentTaskId}`);
     const data = await response.json();
 
     const statusText = {
-      "en cours": "Arrosage en cours",
-      terminé: "Arrosage terminé",
-      annulé: "Arrosage annulé",
+      "in progress": "{{ _('Watering in progress') }}",
+      completed: "{{ _('Watering completed') }}",
+      canceled: "{{ _('Watering canceled') }}",
     };
 
     document.getElementById("message").textContent =
@@ -135,7 +143,7 @@ content %}
     const progressContainer = document.getElementById("progress-container");
     const progressBar = document.getElementById("progress-bar");
 
-    if (data.status === "en cours") {
+    if (data.status === "in progress") {
       const now = Math.floor(Date.now() / 1000);
       const elapsed = now - Math.floor(data.start_time);
       const remaining = Math.max(0, data.duration - elapsed);
@@ -146,7 +154,7 @@ content %}
       ).toLocaleTimeString();
       document.getElementById(
         "status-info"
-      ).textContent = `Démarré à : ${startTimeStr} — Temps restant : ${remaining} sec`;
+      ).textContent = `{{ _('Started at:') }} ${startTimeStr} — {{ _('Time remaining') }} ${remaining}s`;
 
       progressBar.style.width = percent + "%";
       progressContainer.style.display = "block";
@@ -174,7 +182,6 @@ content %}
   window.onload = () => {
     getLevel();
     getTemperatureWatering();
-    setInterval(getLevel, 30000); // Rafraîchit toutes les 30s
     document.getElementById("open-btn").disabled = false;
     document.getElementById("close-btn").disabled = true;
   };

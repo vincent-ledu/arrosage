@@ -1,5 +1,19 @@
 import sys
 import requests
+from config import load_config
+import logging
+
+
+# Configuration globale du logger
+logging.basicConfig(
+  level=logging.DEBUG,  # DEBUG pour + de détails
+  format="%(asctime)s [%(levelname)s] %(message)s",
+  handlers=[
+    logging.FileHandler("/var/log/gunicorn/cron-arrosage.log"),   # Log dans un fichier
+    logging.StreamHandler()                # Log dans la console aussi
+  ]
+)
+logger = logging.getLogger(__name__)
 
 # Vérifier si un argument a été passé pour 'morning' ou 'evening'
 if len(sys.argv) != 2 or sys.argv[1] not in ['morning', 'evening']:
@@ -9,71 +23,26 @@ if len(sys.argv) != 2 or sys.argv[1] not in ['morning', 'evening']:
 # Récupérer l'argument 'morning' ou 'evening'
 time_of_day = sys.argv[1]
 
-# Coordonnées pour Alex (74290)
-latitude = 45.9370
-longitude = 6.1710
+# Récupérer les coordonnées depuis l'application Flask
+
+# Configuration des en-têtes pour la requête
 headers = {
     "X-Real-IP": "192.168.0.105"
 }
-# URL pour obtenir la température maximale de la journée
-url = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&daily=temperature_2m_max&forecast_days=1&timezone=Europe/Paris"
 
-# Faire la requête pour obtenir la prévision de la température
-response = requests.get(url)
-data = response.json()
+watering_config = load_config()["watering"]
 
-# Température maximale de la journée
-temp_max = data['daily']['temperature_2m_max'][0]
+# Récupération du type d'arrosage
+watering_type_res = requests.get("http://localhost/api/watering-type", headers=headers)
+logger.info(watering_type_res.raise_for_status())
+logger.info(f"Watering type: {watering_type_res.text}")
+watering_type = watering_type_res.text
+duration = watering_config[watering_type][time_of_day + "-duration"]
+if (duration is None or duration <= 0):
+    logger.warning(f"No duration specified for watering type {watering_type} on {time_of_day}.")
+    sys.exit(0)
 
-# Déterminer la durée d'arrosage selon la température et le moment de la journée
-arrosage_needed = False
-duration = 0
-
-# Logique pour l'arrosage en fonction du moment de la journée (matin ou soir)
-if temp_max < 15:
-    if time_of_day == 'morning':
-        arrosage_needed = True
-        duration = 30
-    if time_of_day == 'evening':
-        arrosage_needed = False
-elif temp_max < 20:
-    if time_of_day == 'morning':
-        arrosage_needed = True
-        duration = 60
-    if time_of_day == 'evening':
-        arrosage_needed = False
-elif temp_max < 25:
-    if time_of_day == 'morning':
-        arrosage_needed = True
-        duration = 120
-    if time_of_day == 'evening':
-        arrosage_needed = True
-        duration = 60
-elif temp_max < 30:
-    if time_of_day == 'morning':
-        arrosage_needed = True
-        duration = 180
-    if time_of_day == 'evening':
-        arrosage_needed = True
-        duration = 120
-else:
-    if time_of_day == 'morning':
-        arrosage_needed = True
-        duration = 240
-    if time_of_day == 'evening':
-        arrosage_needed = True
-        duration = 180
-
-# Affichage de la température et du type d'arrosage
-print(f"Température maximale prévue : {temp_max}°C.")
-if arrosage_needed:
-    print(f"Arrosage recommandé le {time_of_day}: {duration} secondes.")
-else:
-    print(f"Pas d'arrosage nécessaire le {time_of_day}.")
-
-# Appel conditionnel à l'API d'arrosage
-if arrosage_needed:
-
-    print(f"Appel API pour l'arrosage du {time_of_day}...")
-    response_arrosage = requests.get(f"http://localhost/api/command/open-water?duration={duration}", headers=headers)
-    print(f"Arrosage effectué le {time_of_day} pour {duration} secondes.")
+logger.info(f"Call for watering {time_of_day}...")
+response_arrosage = requests.get(f"http://localhost/api/command/open-water?duration={duration}", headers=headers)
+logger.info(response_arrosage.raise_for_status())
+logger.info(f"Watering done on {time_of_day} for {duration} seconds.")

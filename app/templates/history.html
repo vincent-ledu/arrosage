@@ -2,7 +2,7 @@
 head_extra %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 {% endblock %} {% block content %}
-<h2>Historique de l'arrosage</h2>
+<h2>{{ _('Watering history') }}</h2>
 <canvas id="historyChart"></canvas>
 
 <script>
@@ -20,7 +20,7 @@ head_extra %}
         labels: labels,
         datasets: [
           {
-            label: "Minutes d’arrosage",
+            label: "{{ _('Watering Duration (min)') }}",
             data: durations,
             backgroundColor: "rgba(75, 192, 192, 0.6)",
             borderColor: "rgba(75, 192, 192, 1)",
@@ -30,9 +30,9 @@ head_extra %}
       },
       options: {
         scales: {
-          x: { title: { display: true, text: "Date" } },
+          x: { title: { display: true, text: "{{ _('Date') }}" } },
           y: {
-            title: { display: true, text: "Durée (minutes)" },
+            title: { display: true, text: "{{ _('Duration (min)') }}" },
             beginAtZero: true,
           },
         },

@@ -1,0 +1,159 @@
+# French translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-07-22 19:21+0200\n"
+"PO-Revision-Date: 2025-07-22 19:22+0200\n"
+"Last-Translator: Vincent <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.10.3\n"
+
+#: templates/base.html:5 templates/index.html:32
+msgid "Watering"
+msgstr "Arrosage"
+
+#: templates/base.html:22
+msgid "History"
+msgstr "Historique"
+
+#: templates/base.html:23 templates/settings.html:3
+msgid "Settings"
+msgstr "Paramètres"
+
+#: templates/history.html:5
+msgid "Watering history"
+msgstr "Historique des arrosages"
+
+#: templates/history.html:23
+msgid "Watering Duration (min)"
+msgstr "Durée d'arrosage (min)"
+
+#: templates/history.html:33
+msgid "Date"
+msgstr "Date"
+
+#: templates/history.html:35
+msgid "Duration (min)"
+msgstr "Durée (min)"
+
+#: templates/index.html:14
+msgid "Loading levels..."
+msgstr "Chargement des niveaux..."
+
+#: templates/index.html:16
+msgid "Loading max temperature..."
+msgstr "Chargement de la température maximale..."
+
+#: templates/index.html:19
+msgid "Loading watering type"
+msgstr "Chargement du type d’arrosage"
+
+#: templates/index.html:21
+msgid "Refresh levels"
+msgstr "Rafraîchir les niveaux"
+
+#: templates/index.html:35
+msgid "Stop watering"
+msgstr "Arrêter l’arrosage"
+
+#: templates/index.html:64
+msgid "Error: Unable to retrieve temperature"
+msgstr "Erreur : impossible de récupérer la température"
+
+#: templates/index.html:79
+msgid "Error: Unable to retrieve watering type"
+msgstr "Erreur : impossible de récupérer le type d’arrosage"
+
+#: templates/index.html:91
+msgid "Water level"
+msgstr "Niveau d’eau"
+
+#: templates/index.html:100
+msgid "Error: Unable to retrieve water level"
+msgstr "Erreur : impossible de récupérer le niveau d’eau"
+
+#: templates/index.html:108
+msgid "Please enter a valid duration between 1 and 300 seconds"
+msgstr "Veuillez entrer une durée valide entre 1 et 300 secondes"
+
+#: templates/index.html:135
+msgid "Watering in progress"
+msgstr "Arrosage en cours"
+
+#: templates/index.html:136
+msgid "Watering completed"
+msgstr "Arrosage terminé"
+
+#: templates/index.html:137
+msgid "Watering canceled"
+msgstr "Arrosage annulé"
+
+#: templates/index.html:157
+msgid "Started at:"
+msgstr "Démarré à :"
+
+#: templates/index.html:157
+msgid "Time remaining"
+msgstr "Temps restant"
+
+#: templates/settings.html:7
+msgid "Pump pin:"
+msgstr "Broche de la pompe :"
+
+#: templates/settings.html:19
+msgid "Valve pin:"
+msgstr "Broche de la vanne :"
+
+#: templates/settings.html:32
+msgid "Water level pins:"
+msgstr "Broches des niveaux d’eau :"
+
+#: templates/settings.html:34
+msgid "level"
+msgstr "niveau"
+
+#: templates/settings.html:49
+msgid "Coordinates"
+msgstr "Coordonnées"
+
+#: templates/settings.html:50
+msgid "Latitude:"
+msgstr "Latitude :"
+
+#: templates/settings.html:58
+msgid "Longitude:"
+msgstr "Longitude :"
+
+#: templates/settings.html:70
+msgid "Watering duration:"
+msgstr "Durée d’arrosage :"
+
+#: templates/settings.html:73
+msgid "Type"
+msgstr "Type"
+
+#: templates/settings.html:74
+msgid "Threshold"
+msgstr "Seuil"
+
+#: templates/settings.html:75
+msgid "Morning"
+msgstr "Matin"
+
+#: templates/settings.html:76
+msgid "Evening"
+msgstr "Soir"
+
+#: templates/settings.html:91
+msgid "Save"
+msgstr "Enregistrer"
