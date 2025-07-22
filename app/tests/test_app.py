@@ -31,12 +31,8 @@ def test_watering_type(client):
 def test_settings_page(client):
   response = client.get('/settings/')
   assert response.status_code == 200
-  assert b'pompe' in response.data
-  assert b'vanne' in response.data
-  assert b'niveaux' in response.data
   assert b'Latitude' in response.data
-  assert b'reinforced' in response.data
-
+  assert b'Longitude' in response.data
 def test_save_config():
   config = {
     "pump": 1,

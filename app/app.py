@@ -2,7 +2,7 @@ import os
 import time
 from signal import signal, SIGINT
 from sys import exit
-from flask import Flask, request, render_template, jsonify, redirect, url_for, flash
+from flask import Flask, request, render_template, jsonify, redirect, url_for, session
 import uuid
 import threading
 from datetime import datetime
@@ -13,6 +13,7 @@ from db import get_tasks_by_status, init_db,add_task, update_status, get_task, g
 from config import load_config, save_config
 import requests
 from flask_babel import Babel, gettext as _, lazy_gettext as _l
+
 
 
 ctlInst = None
@@ -43,17 +44,39 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
+app.secret_key = os.environ.get("SESSION_SECRET_KEY", "ish2woo}ng5Ia7sooS0Seukei Vave9oneis1so1zu9Leb1ve&o ailophai0guo-th8jizeiPho4")
+
 # Détection de la langue par l'URL ou les headers
 def get_locale():
-    lang = request.args.get("lang")
-    if lang in ["fr", "en"]:
-        return lang
-    return request.accept_languages.best_match(["fr", "en"])
+  if 'lang' in session:
+    return session['lang']
+  return request.accept_languages.best_match(["fr", "en"])
+
+@app.context_processor
+def inject_locale():
+    return dict(get_locale=get_locale)
+
+@app.context_processor
+def inject_translations():
+    return dict(
+        translations={
+            "low": _("Low"),
+            "moderate": _("Moderate"),
+            "standard": _("Standard"),
+            "reinforced": _("Reinforced"),
+            "high": _("High")
+        })
 
 app.config['BABEL_DEFAULT_LOCALE'] = 'fr'
 app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'translations'
 
 babel = Babel(app, locale_selector=get_locale)
+
+@app.route('/change-lang/<lang_code>')
+def change_language(lang_code):
+    if lang_code in ['fr', 'en']:
+        session['lang'] = lang_code
+    return redirect(request.referrer or url_for('index'))
 
 @app.before_request
 def log_request_info():

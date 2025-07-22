@@ -4,30 +4,29 @@ block content %}
 
 <form method="POST">
   <p>
-  <label for="pump">{{ _('Pump pin:')}}</label>
-  <input
-    type="number"
-    name="pump"
-    id="pump"
-    value="{{ config.pump }}"
-    min="0"
-    max="27"
-    required
-  />
+    <label for="pump">{{ _('Pump pin:')}}</label>
+    <input
+      type="number"
+      name="pump"
+      id="pump"
+      value="{{ config.pump }}"
+      min="0"
+      max="27"
+      required
+    />
   </p>
   <p>
-  <label for="valve">{{ _('Valve pin:') }}</label>
-  <input
-    type="number"
-    name="valve"
-    id="valve"
-    value="{{ config.valve }}"
-    min="0"
-    max="27"
-    required
-  />
+    <label for="valve">{{ _('Valve pin:') }}</label>
+    <input
+      type="number"
+      name="valve"
+      id="valve"
+      value="{{ config.valve }}"
+      min="0"
+      max="27"
+      required
+    />
   </p>
-  <p>
   <fieldset style="margin-top: 1rem">
     <legend>{{ _('Water level pins:') }}</legend>
     {% for i in range(4) %}
@@ -43,11 +42,9 @@ block content %}
     />
     {% endfor %}
   </fieldset>
-  </p>
-  <p>
-    <fieldset style="margin-top: 1rem">
-      <legend>{{ _('Coordinates')}}</legend>
-      <p>
+  <fieldset style="margin-top: 1rem">
+    <legend>{{ _('Coordinates')}}</legend>
+    <p>
       <label for="latitude">{{ _('Latitude:') }}</label>
       <input
         type="text"
@@ -56,8 +53,8 @@ block content %}
         value="{{ config.coordinates.latitude }}"
         required
       />
-      </p>
-      <p>
+    </p>
+    <p>
       <label for="longitude">{{ _('Longitude:')}}</label>
       <input
         type="text"
@@ -66,10 +63,8 @@ block content %}
         value="{{ config.coordinates.longitude }}"
         required
       />
-      </p>
-    </fieldset>
-  </p>
-  <p>
+    </p>
+  </fieldset>
   <fieldset style="margin-top: 1rem">
     <legend>{{ _('Watering duration:') }}</legend>
     <table>
@@ -81,17 +76,42 @@ block content %}
       </tr>
       {% for watering_type, settings in config["watering"].items() %}
       <tr>
-        <td>{{ watering_type }}</td>
-        <td><input type="number" min="0" max="100" name="{{ watering_type }}_threshold" id="{{ watering_type }}_threshold" value="{{ settings['threshold'] }}"></td>
-        <td><input type="number" min="0" max="600" name="{{ watering_type }}_morning-duration" id="{{ watering_type }}_morning-duration" value="{{ settings['morning-duration'] }}"></td>
-        <td><input type="number" min="0" max="600" name="{{ watering_type }}_evening-duration" id="{{ watering_type }}_evening-duration" value="{{ settings['evening-duration'] }}"></td>
+        <td>{{ translations[watering_type] }}</td>
+        <td>
+          &lt;
+          <input
+            type="number"
+            min="0"
+            max="100"
+            name="{{ watering_type }}_threshold"
+            id="{{ watering_type }}_threshold"
+            value="{{ settings['threshold'] }}"
+          />
+        </td>
+        <td>
+          <input
+            type="number"
+            min="0"
+            max="600"
+            name="{{ watering_type }}_morning-duration"
+            id="{{ watering_type }}_morning-duration"
+            value="{{ settings['morning-duration'] }}"
+          />
+        </td>
+        <td>
+          <input
+            type="number"
+            min="0"
+            max="600"
+            name="{{ watering_type }}_evening-duration"
+            id="{{ watering_type }}_evening-duration"
+            value="{{ settings['evening-duration'] }}"
+          />
+        </td>
       </tr>
       {% endfor %}
     </table>
   </fieldset>
-  </p>
-  <p>
-  </p>
   <button type="submit">💾 {{ _('Save')}}</button>
 </form>
 
