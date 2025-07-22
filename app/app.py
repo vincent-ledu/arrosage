@@ -99,7 +99,6 @@ def classify_watering():
   if temp is None:
     return "unknown"
   for watering_type, settings in watering.items():
-    logger.debug(f"Checking if {temp} < {settings["threshold"]} for {watering_type}")
     if temp < settings["threshold"]:
       return watering_type
 
