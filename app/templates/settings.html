@@ -47,6 +47,7 @@ block content %}
   <p>
     <fieldset style="margin-top: 1rem">
       <legend>{{ _('Coordinates')}}</legend>
+      <p>
       <label for="latitude">{{ _('Latitude:') }}</label>
       <input
         type="text"
@@ -55,6 +56,8 @@ block content %}
         value="{{ config.coordinates.latitude }}"
         required
       />
+      </p>
+      <p>
       <label for="longitude">{{ _('Longitude:')}}</label>
       <input
         type="text"
@@ -63,6 +66,7 @@ block content %}
         value="{{ config.coordinates.longitude }}"
         required
       />
+      </p>
     </fieldset>
   </p>
   <p>

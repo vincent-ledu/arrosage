@@ -6,8 +6,6 @@ Wants=network-online.target
 [Service]
 User=www-data
 WorkingDirectory=/var/www/arrosage
-Environment=LATITUDE=x.xxx
-Environment=LONGITUDE=x.xxx
 Environment="PATH=/var/www/arrosage/.venv/bin:$PATH"
 ExecStart=/var/www/arrosage/.venv/bin/gunicorn -c gunicorn_conf.py --workers 1 --bind unix:/run/gunicorn/gunicorn_arrosage.sock wsgi:app
 #Restart=always

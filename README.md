@@ -1,8 +1,25 @@
 # Description
 
-This is an automatic watering device from a rainwater collector.
+🤖 This project automates the watering of a garden using a Raspberry Pi connected to a rainwater collector.
+
+💧 It monitors water levels with floating switches and controls a solenoid valve and pump to distribute water as needed.
+
+The system is designed for reliability and ease of installation, using readily available components and open-source software.
+
+🌱 The goal is to optimize water usage and reduce manual intervention for garden irrigation.
 
 This project is completely inspired by Frederic JELMONI's project, available here: https://www.fred-j.org/index0364.html?p=364
+
+# Features
+
+- Retrieves daily temperature forecasts from Open-Meteo to optimize watering schedules.
+- Adjusts watering duration and frequency based on the predicted maximum temperature of the day.
+- Displays real-time water tank level using floating switches.
+- Shows a history of past watering events for monitoring and analysis.
+
+![Tank monitor and watering control](docs/tank_watering.png)
+
+![Graph of watering history](docs/history.png)
 
 # Configuration
 
@@ -15,6 +32,12 @@ Middleware installed:
 Specific configuration
 
 - Adding www-data user to gpio group
+
+# TODO
+
+- [] add temperature to history graph
+- [] give temperature and precipitation forecast for next 3 days
+- [] add some pictures of the eletrical device
 
 # Inventory
 
