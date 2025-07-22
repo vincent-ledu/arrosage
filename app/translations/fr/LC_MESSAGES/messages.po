@@ -22,6 +22,9 @@ msgstr ""
 msgid "Watering"
 msgstr "Arrosage"
 
+msgid "Auto watering"
+msgstr "Arrosage automatique"
+
 #: templates/base.html:22
 msgid "History"
 msgstr "Historique"
