@@ -71,7 +71,7 @@ class GPIOControl(Control):
     logger.info("Turning Off valve")
     GPIO.output(self.control_state["valve"], GPIO.LOW)
   
-  def DebugWaterLevels(self):
+  def debugWaterLevels(self):
     water_states = {}
     for i in range(4):
       water_states[f"level_{i}"] = {
