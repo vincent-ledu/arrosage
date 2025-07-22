@@ -21,6 +21,8 @@ This project is completely inspired by Frederic JELMONI's project, available her
 
 ![Graph of watering history](docs/history.png)
 
+![Settings](image.png)
+
 # Configuration
 
 Tested on raspberry 1 and 4.
