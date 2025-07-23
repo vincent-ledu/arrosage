@@ -113,51 +113,55 @@ msgstr "Temps restant"
 
 msgid "low"
 msgstr "Faible"
+
 msgid "moderate"
 msgstr "Modéré"
+
 msgid "standard"
 msgstr "Standard"
+
 msgid "reinforced"
 msgstr "Renforcé"
+
 msgid "high"
 msgstr "Haut"
 
-#~ msgid "Pump pin:"
-#~ msgstr "Broche de la pompe :"
+msgid "Pump pin:"
+msgstr "Broche de la pompe :"
 
-#~ msgid "Valve pin:"
-#~ msgstr "Broche de la vanne :"
+msgid "Valve pin:"
+msgstr "Broche de la vanne :"
 
-#~ msgid "Water level pins:"
-#~ msgstr "Broches des niveaux d’eau :"
+msgid "Water level pins:"
+msgstr "Broches des niveaux d’eau :"
 
-#~ msgid "level"
-#~ msgstr "niveau"
+msgid "level"
+msgstr "niveau"
 
-#~ msgid "Coordinates"
-#~ msgstr "Coordonnées"
+msgid "Coordinates"
+msgstr "Coordonnées"
 
-#~ msgid "Latitude:"
-#~ msgstr "Latitude :"
+msgid "Latitude:"
+msgstr "Latitude :"
 
-#~ msgid "Longitude:"
-#~ msgstr "Longitude :"
+msgid "Longitude:"
+msgstr "Longitude :"
 
-#~ msgid "Watering duration:"
-#~ msgstr "Durée d’arrosage :"
+msgid "Watering duration:"
+msgstr "Durée d’arrosage :"
 
-#~ msgid "Type"
-#~ msgstr "Type"
+msgid "Type"
+msgstr "Type"
 
-#~ msgid "Threshold"
-#~ msgstr "Seuil"
+msgid "Threshold"
+msgstr "Seuil"
 
-#~ msgid "Morning"
-#~ msgstr "Matin"
+msgid "Morning"
+msgstr "Matin"
 
-#~ msgid "Evening"
-#~ msgstr "Soir"
+msgid "Evening"
+msgstr "Soir"
 
-#~ msgid "Save"
-#~ msgstr "Enregistrer"
+msgid "Save"
+msgstr "Enregistrer"
 

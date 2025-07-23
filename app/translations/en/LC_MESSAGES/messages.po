@@ -111,57 +111,57 @@ msgstr "Started at:"
 msgid "Time remaining"
 msgstr "Time remaining"
 
-#~ msgid "low"
-#~ msgstr "Low"
+msgid "low"
+msgstr "Low"
 
-#~ msgid "moderate"
-#~ msgstr "Moderate"
+msgid "moderate"
+msgstr "Moderate"
 
-#~ msgid "standard"
-#~ msgstr "Standard"
+msgid "standard"
+msgstr "Standard"
 
-#~ msgid "reinforced"
-#~ msgstr "Réinforced"
+msgid "reinforced"
+msgstr "Réinforced"
 
-#~ msgid "high"
-#~ msgstr "High"
+msgid "high"
+msgstr "High"
 
-#~ msgid "Pump pin:"
-#~ msgstr "Pump pin:"
+msgid "Pump pin:"
+msgstr "Pump pin:"
 
-#~ msgid "Valve pin:"
-#~ msgstr "Valve pin:"
+msgid "Valve pin:"
+msgstr "Valve pin:"
 
-#~ msgid "Water level pins:"
-#~ msgstr "Water level pins:"
+msgid "Water level pins:"
+msgstr "Water level pins:"
 
-#~ msgid "level"
-#~ msgstr "level"
+msgid "level"
+msgstr "level"
 
-#~ msgid "Coordinates"
-#~ msgstr "Coordinates"
+msgid "Coordinates"
+msgstr "Coordinates"
 
-#~ msgid "Latitude:"
-#~ msgstr "Latitude:"
+msgid "Latitude:"
+msgstr "Latitude:"
 
-#~ msgid "Longitude:"
-#~ msgstr "Longitude:"
+msgid "Longitude:"
+msgstr "Longitude:"
 
-#~ msgid "Watering duration:"
-#~ msgstr "Watering duration:"
+msgid "Watering duration:"
+msgstr "Watering duration:"
 
-#~ msgid "Type"
-#~ msgstr "Type"
+msgid "Type"
+msgstr "Type"
 
-#~ msgid "Threshold"
-#~ msgstr "Threshold"
+msgid "Threshold"
+msgstr "Threshold"
 
-#~ msgid "Morning"
-#~ msgstr "Morning"
+msgid "Morning"
+msgstr "Morning"
 
-#~ msgid "Evening"
-#~ msgstr "Evening"
+msgid "Evening"
+msgstr "Evening"
 
-#~ msgid "Save"
-#~ msgstr "Save"
+msgid "Save"
+msgstr "Save"
 
