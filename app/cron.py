@@ -34,7 +34,7 @@ watering_config = load_config()["watering"]
 
 # Récupération du type d'arrosage
 watering_type_res = requests.get("http://localhost/api/watering-type", headers=headers)
-logger.info(watering_type_res.raise_for_status())
+
 logger.info(f"Watering type: {watering_type_res.text}")
 watering_type = watering_type_res.text
 duration = watering_config[watering_type][time_of_day + "-duration"]

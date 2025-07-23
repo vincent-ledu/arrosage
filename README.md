@@ -65,6 +65,7 @@ sudo cp /var/www/arrosage.db /var/www/arrosage/
 sudo chown -R www-data:www-data /var/www/arrosage
 echo "### Initialize Env ###"
 cd /var/www/arrosage
+sudo -u www-data /var/www/arrosage/.venv/bin/pybabel -d translations
 sudo -u www-data python3 -m venv .venv
 sudo -u www-data /var/www/arrosage/.venv/bin/pip install -r requirements.txt
 echo "### Cleaning some temp files ###"

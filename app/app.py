@@ -172,7 +172,7 @@ def open_water_task(task_id, duration, cancel_event):
     interval = 1
     elapsed = 0
 
-    open
+    ctlInst.openWater()
     while elapsed < duration:
       if cancel_event.is_set():
         update_status(task_id, "canceled")
