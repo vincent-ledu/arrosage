@@ -1,5 +1,3 @@
-![Dependabot](https://img.shields.io/github/dependabot/vincent-ledu/arrosage?label=dependencies)
-
 # Description
 
 🌍 **This project automates the watering of a garden** using a Raspberry Pi connected to a rainwater collector.
@@ -25,19 +23,91 @@
 
 ![Settings](docs/settings.png)
 
+# Electronic and soldering
+
+## Wiring for water detection in the tank
+
+For this part, the best is to consult [Fred's Project](https://www.fred-j.org/index0364.html?p=364)
+
+My customisation:
+- I didn't use hat, I just solder cable directory on resistors, and protect with heat shrink tubes.
+- I just use 4 floating switches. I need only these level:
+  - Full, to potentielly stop collecting water
+  - Empty, to stop all watering process
+  - Two intermediates levels, for information
+- To compute water level, we count number of floating switch. It simplifies wiring.
+
+
+Here is the electronic diagram from Frédéric JELMONI's project:
+![Wiring diagram](docs/diagram.png)
+
+## Wiring for pump and valve
+
+My pump need to be plug in a standard electric outlet.
+
+So, I wire an eletric outlet with the 5V Low Level trigger.
+
+The valve has to be pluged with cable directly to the 5V low level trigger.
+
+
+
 # Configuration
 
 🖥️ **Tested on Raspberry Pi 1 and 4.**
 
-🔧 **Middleware installed:**
+🔧 **Middlewares installed:**
 
-- nginx
+- nginx, as reverse proxy and protect access to sensitive action (watering, gpio pin settings, ...) from outside the lan network.
+- gunicorn, as wsgi python server. As mentionned when you start a python Flask project, default webserver in Flask is not to use in production.
 
 ⚙️ **Specific Configuration:**
 
 - Adding `www-data` user to the GPIO group
 
+# 🏡 My architecture
+
+```mermaid
+flowchart LR
+    A(["Internet Box"]) --> B{"Security<br>Reverse<br>Proxy"}
+    B --> C["PI<br>Watering project"] & X["Others apps"]
+    C --> D("Pump") & E("Valve") & F("Tank")
+     A:::Rose
+     B:::Peach
+     C:::Sky
+     X:::Ash
+     D:::Aqua
+     E:::Aqua
+     F:::Aqua
+    classDef Rose stroke-width:1px, stroke-dasharray:none, stroke:#FF5978, fill:#FFDFE5, color:#8E2236
+    classDef Peach stroke-width:1px, stroke-dasharray:none, stroke:#FBB35A, fill:#FFEFDB, color:#8F632D
+    classDef Sky stroke-width:1px, stroke-dasharray:none, stroke:#374D7C, fill:#E2EBFF, color:#374D7C
+    classDef Aqua stroke-width:1px, stroke-dasharray:none, stroke:#46EDC8, fill:#DEFFF8, color:#378E7A
+    classDef Ash stroke-width:1px, stroke-dasharray:none, stroke:#999999, fill:#EEEEEE, color:#000000
+```
+
+
+## VM for security
+
+Installed middlewares:
+- NGinx: Reverse Proxy as unique entry-point, to handle basically on premise hosting redirection
+  - It has reinforced nginx settings
+  - Handle Let's Encrypt certificate
+- Fail2ban: Trap and ip ban bots and malicious scan
+
+## Raspberry
+
+Installed middlewares:
+- NGinx: 
+  - Reverse proxy, with security specific directive to forbid sensitive action coming outside LAN network: Watering, GPIO pin setting, coordinates, ...
+  - this nginx configuration file is present in this repository, in deployment folder
+- Gunicorn: As mentionned when you start a flask application in development, you must use a wsgi server for production environment.
+  - Systemd config file for gunicorn is present in deployment folder.
+
+
+
 🤪 **Dummy deploy script:**
+
+- [ ]: To be improved 
 
 ```bash
 #!/bin/bash
@@ -80,11 +150,11 @@ sudo systemctl start gunicorn_arrosage.service
 
 # TODO
 
-- 🇫🇷/🇬🇧 Fix translation bug
-- 🔥 Add temperature to history graph
-- 🌦️ Give temperature and precipitation forecast for next 3 days
-- 🖼️ Add some pictures of the electrical device
-- Message flash
+- [X] 🇫🇷/🇬🇧 Fix translation bug
+- [ ] 🔥 Add temperature to history graph
+- [ ] 🌦️ Give temperature and precipitation forecast for next 3 days
+- [ ] 🖼️ Add some pictures of the electrical device
+- [ ] Message flash
 
 # Inventory
 
@@ -143,3 +213,8 @@ sudo systemctl start gunicorn_arrosage.service
 - 🧲 Tin
 - 🔩 Screws
 - 🔥 Heat Gun
+
+
+# Credits
+
+Pictures and diagrams from Frédéric JELMONI is used with his consent.
