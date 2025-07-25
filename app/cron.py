@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # Vérifier si un argument a été passé pour 'morning' ou 'evening'
 if len(sys.argv) != 2 or sys.argv[1] not in ['morning', 'evening']:
-    print("Usage: python script.py [morning|evening]")
+    logger.error("Usage: python script.py [morning|evening]")
     sys.exit(1)
 
 # Récupérer l'argument 'morning' ou 'evening'
@@ -31,18 +31,18 @@ headers = {
 }
 
 watering_config = load_config()["watering"]
+logger.info(f"Loaded watering configuration: {watering_config}")
 
 # Récupération du type d'arrosage
 watering_type_res = requests.get("http://localhost/api/watering-type", headers=headers)
-
 logger.info(f"Watering type: {watering_type_res.text}")
 watering_type = watering_type_res.text
 duration = watering_config[watering_type][time_of_day + "-duration"]
+logger.info(f"Duration for {watering_type} at {time_of_day}: {duration} seconds")
 if (duration is None or duration <= 0):
     logger.warning(f"No duration specified for watering type {watering_type} on {time_of_day}.")
     sys.exit(0)
 
 logger.info(f"Call for watering {time_of_day}...")
 response_arrosage = requests.get(f"http://localhost/api/command/open-water?duration={duration}", headers=headers)
-logger.info(response_arrosage.raise_for_status())
 logger.info(f"Watering done on {time_of_day} for {duration} seconds.")
