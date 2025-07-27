@@ -300,7 +300,7 @@ def health():
     logger.error(f"Health check failed: {e}")
     return jsonify({"status": "unhealthy"}), 500
 
-@app.route('api/healthcheck')
+@app.route('/api/healthcheck')
 def healthcheck():
   try:
     ctlInst.getLevel()  # Vérifie si le contrôle fonctionne
