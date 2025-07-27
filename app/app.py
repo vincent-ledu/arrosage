@@ -199,7 +199,7 @@ def CheckWaterLevel():
 
 @app.route("/api/water-levels")
 def DebugWaterLevels():
-  return jsonify(ctlInst.DebugWaterLevels()), 200
+  return jsonify(ctlInst.debugWaterLevels()), 200
 
 
 @app.route('/api/tasks')
