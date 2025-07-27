@@ -9,7 +9,7 @@ from datetime import datetime
 import atexit
 from collections import defaultdict
 import logging
-from db import get_tasks_by_status, init_db,add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day
+from db import get_connection, get_tasks_by_status, init_db,add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day
 from config import load_config, save_config
 import requests
 from flask_babel import Babel, gettext as _, lazy_gettext as _l
@@ -285,6 +285,35 @@ def get_history():
 @app.route('/api/history-heatmap')
 def history_heatmap():
   return jsonify(get_tasks_summary_by_day())
+
+@app.route('/health')
+def health():
+  try:
+    ctlInst.getLevel()  # Vérifie si le contrôle fonctionne
+    conn = get_connection()
+    if conn is None:
+      raise Exception("Database connection failed")
+    conn.execute("SELECT 1")  # Teste une requête simple
+    conn.close()
+    return jsonify({"status": "healthy"}), 200
+  except Exception as e:
+    logger.error(f"Health check failed: {e}")
+    return jsonify({"status": "unhealthy"}), 500
+
+@app.route('api/healthcheck')
+def healthcheck():
+  try:
+    ctlInst.getLevel()  # Vérifie si le contrôle fonctionne
+    conn = get_connection()
+    if conn is None:
+      raise Exception("Database connection failed")
+    conn.execute("SELECT 1")  # Teste une requête simple
+    conn.close()
+    get_temperature_max()
+    return jsonify({"status": "healthy"}), 200
+  except Exception as e:
+    logger.error(f"Health check failed: {e}")
+    return jsonify({"status": "unhealthy"}), 500
 
 if __name__ == '__main__':
   # On prévient Python d'utiliser la method handler quand un signal SIGINT est reçu
