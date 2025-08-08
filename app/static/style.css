@@ -148,3 +148,25 @@ body {
 canvas {
   max-width: 100%;
 }
+
+#forecast-table-condensed {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 0.9em;
+  margin-top: 10px;
+}
+
+#forecast-table-condensed th,
+#forecast-table-condensed td {
+  padding: 6px;
+  border: 1px solid #ddd;
+}
+
+#forecast-table-condensed th {
+  background-color: #f0f0f0;
+}
+
+#forecast-table-condensed td {
+  vertical-align: middle;
+}

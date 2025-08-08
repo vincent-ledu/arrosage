@@ -88,6 +88,29 @@ cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Even
 def index():
   return render_template("index.html")
 
+@app.route("/api/forecast")
+def forecast():
+  try:
+    coordinates = get_coordinates()
+    logger.debug(f"Coordinates: ${coordinates}")
+    lat, lon = coordinates.values()
+    url = (
+      "https://api.open-meteo.com/v1/forecast"
+      f"?latitude={lat}&longitude={lon}"
+      "&daily=temperature_2m_max,precipitation_sum"
+      "&timezone=Europe%2FParis"
+    )
+    r = requests.get(url, timeout=5)
+    data = r.json()
+    return jsonify({
+      "dates": data["daily"]["time"],
+      "temps": data["daily"]["temperature_2m_max"],
+      "precipitations": data["daily"]["precipitation_sum"]
+    })
+  except Exception as e:
+    logger.error("Error fetching forecast data: %s", e)       
+    return jsonify({"error": str(e)}), 500
+
 @app.route('/api/coordinates')
 def get_coordinates():
   coordinates = load_config()["coordinates"]
@@ -104,7 +127,7 @@ def get_temperature_max():
     url = (
       "https://api.open-meteo.com/v1/forecast"
       f"?latitude={lat}&longitude={lon}"
-      "&daily=temperature_2m_max&forecast_days=1&timezone=Europe/Paris"
+      "&daily=temperature_2m_max&forecast_days=1&timezone=Europe%2FParis"
     )
     resp = requests.get(url, timeout=5)
     resp.raise_for_status()

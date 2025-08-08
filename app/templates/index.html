@@ -16,6 +16,18 @@ block content %}
   <div id="watering-type" style="text-align: center">
     {{ _('Loading watering type')}}
   </div>
+  <section>
+    <table id="forecast-table-condensed">
+      <thead>
+        <tr id="forecast-days"></tr>
+      </thead>
+      <tbody>
+        <tr id="forecast-rain"></tr>
+        <tr id="forecast-temp"></tr>
+      </tbody>
+    </table>
+  </section>
+
   <button onclick="getLevel()">{{ _('Refresh levels')}}</button>
 
   <div style="margin-top: 10px">
@@ -167,15 +179,44 @@ block content %}
     }
   }
 
-  async function stopOpenWater() {
-    const response = await fetch("/api/command/close-water");
-    const data = await response.json();
-    document.getElementById("message").textContent = data.message;
-    document.getElementById("open-btn").disabled = false;
-    document.getElementById("close-btn").disabled = true;
-    clearInterval(intervalCheck);
-    document.getElementById("status-info").textContent = "";
+  async function loadForecast() {
+    try {
+      const response = await fetch("/api/forecast");
+      const data = await response.json();
+
+      if (data.error) {
+        document.querySelector("#forecast-table-condensed").outerHTML =
+          "<p>Erreur météo : " + data.error + "</p>";
+        return;
+      }
+
+      const daysRow = ["<th>&nbsp;</th>"];
+      const rainRow = ["<td>🌧️mm</td>"];
+      const tempRow = ["<td>🌡️</td>"];
+
+      for (let i = 0; i < data.dates.length; i++) {
+        const dayLabel = i === 0 ? "J" : `J+${i}`;
+        const rain = data.precipitations[i];
+        const temp = data.temps[i];
+
+        // Choix du picto météo
+        const icon = rain >= 1.0 ? "🌧️" : "☀️";
+
+        daysRow.push(`<th>${dayLabel}</th>`);
+        rainRow.push(`<td>${icon}<br>${rain}</td>`);
+        tempRow.push(`<td>${temp}°C</td>`);
+      }
+
+      document.getElementById("forecast-days").innerHTML = daysRow.join("");
+      document.getElementById("forecast-rain").innerHTML = rainRow.join("");
+      document.getElementById("forecast-temp").innerHTML = tempRow.join("");
+    } catch (e) {
+      document.querySelector("#forecast-table-condensed").outerHTML =
+        "<p>Erreur météo (chargement JS).</p>";
+    }
   }
+
+  window.addEventListener("DOMContentLoaded", loadForecast);
 
   window.onload = () => {
     getLevel();
