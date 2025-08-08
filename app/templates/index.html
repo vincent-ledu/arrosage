@@ -194,8 +194,8 @@ block content %}
       const rainRow = ["<td>🌧️mm</td>"];
       const tempRow = ["<td>🌡️</td>"];
 
-      for (let i = 0; i < data.dates.length; i++) {
-        const dayLabel = i === 0 ? "J" : `J+${i}`;
+      for (let i = 1; i < data.dates.length; i++) {
+        const dayLabel = `J+${i}`;
         const rain = data.precipitations[i];
         const temp = data.temps[i];
 
