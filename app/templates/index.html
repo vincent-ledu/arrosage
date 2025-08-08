@@ -66,7 +66,7 @@ block content %}
         if (temp !== undefined) {
           document.getElementById(
             "temperature-max"
-          ).textContent = `🌡️: ${temp}°C`;
+          ).textContent = `🌡️: ${Math.floor(temp)}°C`;
           getWatering(temp);
         } else {
           document.getElementById(
@@ -197,7 +197,7 @@ block content %}
       for (let i = 1; i < data.dates.length; i++) {
         const dayLabel = `J+${i}`;
         const rain = data.precipitations[i];
-        const temp = data.temps[i];
+        const temp = Math.floor(data.temps[i]);
 
         // Choix du picto météo
         const icon = rain >= 1.0 ? "🌧️" : "☀️";
