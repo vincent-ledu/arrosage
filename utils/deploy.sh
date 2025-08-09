@@ -69,7 +69,7 @@ fi
 # (Optionnel) i18n si présent
 if command -v pybabel >/dev/null 2>&1 && [[ -d "$NEW_RELEASE/translations" ]]; then
   echo "ℹ️ [deploy] Compilation i18n…"
-  (cd "$NEW_RELEASE" && pybabel compile -d app/translations || true)
+  (cd "$NEW_RELEASE" && pybabel compile -d translations || true)
 fi
 
 # Liens vers les ressources "shared" (config, base, logs…)
