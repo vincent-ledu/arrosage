@@ -30,13 +30,13 @@
 For this part, the best is to consult [Fred's Project](https://www.fred-j.org/index0364.html?p=364)
 
 My customisation:
+
 - I didn't use hat, I just solder cable directory on resistors, and protect with heat shrink tubes.
 - I just use 4 floating switches. I need only these level:
   - Full, to potentielly stop collecting water
   - Empty, to stop all watering process
   - Two intermediates levels, for information
 - To compute water level, we count number of floating switch. It simplifies wiring.
-
 
 Here is the electronic diagram from Frédéric JELMONI's project:
 ![Wiring diagram](docs/diagram.png)
@@ -48,8 +48,6 @@ My pump need to be plug in a standard electric outlet.
 So, I wire an eletric outlet with the 5V Low Level trigger.
 
 The valve has to be pluged with cable directly to the 5V low level trigger.
-
-
 
 # Configuration
 
@@ -85,10 +83,10 @@ flowchart LR
     classDef Ash stroke-width:1px, stroke-dasharray:none, stroke:#999999, fill:#EEEEEE, color:#000000
 ```
 
-
 ## VM for security
 
 Installed middlewares:
+
 - NGinx: Reverse Proxy as unique entry-point, to handle basically on premise hosting redirection
   - It has reinforced nginx settings
   - Handle Let's Encrypt certificate
@@ -97,60 +95,20 @@ Installed middlewares:
 ## Raspberry
 
 Installed middlewares:
-- NGinx: 
+
+- NGinx:
   - Reverse proxy, with security specific directive to forbid sensitive action coming outside LAN network: Watering, GPIO pin setting, coordinates, ...
   - this nginx configuration file is present in this repository, in deployment folder
 - Gunicorn: As mentionned when you start a flask application in development, you must use a wsgi server for production environment.
   - Systemd config file for gunicorn is present in deployment folder.
 
+## Deployment script
 
-
-🤪 **Dummy deploy script:**
-
-- [ ]: To be improved 
-
-```bash
-#!/bin/bash
-# file: deploy-arrosage.sh
-echo "### Stopping services ###"
-sudo systemctl stop nginx.service
-sudo systemctl stop gunicorn_arrosage.service
-
-echo "### Clone project ###"
-rm -rf arrosage
-git clone git@github.com:vincent-ledu/arrosage.git
-echo "### Backup pin configuration and stats ###"
-sudo cp /var/www/arrosage/config.json /var/www/
-sudo cp /var/www/arrosage/arrosage.db /var/www/
-echo "### Remove old www ###"
-sudo rm -rf /var/www/arrosage
-echo "### Move new version to www ###"
-sudo mkdir /var/www/arrosage
-sudo mv arrosage/app/* /var/www/arrosage/
-sudo rm -rf arrosage
-sudo rm -rf /var/www/arrosage/.git
-echo "### Restore pin configuration and stats ###"
-sudo cp /var/www/config.json /var/www/arrosage/
-sudo cp /var/www/arrosage.db /var/www/arrosage/
-sudo chown -R www-data:www-data /var/www/arrosage
-echo "### Initialize Env ###"
-cd /var/www/arrosage
-sudo -u www-data /var/www/arrosage/.venv/bin/pybabel -d translations
-sudo -u www-data python3 -m venv .venv
-sudo -u www-data /var/www/arrosage/.venv/bin/pip install -r requirements.txt
-echo "### Cleaning some temp files ###"
-sudo rm -rf /var/www/arrosage/tests
-sudo rm -rf /var/www/arrosage.db
-sudo rm -rf /var/www/config.json
-
-echo "### Starting services ###"
-sudo systemctl start nginx.service
-sudo systemctl start gunicorn_arrosage.service
-```
+See `utils/deploy.sh`
 
 # TODO
 
-- [X] 🇫🇷/🇬🇧 Fix translation bug
+- [x] 🇫🇷/🇬🇧 Fix translation bug
 - [ ] 🔥 Add temperature to history graph
 - [ ] 🌦️ Give temperature and precipitation forecast for next 3 days
 - [ ] 🖼️ Add some pictures of the electrical device
@@ -213,7 +171,6 @@ sudo systemctl start gunicorn_arrosage.service
 - 🧲 Tin
 - 🔩 Screws
 - 🔥 Heat Gun
-
 
 # Credits
 

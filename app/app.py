@@ -309,6 +309,20 @@ def get_history():
 def history_heatmap():
   return jsonify(get_tasks_summary_by_day())
 
+@app.route('/healthz')
+def healthz():
+  try:
+    ctlInst.getLevel()  # Vérifie si le contrôle fonctionne
+    conn = get_connection()
+    if conn is None:
+      raise Exception("Database connection failed")
+    conn.execute("SELECT 1")  # Teste une requête simple
+    conn.close()
+    return "OK", 200
+  except Exception as e:
+    logger.error(f"Health check failed: {e}")
+    return "Service Unavailable", 503
+
 @app.route('/health')
 def health():
   try:

@@ -1,82 +1,131 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
-IFS=$'\n\t'
 
-APP_DEST="/opt/arrosage"
-WWW_DEST="/var/www/arrosage"
-TMP_CLONE="/tmp/arrosage"
-BACKUP_DIR="/opt/arrosage_backup"
+### --------- PARAMÈTRES À ADAPTER ---------
+# Racine de déploiement (stable)
+APP_ROOT="/opt/arrosage"
+RELEASES_DIR="$APP_ROOT/releases"
+CURRENT_LINK="$APP_ROOT/current"
+SHARED_DIR="$APP_ROOT/shared"
 
-log() {
-    echo -e "\n### $1 ###"
-}
+# Service systemd
+SYSTEMD_SERVICE="gunicorn_arrosage.service"
 
-abort() {
-    echo "❌ Erreur à l'étape '$1'. Arrêt du script."
-    exit 1
-}
+# URL de healthcheck (mets un endpoint très léger, ex: /healthz)
+HEALTHCHECK_URL="${HEALTHCHECK_URL:-http://127.0.0.1/healthz}"
 
-trap 'abort "${BASH_COMMAND}"' ERR
+# Utilisateur/groupe qui exécute le service
+APP_USER="www-data"
+APP_GROUP="www-data"
 
-log "Préparation du répertoire temporaire"
-rm -rf "$TMP_CLONE"
-git clone git@github.com:vincent-ledu/arrosage.git "$TMP_CLONE"
+# Dossier racine du repo (ce script est censé se trouver dans utils/)
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-log "Sauvegarde de la configuration et de la base de données"
-sudo mkdir -p "$BACKUP_DIR"
-sudo cp -f "$APP_DEST/config.json" "$BACKUP_DIR/" || true
-sudo cp -f "$APP_DEST/arrosage.db" "$BACKUP_DIR/" || true
+# Python / venv par release (recommandé pour l’atomicité)
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+PIP_OPTS="${PIP_OPTS:---no-cache-dir}"
 
-log "Activation de la maintenance"
-sudo touch "$WWW_DEST/MAINTENANCE"
+# Exclusions de copie (inutile en prod)
+RSYNC_EXCLUDES=(
+  --exclude ".git/"
+  --exclude ".github/"
+  --exclude ".venv/"
+  --exclude "tests/"
+)
+### ----------------------------------------
 
-log "Mise à jour de la configuration Nginx"
-sudo cp "$TMP_CLONE/deployment/nginx/arrosage.conf" /etc/nginx/sites-available/
-sudo cp "$TMP_CLONE/deployment/nginx/maintenance.html" "$WWW_DEST/"
-sudo nginx -t && sudo systemctl restart nginx
+timestamp() { date -u +"%Y%m%dT%H%M%SZ"; }
 
-log "Arrêt des services"
-sudo systemctl stop gunicorn_arrosage.service
+# Anti double-run
+mkdir -p "$APP_ROOT"
+exec 9> "$APP_ROOT/deploy.lock"
+if ! flock -n 9; then
+  echo "[deploy] Un déploiement est déjà en cours."
+  exit 1
+fi
 
-log "Suppression de l'ancienne version"
-sudo rm -rf "$APP_DEST"
-sudo mkdir -p "$APP_DEST"
+TS="$(timestamp)"
+NEW_RELEASE="$RELEASES_DIR/$TS"
 
-log "Déploiement de la nouvelle version"
-sudo cp -r "$TMP_CLONE/app/." "$APP_DEST/"
-sudo rm -rf "$APP_DEST/.git"
+echo "ℹ️ [deploy] Préparation des dossiers…"
+mkdir -p "$RELEASES_DIR" "$SHARED_DIR"/{log,run,config,db}
+# Exemple : si tu veux un venv partagé, crée-le dans $SHARED_DIR/venv et ajuste plus bas.
+# Ici on fait un venv par release, pour des rollbacks plus clean.
 
-log "Restauration des données"
-sudo cp -f "$BACKUP_DIR/config.json" "$APP_DEST/" || echo "⚠️ config.json non restauré"
-sudo cp -f "$BACKUP_DIR/arrosage.db" "$APP_DEST/" || echo "⚠️ arrosage.db non restauré"
-sudo chown -R www-data:www-data "$APP_DEST"
+echo "ℹ️ [deploy] Copie du code vers $NEW_RELEASE…"
+mkdir -p "$NEW_RELEASE"
+rsync -a "${RSYNC_EXCLUDES[@]}" "$REPO_ROOT"/ "$NEW_RELEASE"/
 
-log "Initialisation de l’environnement Python"
-cd "$APP_DEST"
-sudo -u www-data python3 -m venv .venv
-sudo -u www-data .venv/bin/pip install -r requirements.txt
-sudo -u www-data .venv/bin/pybabel compile -d translations
+echo "ℹ️ [deploy] Création du venv…"
+$PYTHON_BIN -m venv "$NEW_RELEASE/.venv"
+# shellcheck disable=SC1091
+source "$NEW_RELEASE/.venv/bin/activate"
 
-log "Nettoyage des fichiers temporaires"
-sudo rm -rf "$APP_DEST/tests"
-sudo rm -rf "$BACKUP_DIR"
+echo "ℹ️ [deploy] Installation des dépendances…"
+if [[ -f "$NEW_RELEASE/requirements.txt" ]]; then
+  pip install $PIP_OPTS -r "$NEW_RELEASE/requirements.txt"
+fi
 
-log "Redémarrage des services"
-sudo systemctl start gunicorn_arrosage.service
+# (Optionnel) i18n si présent
+if command -v pybabel >/dev/null 2>&1 && [[ -d "$NEW_RELEASE/app/translations" ]]; then
+  echo "ℹ️ [deploy] Compilation i18n…"
+  (cd "$NEW_RELEASE" && pybabel compile -d app/translations || true)
+fi
 
-log "Vérification de l'état de santé"
+# Liens vers les ressources "shared" (config, base, logs…)
+# ⚠️ Adapte les chemins cibles dans le code Flask si nécessaire.
+echo "ℹ️ [deploy] Liaison des ressources partagées…"
+# Exemple: config.json attendu par l'app
+if [[ ! -f "$SHARED_DIR/config/config.json" ]]; then
+  echo '{}' > "$SHARED_DIR/config/config.json"
+fi
+ln -sfn "$SHARED_DIR/config/config.json" "$NEW_RELEASE/app/config.json"
 
-MAX_ATTEMPTS=3
-for i in $(seq 1 $MAX_ATTEMPTS); do
-    sleep 1
-    if curl -sif --unix-socket /run/gunicorn/gunicorn_arrosage.sock http://localhost/health | grep -q '200 OK'; then
-        echo "✅ Gunicorn OK"
-        sudo rm -f $WWW_DEST/MAINTENANCE
-        break
-    elif [ "$i" -eq "$MAX_ATTEMPTS" ]; then
-        echo "❌ SERVICE NON DISPONIBLE après $MAX_ATTEMPTS tentatives — maintenance toujours activée"
-        exit 1
-    fi
+# Exemple: base SQLite (créée si absente)
+if [[ ! -f "$SHARED_DIR/db/arrosage.db" ]]; then
+  touch "$SHARED_DIR/db/arrosage.db"
+fi
+ln -sfn "$SHARED_DIR/db/arrosage.db" "$NEW_RELEASE/app/arrosage.db"
+
+# Logs (app + gunicorn) dans shared/log
+mkdir -p "$SHARED_DIR/log"
+ln -sfn "$SHARED_DIR/log" "$NEW_RELEASE/log"
+
+# Permissions
+echo "ℹ️ [deploy] Permissions…"
+chown -R "$APP_USER:$APP_GROUP" "$APP_ROOT"
+
+# Swap atomique du symlink + rollback si healthcheck KO
+PREV_TARGET="$(readlink -f "$CURRENT_LINK" || true)"
+
+echo "ℹ️ [deploy] Bascule du symlink…"
+ln -sfn "$NEW_RELEASE" "$CURRENT_LINK"
+
+echo "ℹ️ [deploy] Restart du service…"
+systemctl restart "$SYSTEMD_SERVICE"
+
+echo "ℹ️ [deploy] Healthcheck ($HEALTHCHECK_URL)…"
+ok=0
+for i in 1 2 3; do
+  sleep 1
+  if curl -fsS "$HEALTHCHECK_URL" >/dev/null 2>&1; then
+    ok=1
+    break
+  fi
+  echo "⚠️ [deploy] tentative $i/3 échouée, nouvel essai…"
 done
 
-log "Déploiement terminé avec succès 🎉"
+if [[ $ok -ne 1 ]]; then
+  echo "❌ [deploy] ÉCHEC healthcheck → rollback…"
+  if [[ -n "${PREV_TARGET:-}" && -d "$PREV_TARGET" ]]; then
+    ln -sfn "$PREV_TARGET" "$CURRENT_LINK"
+    systemctl restart "$SYSTEMD_SERVICE" || true
+    echo "⚠️ [deploy] Rollback effectué vers: $PREV_TARGET"
+  else
+    echo "⚠️ [deploy] Pas de release précédente valide pour rollback."
+  fi
+  exit 1
+fi
+
+echo " ✅ [deploy] Succès : release active → $NEW_RELEASE"
+exit 0
