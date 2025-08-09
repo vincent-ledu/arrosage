@@ -67,7 +67,7 @@ if [[ -f "$NEW_RELEASE/requirements.txt" ]]; then
 fi
 
 # (Optionnel) i18n si présent
-if command -v pybabel >/dev/null 2>&1 && [[ -d "$NEW_RELEASE/app/translations" ]]; then
+if command -v pybabel >/dev/null 2>&1 && [[ -d "$NEW_RELEASE/translations" ]]; then
   echo "ℹ️ [deploy] Compilation i18n…"
   (cd "$NEW_RELEASE" && pybabel compile -d app/translations || true)
 fi
@@ -79,13 +79,13 @@ echo "ℹ️ [deploy] Liaison des ressources partagées…"
 if [[ ! -f "$SHARED_DIR/config/config.json" ]]; then
   echo '{}' > "$SHARED_DIR/config/config.json"
 fi
-ln -sfn "$SHARED_DIR/config/config.json" "$NEW_RELEASE/app/config.json"
+ln -sfn "$SHARED_DIR/config/config.json" "$NEW_RELEASE/config.json"
 
 # Exemple: base SQLite (créée si absente)
 if [[ ! -f "$SHARED_DIR/db/arrosage.db" ]]; then
   touch "$SHARED_DIR/db/arrosage.db"
 fi
-ln -sfn "$SHARED_DIR/db/arrosage.db" "$NEW_RELEASE/app/arrosage.db"
+ln -sfn "$SHARED_DIR/db/arrosage.db" "$NEW_RELEASE/arrosage.db"
 
 # Logs (app + gunicorn) dans shared/log
 mkdir -p "$SHARED_DIR/log"
