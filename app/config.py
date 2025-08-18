@@ -13,7 +13,7 @@ DEFAULT_CONFIG = {
     "levels": [7, 8, 9, 10]
 }
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DEFAULT_DB_PATH = os.path.join(os.path.dirname(BASE_DIR), "instance", "arrosage.db")
+DEFAULT_DB_PATH = os.path.join(os.path.dirname(BASE_DIR), "arrosage.db")
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
 SQL_ECHO = os.getenv("SQL_ECHO", "0") == "1"
 

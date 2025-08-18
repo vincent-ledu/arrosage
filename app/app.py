@@ -9,11 +9,16 @@ from datetime import datetime
 import atexit
 from collections import defaultdict
 import logging
-from db import get_connection, get_tasks_by_status, init_db,add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day
+from db import get_connection, get_tasks_by_status, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day
 from config import load_config, save_config
 import requests
 from flask_babel import Babel, gettext as _, lazy_gettext as _l
 
+from database import engine
+from models import Base
+
+def init_db() -> None:
+    Base.metadata.create_all(bind=engine)
 
 
 ctlInst = None

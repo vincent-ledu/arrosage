@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from .config import SQLALCHEMY_DATABASE_URL, SQL_ECHO
+from config import SQLALCHEMY_DATABASE_URL, SQL_ECHO
 
 # SQLite: pragmas utiles, threads
 connect_args = {}
