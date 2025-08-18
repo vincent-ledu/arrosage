@@ -1,5 +1,5 @@
-from control_interface import Control
 import logging
+from control.control_interface import Control
 
 logger = logging.getLogger(__name__)
 

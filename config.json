@@ -1,0 +1,41 @@
+{
+  "pump": 1,
+  "valve": 2,
+  "levels": [
+    5,
+    6,
+    7,
+    8
+  ],
+  "watering": {
+    "low": {
+      "threshold": 15,
+      "morning-duration": 30,
+      "evening-duration": 30
+    },
+    "moderate": {
+      "threshold": 20,
+      "morning-duration": 45,
+      "evening-duration": 45
+    },
+    "standard": {
+      "threshold": 25,
+      "morning-duration": 60,
+      "evening-duration": 60
+    },
+    "reinforced": {
+      "threshold": 30,
+      "morning-duration": 75,
+      "evening-duration": 75
+    },
+    "high": {
+      "threshold": 35,
+      "morning-duration": 90,
+      "evening-duration": 90
+    }
+  },
+  "coordinates": {
+    "latitude": 48.866667,
+    "longitude": 2.333333
+  }
+}

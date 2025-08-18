@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Integer, DateTime, Boolean, Text
-from database import Base
+from db.database import Base
 
 class Task(Base):
     __tablename__ = "tasks"

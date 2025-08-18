@@ -1,6 +1,9 @@
 import pytest
 import time
-from app.app import app, load_config, save_config
+import os
+
+from app import app, load_config, save_config
+
 
 @pytest.fixture
 def client():
@@ -94,7 +97,7 @@ def test_open_water_command(client):
   assert 'task_id' in data
   assert 'status' in data
   assert data['status'] == "in progress"
-  time.sleep(2)
+  time.sleep(3)
   task = client.get('/api/tasks/' + str(data['task_id']))
   assert task.status_code == 200
   task_data = task.get_json()
