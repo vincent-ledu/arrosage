@@ -3,26 +3,27 @@ import time
 from signal import signal, SIGINT
 from sys import exit
 from flask import Flask, request, render_template, jsonify, redirect, url_for, session
-import uuid
 import threading
 from datetime import datetime
 import atexit
 from collections import defaultdict
 import logging
-from db import get_connection, get_tasks_by_status, init_db,add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day
-from config import load_config, save_config
 import requests
 from flask_babel import Babel, gettext as _, lazy_gettext as _l
 
+from config.config import load_config, save_config
+from db.db import init_db, get_connection, get_tasks_by_status, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day
+from db.database import engine
+from db.models import Base
 
 
 ctlInst = None
 if os.environ.get("TESTING") == "1":
-  import control_fake as ctl
-  ctlInst = ctl.FakeControl()
+  from control.control_fake import FakeControl
+  ctlInst = FakeControl()
 else:
-  import control_gpio as ctl
-  ctlInst = ctl.GPIOControl()
+  from control.control_gpio import GPIOControl
+  ctlInst = GPIOControl()
 
 ctlInst.setup()
 init_db()
@@ -316,7 +317,6 @@ def healthz():
     conn = get_connection()
     if conn is None:
       raise Exception("Database connection failed")
-    conn.execute("SELECT 1")  # Teste une requête simple
     conn.close()
     return "OK", 200
   except Exception as e:
@@ -330,7 +330,6 @@ def health():
     conn = get_connection()
     if conn is None:
       raise Exception("Database connection failed")
-    conn.execute("SELECT 1")  # Teste une requête simple
     conn.close()
     return jsonify({"status": "healthy"}), 200
   except Exception as e:
@@ -344,7 +343,6 @@ def healthcheck():
     conn = get_connection()
     if conn is None:
       raise Exception("Database connection failed")
-    conn.execute("SELECT 1")  # Teste une requête simple
     conn.close()
     get_temperature_max()
     return jsonify({"status": "healthy"}), 200

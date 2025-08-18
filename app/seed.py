@@ -23,6 +23,6 @@ for day_offset in range(30):
         task_id = str(uuid.uuid4())
         status = random.choices(["completed", "canceled", "error"], weights=[0.8, 0.1, 0.1])[0]
 
-        add_task(task_id, start_time, duration, status)
+        add_task(start_time, duration, status)
 
 print("✅ Fake data inserted.")

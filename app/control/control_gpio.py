@@ -1,8 +1,9 @@
-from control_interface import Control
 import RPi.GPIO as GPIO
 import logging
-from config import load_config
 import time
+
+from control.control_interface import Control
+from config.config import load_config
 
 logger = logging.getLogger(__name__)
 

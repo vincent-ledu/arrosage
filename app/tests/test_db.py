@@ -1,6 +1,10 @@
 import pytest
-from db import get_connection, init_db, add_task, get_all_tasks, update_status, get_task, get_tasks_by_status, get_tasks_summary_by_day
 import time
+import os
+from sqlalchemy.sql import text
+
+from db.db import get_connection, init_db, add_task, get_all_tasks, update_status, get_task, get_tasks_by_status, get_tasks_summary_by_day
+
 
 @pytest.fixture
 def db():
@@ -10,19 +14,15 @@ def db():
 
 @pytest.fixture(autouse=True)
 def db(monkeypatch):
-    # Utilise une base temporaire différente pour chaque session de test
-    monkeypatch.setenv("DB_PATH", ":memoy")
-    
     init_db()  # crée la base et les tables
     yield
 
     # Nettoyage : supprime les données de toutes les tables
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';")
-        for (table,) in cursor.fetchall():
-            cursor.execute(f"DELETE FROM {table}")
-        conn.commit()
+    with get_connection() as s:
+      tables = ["tasks"]
+      for table in tables:
+          s.execute(text(f"DELETE FROM {table}"))
+      s.commit()
 
 def test_add_task(db):
   task_id = add_task(time.time(), 10, "in progress")
