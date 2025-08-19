@@ -73,7 +73,7 @@ log "ℹ️ [deploy] Configuration des variables d’environnement…"
 source /etc/default/arrosage
 
 log "ℹ️ [deploy] Mise en place du backup de la base de données…"
-cp $REPO/utils/backup_arrosage.sh /usr/local/bin/backup_arrosage.sh
+cp $REPO_ROOT/utils/backup_arrosage.sh /usr/local/bin/backup_arrosage.sh
 chmod +x /usr/local/bin/backup_arrosage.sh
 # Ajoute une tâche cron pour le backup quotidien à 3h17 du matin  
 LINE='17 3 * * * /usr/local/bin/backup_arrosage.sh'
