@@ -1,0 +1,13 @@
+FLASK_ENV=production
+FLASK_DEBUG=0
+
+LATITUDE=xx.xxxx
+LONGITUDE=yy.yyyy
+
+PATH=/opt/arrosage/current/.venv/bin:$PATH
+
+SESSION_SECRET_KEY=CHANGE IT
+DATABASE_LOCATION=/opt/arrosage/shared/arrosage.db
+DATABASE_BACKUP_LOCATION=/opt/arrosage/shared/backups
+DATABASE_URL=sqlite:////opt/arrosage/current/arrosage.db
+SQL_ECHO=0

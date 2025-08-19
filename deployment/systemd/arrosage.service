@@ -6,9 +6,7 @@ Wants=network-online.target
 [Service]
 User=www-data
 WorkingDirectory=/opt/arrosage/current
-Environment="PATH=/opt/arrosage/current/.venv/bin:$PATH"
-Environment="SESSION_SECRET_KEY=CHANGE IT"
-Environment="DATABASE_URL=sqlite:////opt/arrosage/current/arrosage.db"
+EnvironmentFile=/etc/default/arrosage
 ExecStart=/opt/arrosage/current/.venv/bin/gunicorn -c gunicorn_conf.py --workers 1 --bind unix:/run/gunicorn/gunicorn_arrosage.sock wsgi:app
 #Restart=always
 
