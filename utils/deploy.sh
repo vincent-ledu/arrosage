@@ -82,7 +82,7 @@ USER=root
 
 log "ℹ️ [deploy] Backup de la base de données…"
 if command -v /usr/local/bin/backup_arrosage.sh >/dev/null 2>&1; then
-  sudo -u www-data /usr/local/bin/backup_arrosage.sh
+  /usr/local/bin/backup_arrosage.sh
 else
   log "❌ [deploy] Script de backup non trouvé, pas de backup effectué."
   exit 1
