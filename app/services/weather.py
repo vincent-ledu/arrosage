@@ -101,14 +101,3 @@ def aggregate_by_partday(data):
 
         out.append(row)
     return out
-
-# Exemple d’usage:
-if __name__ == "__main__":
-    data = fetch_open_meteo(63.0, 6.0, days=7)
-    table = aggregate_by_partday(data)
-    # `table` est prêt à rendre dans un template HTML
-    # Exemple d’une ligne: {
-    #   'date':'2025-08-19','morning_icon':'☁️','morning_precip_mm':0.8,'morning_temp_avg':18.7,
-    #   'afternoon_icon':'🌦️','afternoon_precip_mm':2.3,'afternoon_temp_avg':24.1
-    # }
-    print(table[:1])
