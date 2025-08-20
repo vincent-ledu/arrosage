@@ -15,6 +15,7 @@ from config.config import load_config, save_config
 from db.db import init_db, get_connection, get_tasks_by_status, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day
 from db.database import engine
 from db.models import Base
+from services.weather import fetch_open_meteo, aggregate_by_partday 
 
 
 ctlInst = None
@@ -93,21 +94,17 @@ def index():
 def forecast():
   try:
     coordinates = get_coordinates()
-    logger.debug(f"Coordinates: ${coordinates}")
+    logger.debug(f"Coordinates: {coordinates}")
     lat, lon = coordinates.values()
-    url = (
-      "https://api.open-meteo.com/v1/forecast"
-      f"?latitude={lat}&longitude={lon}"
-      "&daily=temperature_2m_max,precipitation_sum"
-      "&timezone=Europe%2FParis"
-    )
-    r = requests.get(url, timeout=5)
-    data = r.json()
-    return jsonify({
-      "dates": data["daily"]["time"],
-      "temps": data["daily"]["temperature_2m_max"],
-      "precipitations": data["daily"]["precipitation_sum"]
-    })
+    data = fetch_open_meteo(lat, lon)
+    partday_data = aggregate_by_partday(data)
+    logger.debug(f"Aggregated data: {partday_data}")
+    return jsonify(partday_data[:5]), 200
+    # return jsonify({
+    #   "dates": data["daily"]["time"],
+    #   "temps": data["daily"]["temperature_2m_max"],
+    #   "precipitations": data["daily"]["precipitation_sum"]
+    # })
   except Exception as e:
     logger.error("Error fetching forecast data: %s", e)       
     return jsonify({"error": str(e)}), 500
@@ -140,9 +137,14 @@ def get_temperature_max():
 
 @app.route("/api/watering-type")
 def classify_watering():
-  temp = get_temperature_max().get_json()
+  temp = request.args.get("temp", type=float)
+  if temp is None:
+    temp = get_temperature_max().get_json()
+    if isinstance(temp, dict) and "error" in temp:
+      return jsonify({"error": "Failed to fetch temperature"}), 500
   watering = load_config()["watering"]
-
+  logger.debug(f"Watering configuration: {watering}")
+  
   if temp is None:
     return "unknown"
   for watering_type, settings in watering.items():
