@@ -177,3 +177,4 @@ arrosage.db
 
 .vscode/
 app/.vscode/
+*arrosage.db

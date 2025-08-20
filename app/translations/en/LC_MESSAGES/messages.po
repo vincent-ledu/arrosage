@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-07-22 23:33+0200\n"
+"POT-Creation-Date: 2025-08-19 20:51+0200\n"
 "PO-Revision-Date: 2025-07-22 19:22+0200\n"
 "Last-Translator: Vincent <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -16,10 +16,152 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.10.3\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: app.py:64
+#, fuzzy
+msgid "Low"
+msgstr "Low"
+
+#: app.py:65
+#, fuzzy
+msgid "Moderate"
+msgstr "Moderate"
+
+#: app.py:66
+#, fuzzy
+msgid "Standard"
+msgstr "Standard"
+
+#: app.py:67
+#, fuzzy
+msgid "Reinforced"
+msgstr "Réinforced"
+
+#: app.py:68
+#, fuzzy
+msgid "High"
+msgstr "High"
+
+#: weather-service.py:7
+msgid "Clear sky"
+msgstr "Clear sky"
+
+#: weather-service.py:8
+msgid "Mainly clear"
+msgstr "Mainly clear"
+
+#: weather-service.py:9
+msgid "Partly cloudy"
+msgstr "Partly cloudy"
+
+#: weather-service.py:10
+msgid "Overcast"
+msgstr "Overcast"
+
+#: weather-service.py:11
+msgid "Fog"
+msgstr "Fog"
+
+#: weather-service.py:12
+msgid "Freezing fog (rime)"
+msgstr "Freezing fog (rime)"
+
+#: weather-service.py:13
+msgid "Drizzle: light"
+msgstr "Drizzle: light"
+
+#: weather-service.py:14
+msgid "Drizzle: moderate"
+msgstr "Drizzle: moderate"
+
+#: weather-service.py:15
+msgid "Drizzle: dense/heavy"
+msgstr "Drizzle: dense/heavy"
+
+#: weather-service.py:16
+msgid "Freezing drizzle: light"
+msgstr "Freezing drizzle: light"
+
+#: weather-service.py:17
+msgid "Freezing drizzle: dense/heavy"
+msgstr "Freezing drizzle: dense/heavy"
+
+#: weather-service.py:18
+msgid "Rain: light"
+msgstr "Rain: light"
+
+#: weather-service.py:19
+msgid "Rain: moderate"
+msgstr "Rain: moderate"
+
+#: weather-service.py:20
+msgid "Rain: heavy"
+msgstr "Rain: heavy"
+
+#: weather-service.py:21
+msgid "Freezing rain: light"
+msgstr "Freezing rain: light"
+
+#: weather-service.py:22
+msgid "Freezing rain: heavy"
+msgstr "Freezing rain: heavy"
+
+#: weather-service.py:23
+msgid "Snowfall: light"
+msgstr "Snowfall: light"
+
+#: weather-service.py:24
+msgid "Snowfall: moderate"
+msgstr "Snowfall: moderate"
+
+#: weather-service.py:25
+msgid "Snowfall: heavy"
+msgstr "Snowfall: heavy"
+
+#: weather-service.py:26
+msgid "Snow grains"
+msgstr "Snow grains"
+
+#: weather-service.py:27
+msgid "Rain showers: light"
+msgstr "Rain showers: light"
+
+#: weather-service.py:28
+msgid "Rain showers: moderate"
+msgstr "Rain showers: moderate"
+
+#: weather-service.py:29
+msgid "Rain showers: violent"
+msgstr "Rain showers: violent"
+
+#: weather-service.py:30
+msgid "Snow showers: light"
+msgstr "Snow showers: light"
+
+#: weather-service.py:31
+msgid "Snow showers: heavy"
+msgstr "Snow showers: heavy"
+
+#: weather-service.py:32
+msgid "Thunderstorm"
+msgstr "Thunderstorm"
+
+#: weather-service.py:33
+msgid "Thunderstorm with hail (slight/moderate)"
+msgstr "Thunderstorm with hail (slight/moderate)"
+
+#: weather-service.py:34
+msgid "Thunderstorm with heavy hail"
+msgstr "Thunderstorm with heavy hail"
+
+#: weather-service.py:38
+msgid "Unknown weather code"
+msgstr "Unknown weather code"
+
 
 #: templates/base.html:5 templates/base.html:21 templates/index.html:1
-#: templates/index.html:30
+#: templates/index.html:42
 msgid "Watering"
 msgstr "Watering"
 
@@ -27,7 +169,7 @@ msgstr "Watering"
 msgid "History"
 msgstr "History"
 
-#: templates/base.html:23
+#: templates/base.html:23 templates/settings.html:1 templates/settings.html:3
 msgid "Settings"
 msgstr "Settings"
 
@@ -63,105 +205,103 @@ msgstr "Loading max temperature..."
 msgid "Loading watering type"
 msgstr "Loading watering type"
 
-#: templates/index.html:19
+#: templates/index.html:31
 msgid "Refresh levels"
 msgstr "Refresh levels"
 
-#: templates/index.html:33
+#: templates/index.html:45
 msgid "Stop watering"
 msgstr "Stop watering"
 
-#: templates/index.html:62
+#: templates/index.html:74
 msgid "Error: Unable to retrieve temperature"
 msgstr "Error: Unable to retrieve temperature"
 
-#: templates/index.html:77
+#: templates/index.html:89
 msgid "Error: Unable to retrieve watering type"
 msgstr "Error: Unable to retrieve watering type"
 
-#: templates/index.html:89
+#: templates/index.html:101
 msgid "Water level"
 msgstr "Water level"
 
-#: templates/index.html:98
+#: templates/index.html:110
 msgid "Error: Unable to retrieve water level"
 msgstr "Error: Unable to retrieve water level"
 
-#: templates/index.html:106
+#: templates/index.html:118
 msgid "Please enter a valid duration between 1 and 300 seconds"
 msgstr "Please enter a valid duration between 1 and 300 seconds"
 
-#: templates/index.html:133
+#: templates/index.html:145
 msgid "Watering in progress"
 msgstr "Watering in progress"
 
-#: templates/index.html:134
+#: templates/index.html:146
 msgid "Watering completed"
 msgstr "Watering completed"
 
-#: templates/index.html:135
+#: templates/index.html:147
 msgid "Watering canceled"
 msgstr "Watering canceled"
 
-#: templates/index.html:155
+#: templates/index.html:167
 msgid "Started at:"
 msgstr "Started at:"
 
-#: templates/index.html:155
+#: templates/index.html:167
 msgid "Time remaining"
 msgstr "Time remaining"
 
-msgid "low"
-msgstr "Low"
-
-msgid "moderate"
-msgstr "Moderate"
-
-msgid "standard"
-msgstr "Standard"
-
-msgid "reinforced"
-msgstr "Réinforced"
-
-msgid "high"
-msgstr "High"
-
+#: templates/settings.html:7
 msgid "Pump pin:"
 msgstr "Pump pin:"
 
+#: templates/settings.html:19
 msgid "Valve pin:"
 msgstr "Valve pin:"
 
+#: templates/settings.html:31
 msgid "Water level pins:"
 msgstr "Water level pins:"
 
+#: templates/settings.html:33
 msgid "level"
 msgstr "level"
 
+#: templates/settings.html:46
 msgid "Coordinates"
 msgstr "Coordinates"
 
+#: templates/settings.html:48
 msgid "Latitude:"
 msgstr "Latitude:"
 
+#: templates/settings.html:58
 msgid "Longitude:"
 msgstr "Longitude:"
 
+#: templates/settings.html:69
 msgid "Watering duration:"
 msgstr "Watering duration:"
 
+#: templates/settings.html:72
 msgid "Type"
 msgstr "Type"
 
+#: templates/settings.html:73
 msgid "Threshold"
 msgstr "Threshold"
 
+#: templates/settings.html:74
 msgid "Morning"
 msgstr "Morning"
 
+#: templates/settings.html:75
 msgid "Evening"
 msgstr "Evening"
 
+#: templates/settings.html:115
 msgid "Save"
 msgstr "Save"
 

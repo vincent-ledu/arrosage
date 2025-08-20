@@ -108,15 +108,20 @@ See `utils/deploy.sh`
 
 # TODO
 
-- [x] 🇫🇷/🇬🇧 Fix translation bug
-- [ ] 🔥 Add temperature to history graph
-- [x] 🌦️ Give temperature and precipitation forecast for next 3 days
-- [x] 🖼️ Add some pictures of the electrical device
-- [ ] 💬 Investigate "Message flash" in flask for user error display
 - [ ] 📊 Change db schema: add columns start and stop for water tasks
+- [ ] 💬 Investigate "Message flash" in flask for user error display
+- [ ] Go to a Model Driven Development approach
+- [ ] 🔥 Add temperature to history graph
 - [ ] 🗓️ Set cron in application
 - [ ] 🚿 Compute L per watering (settings with pump capacity)
-- [ ] 🌡️ Table from j-0 to J-5, with cloud, morning/evening, temperature
+- [ ] Add data in cache
+
+# DONE
+
+- [x] 🇫🇷/🇬🇧 Fix translation bug
+- [x] 🌦️ Give temperature and precipitation forecast for next 3 days
+- [x] 🖼️ Add some pictures of the electrical device
+- [x] 🌡️ Table from j-0 to J+4, with cloud, morning/evening, temperature
 
 # Inventory
 

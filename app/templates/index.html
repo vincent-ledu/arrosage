@@ -8,22 +8,15 @@ block content %}
       <div class="level-label" id="level-label">--%</div>
     </div>
   </div>
-
-  <div id="level" style="text-align: center">{{ _('Loading levels...') }}</div>
-  <div id="temperature-max" style="text-align: center">
-    {{ _('Loading max temperature...') }}
-  </div>
-  <div id="watering-type" style="text-align: center">
-    {{ _('Loading watering type')}}
-  </div>
   <section>
     <table id="forecast-table-condensed">
       <thead>
         <tr id="forecast-days"></tr>
       </thead>
       <tbody>
+        <tr id="forecast-forecast"></tr>
         <tr id="forecast-rain"></tr>
-        <tr id="forecast-temp"></tr>
+        <tr id="forecast-watering"></tr>
       </tbody>
     </table>
   </section>
@@ -53,11 +46,11 @@ block content %}
 
 <script>
   const watering = {
-    low: "Bas",
-    moderate: "Modéré",
-    standard: "Standard",
-    reinforced: "Renforcé",
-    high: "Elevé",
+    low: "S",
+    moderate: "M",
+    standard: "L",
+    reinforced: "XL",
+    high: "XXL",
   };
   function getTemperatureWatering() {
     fetch("/api/temperature-max")
@@ -75,20 +68,15 @@ block content %}
         }
       });
   }
-  function getWatering(temp) {
-    fetch(`/api/watering-type?temp=${temp}`)
-      .then((res) => res.text())
-      .then((wateringtype) => {
-        if (wateringtype !== undefined) {
-          document.getElementById(
-            "watering-type"
-          ).textContent = `🚿​ : ${watering[wateringtype]}`;
-        } else {
-          document.getElementById(
-            "watering-type"
-          ).textContent = `{{ _('Error: Unable to retrieve watering type') }}`;
-        }
-      });
+  async function getWatering(temp) {
+    return fetch(`/api/watering-type?temp=${temp}`).then((res) => {
+      if (res.ok) {
+        return res.text().then((wateringType) => {
+          console.log("Watering type:", wateringType);
+          return watering[wateringType];
+        });
+      }
+    });
   }
   function getLevel() {
     fetch("/api/water-level")
@@ -96,10 +84,6 @@ block content %}
       .then((data) => {
         if (data.level !== undefined) {
           const level = data.level;
-          document.getElementById(
-            "level"
-          ).textContent = `{{ _('Water level') }} : ${level}%`;
-
           const waterFill = document.getElementById("water-fill");
           const levelLabel = document.getElementById("level-label");
 
@@ -191,25 +175,42 @@ block content %}
       }
 
       const daysRow = ["<th>&nbsp;</th>"];
+      const forecastRow = ["<td>☁️/☀️-🌡️</td>"];
       const rainRow = ["<td>🌧️mm</td>"];
-      const tempRow = ["<td>🌡️</td>"];
+      const wateringRow = ["<td>🚿</td>"];
 
-      for (let i = 1; i < data.dates.length; i++) {
-        const dayLabel = `J+${i}`;
-        const rain = data.precipitations[i];
-        const temp = Math.floor(data.temps[i]);
-
-        // Choix du picto météo
-        const icon = rain >= 1.0 ? "🌧️" : "☀️";
+      for (let i = 0; i < data.length; i++) {
+        const dayLabel = i == 0 ? "J" : `J+${i}`;
+        const forecast = `${data[i].night_icon} ${Math.floor(
+          data[i].night_temp_avg
+        )}<br>${data[i].morning_icon} ${Math.floor(
+          data[i].morning_temp_avg
+        )}<br>${data[i].afternoon_icon} ${Math.floor(
+          data[i].afternoon_temp_avg
+        )}<br>${data[i].evening_icon} ${Math.floor(data[i].evening_temp_avg)}`;
+        const rain =
+          Math.round(
+            (
+              data[i].night_precip_mm +
+              data[i].morning_precip_mm +
+              data[i].afternoon_precip_mm +
+              data[i].evening_precip_mm
+            ).toFixed(1) * 10
+          ) / 10;
+        const watering = await getWatering(data[i].afternoon_temp_avg);
 
         daysRow.push(`<th>${dayLabel}</th>`);
-        rainRow.push(`<td>${icon}<br>${rain}</td>`);
-        tempRow.push(`<td>${temp}°C</td>`);
+        forecastRow.push(`<td>${forecast}</td>`);
+        rainRow.push(`<td>${rain}</td>`);
+        wateringRow.push(`<td>${watering}</td>`);
       }
 
       document.getElementById("forecast-days").innerHTML = daysRow.join("");
+      document.getElementById("forecast-forecast").innerHTML =
+        forecastRow.join("");
       document.getElementById("forecast-rain").innerHTML = rainRow.join("");
-      document.getElementById("forecast-temp").innerHTML = tempRow.join("");
+      document.getElementById("forecast-watering").innerHTML =
+        wateringRow.join("");
     } catch (e) {
       document.querySelector("#forecast-table-condensed").outerHTML =
         "<p>Erreur météo (chargement JS).</p>";
@@ -220,7 +221,7 @@ block content %}
 
   window.onload = () => {
     getLevel();
-    getTemperatureWatering();
+    //getTemperatureWatering();
     document.getElementById("open-btn").disabled = false;
     document.getElementById("close-btn").disabled = true;
   };
