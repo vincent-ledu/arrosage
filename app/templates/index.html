@@ -131,6 +131,8 @@ block content %}
       canceled: "{{ _('Watering canceled') }}",
     };
 
+    console.log("Task data:", data);
+
     document.getElementById("message").textContent =
       statusText[data.status] || data.status;
 
@@ -139,16 +141,14 @@ block content %}
 
     if (data.status === "in progress") {
       const now = Math.floor(Date.now() / 1000);
-      const elapsed = now - Math.floor(data.start_time);
+      const elapsed =
+        now - Math.floor(new Date(data.created_at).getTime() / 1000);
       const remaining = Math.max(0, data.duration - elapsed);
       const percent = Math.min(100, (elapsed / data.duration) * 100);
 
-      const startTimeStr = new Date(
-        data.start_time * 1000
-      ).toLocaleTimeString();
       document.getElementById(
         "status-info"
-      ).textContent = `{{ _('Started at:') }} ${startTimeStr} — {{ _('Time remaining') }} ${remaining}s`;
+      ).textContent = `{{ _('Started at:') }} ${data.created_at} — {{ _('Time remaining') }} ${remaining}s`;
 
       progressBar.style.width = percent + "%";
       progressContainer.style.display = "block";

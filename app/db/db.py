@@ -2,8 +2,9 @@ import os
 import uuid
 from typing import Optional, Dict, List
 
-from sqlalchemy import select, update, func
+from sqlalchemy import select, update, func, Integer, cast
 from sqlalchemy.orm import Session
+
 
 from db.database import engine, get_session, Base
 from db.models import Task
@@ -18,29 +19,46 @@ def init_db():
   Base.metadata.create_all(bind=engine)
 
 
-def add_task(start_time, duration, status) -> str:
+def add_task(duration, status) -> str:
   """Insère une tâche et renvoie son id (UUID str)."""
   task_id = str(uuid.uuid4())
   with get_session() as s:
-    t = Task(id=task_id, start_time=int(start_time), duration=int(duration), status=str(status))
+    t = Task(id=task_id, duration=int(duration), status=str(status))
     s.add(t)
     s.commit()
   return task_id
 
 def get_tasks_by_status(status):
-  """Récupère les tâches par statut, triées par start_time décroissant."""
+  """Récupère les tâches par statut, triées par created_at décroissant."""
   with get_session() as s:
-    stmt = select(Task).where(Task.status == status).order_by(Task.start_time.desc())
-    rows = list(s.scalars(stmt))
-    return [
-      {
-        "id": r.id,
-        "start_time": int(r.start_time),
-        "duration": int(r.duration),
-        "status": r.status,
-      }
-      for r in rows
-    ]
+    stmt = select(Task).where(Task.status == status).order_by(Task.created_at.desc())
+    return s.scalars(stmt).all()
+
+def get_daily_durations_for_done():
+    """
+    Somme des durées par jour (UTC), pour les statuts 'completed' ou 'cancelled'.
+    Retourne une liste de dicts: [{"day": "YYYY-MM-DD", "sum_dur": 123}, ...]
+    """
+    with get_session() as s:
+        dur_expr = (
+            cast(func.strftime('%s', Task.updated_at), Integer) -
+            cast(func.strftime('%s', Task.created_at), Integer)
+        )
+        day_expr = func.date(Task.created_at)  # UTC par défaut sous SQLite
+
+        stmt = (
+            select(
+                day_expr.label("date"),
+                func.coalesce(func.sum(dur_expr), 0).label("duration"),
+            )
+            .where(Task.status.in_(["completed", "cancelled"]))
+            .group_by(day_expr)
+            .order_by(day_expr)
+        )
+
+        rows = s.execute(stmt).all()
+        return [{"date": r.date, "duration": round(r.duration / 60, 1)} for r in rows]
+
 def update_status(task_id, new_status) -> None:
   with get_session() as s:
     s.execute(
@@ -52,48 +70,31 @@ def update_status(task_id, new_status) -> None:
 
 
 def get_task(task_id) -> Optional[Dict]:
-  with get_session() as s:
-    obj = s.get(Task, str(task_id))
-    if not obj:
-      return None
-    return {
-      "id": obj.id,
-      "start_time": int(obj.start_time),
-      "duration": int(obj.duration),
-      "status": obj.status,
-    }
+  with get_session() as s:  # type: Session
+    return s.get(Task, str(task_id))
 
 
 def get_all_tasks() -> List[Dict]:
   with get_session() as s:
-    stmt = select(Task).order_by(Task.start_time.desc())
-    rows = list(s.scalars(stmt))
-    return [
-      {
-        "id": r.id,
-        "start_time": int(r.start_time),
-        "duration": int(r.duration),
-        "status": r.status,
-      }
-      for r in rows
-    ]
+    return s.scalars(select(Task).order_by(Task.created_at.desc())).all()
+  
+def get_tasks_summary_by_day():
+    """
+    Retourne { 'YYYY-MM-DD': total_duration_seconds } pour les tâches terminées.
+    """
+    with get_session() as s:
+        dur_expr = (
+            cast(func.strftime('%s', Task.updated_at), Integer)
+            - cast(func.strftime('%s', Task.created_at), Integer)
+        )
+        day_expr = func.date(Task.created_at)  # 'YYYY-MM-DD' (UTC par défaut)
 
+        stmt = (
+            select(day_expr.label("day"), func.sum(dur_expr).label("sum_dur"))
+            .where(Task.status == "completed" or Task.status == "cancelled")
+            .group_by(day_expr)
+            .order_by(day_expr)
+        )
 
-def get_tasks_summary_by_day() -> Dict[int, int]:
-  """
-  Retourne {epoch_day: total_duration} pour les tâches status='terminated'.
-  epoch_day = (start_time // 86400) * 86400 (en secondes, minuit UTC à la louche — identique à l’implémentation précédente).
-  """
-  with get_session() as s:
-    # ((start_time / 86400) * 86400) en SQL. En SQLite, la division d'entiers reste entière.
-    day_expr = (Task.start_time / 86400) * 86400
-    stmt = (
-      select(day_expr.label("day"), func.sum(Task.duration).label("sum_dur"))
-      .where(Task.status == "terminated")
-      .group_by("day")
-    )
-    result = {}
-    for row in s.execute(stmt):
-      # row.day peut être float selon le dialecte → on cast en int pour respecter le format d'avant
-      result[int(row.day)] = int(row.sum_dur or 0)
-    return result
+        rows = s.execute(stmt).all()
+        return {day: int(sum_dur or 0) for day, sum_dur in rows}

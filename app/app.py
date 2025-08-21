@@ -12,10 +12,11 @@ import requests
 from flask_babel import Babel, gettext as _, lazy_gettext as _l
 
 from config.config import load_config, save_config
-from db.db import init_db, get_connection, get_tasks_by_status, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day
+from db.db import init_db, get_connection, get_tasks_by_status, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day, get_daily_durations_for_done
 from db.database import engine
 from db.models import Base
-from services.weather import fetch_open_meteo, aggregate_by_partday 
+from services.weather import fetch_open_meteo, aggregate_by_partday
+from utils.serializer import task_to_dict
 
 
 ctlInst = None
@@ -179,10 +180,6 @@ def settings_page():
 def history_page():
   return render_template("history.html")
 
-@app.route('/history_heatmap')
-def history_heatmap_page():
-  return render_template("history_heatmap.html")
-
 def handler(signal_received, frame):
   # on gere un cleanup propre
   logger.warning('SIGINT or CTRL-C detected. Exiting gracefully')
@@ -230,7 +227,7 @@ def DebugWaterLevels():
 
 @app.route('/api/tasks')
 def task_list():
-   return jsonify(get_all_tasks())
+   return jsonify([task_to_dict(t) for t in get_all_tasks()]), 200
 
 
 @app.route('/api/tasks/<task_id>')
@@ -239,11 +236,7 @@ def task_status(task_id):
   if not task:
       return jsonify({"error": f"Task {task_id} not found"}), 404
   logger.debug(task)
-  return jsonify({
-      "status": task["status"],
-      "start_time": task["start_time"],
-      "duration": task["duration"]
-  })
+  return jsonify(task_to_dict(task)), 200
 
 def IfWater():
   return CheckWaterLevel()["level"] > 0
@@ -270,9 +263,7 @@ def OpenWaterDelay():
   if not IfWater():
     logger.warning("There is not enough water")
     return jsonify({"error": "Not enough water."}), 507   
-  
-  start_time = time.time()
-  task_id = add_task(start_time, duration, "in progress")
+  task_id = add_task(duration, "in progress")
   cancel_event = threading.Event()
   cancel_flags[task_id] = cancel_event
 
@@ -299,18 +290,9 @@ def closeWaterSupply():
 
 @app.route('/api/history')
 def get_history():
-  history = defaultdict(int)
-  for task in get_tasks_by_status("completed"):
-    day = datetime.fromtimestamp(task["start_time"]).strftime('%Y-%m-%d')
-    history[day] += task.get("duration", 0)
-
-  # Convert durations en minutes, rounded
-  result = [{"date": day, "duration": round(seconds / 60, 1)} for day, seconds in sorted(history.items())]
+  result = get_daily_durations_for_done()
+  logger.debug(f"History result: {result}")
   return jsonify(result)
-
-@app.route('/api/history-heatmap')
-def history_heatmap():
-  return jsonify(get_tasks_summary_by_day())
 
 @app.route('/healthz')
 def healthz():

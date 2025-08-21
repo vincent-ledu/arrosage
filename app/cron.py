@@ -1,6 +1,6 @@
 import sys
 import requests
-from config import load_config
+from config.config import load_config
 import logging
 
 

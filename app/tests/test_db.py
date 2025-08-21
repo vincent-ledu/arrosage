@@ -25,7 +25,7 @@ def db(monkeypatch):
       s.commit()
 
 def test_add_task(db):
-  task_id = add_task(time.time(), 10, "in progress")
+  task_id = add_task(10, "in progress")
   assert task_id is not None
   task = get_task(task_id)
   assert task is not None
@@ -34,20 +34,20 @@ def test_add_task(db):
   update_status(task_id, "completed")
 
 def test_get_all_tasks(db):
-  task_id1 = add_task(time.time(), 10, "in progress")
-  task_id2 = add_task(time.time(), 10, "in progress")
+  task_id1 = add_task(10, "in progress")
+  task_id2 = add_task(10, "in progress")
   tasks = get_all_tasks()
   assert len(tasks) >= 2
 
 def test_update_status(db):
-  task_id = add_task(time.time(), 10, "in progress")
+  task_id = add_task(10, "in progress")
   update_status(task_id, "completed")
   task = get_task(task_id)
   assert task['status'] == "completed"
 
 def test_get_tasks_by_status(db):
-  task_id1 = add_task(time.time(), 10, "in progress")
-  task_id2 = add_task(time.time(), 10, "in progress")
+  task_id1 = add_task(10, "in progress")
+  task_id2 = add_task(10, "in progress")
   update_status(task_id1, "completed")
   
   completed_tasks = get_tasks_by_status("completed")

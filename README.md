@@ -111,11 +111,14 @@ See `utils/deploy.sh`
 - [ ] 📊 Review data model to integrate : start and stop for water tasks, temperature & precip
 - [ ] 🔥 Add temperature to history graph
 - [ ] 🚿 Compute water volume per watering (settings with pump capacity)
-- [ ] 👾 Fix front (flag, white main zone, textbox width...)
+- [ ] 👾 Fix front (flag, white main zone, textbox width, label for watering...)
 - [ ] 💬 Investigate "Message flash" in flask for user error display
 - [ ] 🏗️ Go to a Domain Driven Design approach
 - [ ] 🗓️ Set cron in application
 - [ ] 🏎️ Add data in cache
+- [ ] 🌡️ Get and display min/max temperature of the day
+- [ ] 🧊 Prevent watering when temperature < 0°
+- [ ] 🗓️ Settings for month watering: checks which month watering is enabled
 
 # DONE
 
