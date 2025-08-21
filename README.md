@@ -108,13 +108,14 @@ See `utils/deploy.sh`
 
 # TODO
 
-- [ ] 📊 Change db schema: add columns start and stop for water tasks
-- [ ] 💬 Investigate "Message flash" in flask for user error display
-- [ ] Go to a Model Driven Development approach
+- [ ] 📊 Review data model to integrate : start and stop for water tasks, temperature & precip
 - [ ] 🔥 Add temperature to history graph
+- [ ] 🚿 Compute water volume per watering (settings with pump capacity)
+- [ ] 👾 Fix front (flag, white main zone, textbox width...)
+- [ ] 💬 Investigate "Message flash" in flask for user error display
+- [ ] 🏗️ Go to a Domain Driven Design approach
 - [ ] 🗓️ Set cron in application
-- [ ] 🚿 Compute L per watering (settings with pump capacity)
-- [ ] Add data in cache
+- [ ] 🏎️ Add data in cache
 
 # DONE
 
