@@ -108,6 +108,9 @@ See `utils/deploy.sh`
 
 # TODO
 
+- [ ] 🌡️ Get and display min/max temperature of the day
+- [ ] 🧊 Prevent watering when temperature < 0°
+- [ ] 🗓️ Settings for month watering: checks which month watering is enabled
 - [ ] 📊 Review data model to integrate : start and stop for water tasks, temperature & precip
 - [ ] 🔥 Add temperature to history graph
 - [ ] 🚿 Compute water volume per watering (settings with pump capacity)
@@ -116,9 +119,6 @@ See `utils/deploy.sh`
 - [ ] 🏗️ Go to a Domain Driven Design approach
 - [ ] 🗓️ Set cron in application
 - [ ] 🏎️ Add data in cache
-- [ ] 🌡️ Get and display min/max temperature of the day
-- [ ] 🧊 Prevent watering when temperature < 0°
-- [ ] 🗓️ Settings for month watering: checks which month watering is enabled
 
 # DONE
 
