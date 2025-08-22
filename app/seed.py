@@ -20,7 +20,10 @@ for day_offset in range(30):
         duration = random.randint(60, 300)  # Durée entre 1 et 5 min
         task_id = str(uuid.uuid4())
         status = random.choices(["completed", "canceled", "error"], weights=[0.8, 0.1, 0.1])[0]
+        min_temp = random.uniform(10.0, 20.0)  # Température min entre 10 et 20 °C
+        max_temp = random.uniform(20.0, 30.0)  # Température max entre 20 et 30 °C
+        precipitation = random.uniform(0.0, 5.0)  # Précipitation entre 0 et 5 mm
 
-        add_task(duration, status)
+        add_task(duration, status, min_temp=min_temp, max_temp=max_temp, precipitation=precipitation)
 
 print("✅ Fake data inserted.")

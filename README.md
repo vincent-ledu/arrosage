@@ -108,17 +108,16 @@ See `utils/deploy.sh`
 
 # TODO
 
-- [ ] 🌡️ Get and display min/max temperature of the day
+- [ ] 📊 Review graph: add min max temperature, precipitation, last 30 days
+- [ ] 🏎️ Add data in cache
 - [ ] 🧊 Prevent watering when temperature < 0°
 - [ ] 🗓️ Settings for month watering: checks which month watering is enabled
-- [ ] 📊 Review data model to integrate : start and stop for water tasks, temperature & precip
 - [ ] 🔥 Add temperature to history graph
 - [ ] 🚿 Compute water volume per watering (settings with pump capacity)
-- [ ] 👾 Fix front (flag, white main zone, textbox width, label for watering...)
+- [ ] 👾 Fix front (flag, white main zone, textbox width, label for watering, get current watering task...)
 - [ ] 💬 Investigate "Message flash" in flask for user error display
 - [ ] 🏗️ Go to a Domain Driven Design approach
 - [ ] 🗓️ Set cron in application
-- [ ] 🏎️ Add data in cache
 
 # DONE
 
@@ -126,6 +125,8 @@ See `utils/deploy.sh`
 - [x] 🌦️ Give temperature and precipitation forecast for next 3 days
 - [x] 🖼️ Add some pictures of the electrical device
 - [x] 🌡️ Table from j-0 to J+4, with cloud, morning/evening, temperature
+- [x] 🌡️ Get and display min/max temperature of the day
+- [x] 📊 Review data model to integrate : start and stop for water tasks, temperature & precip
 
 # Inventory
 

@@ -136,6 +136,24 @@ def get_temperature_max():
     logger.error("Forecast error :", e)
     return jsonify({"error": "Error in calling open-meteo api"})
 
+def get_minmax_temperature_precip():
+  try:
+    coordinates = get_coordinates()
+    logger.debug(f"Coordinates: ${coordinates}")
+    lat, lon = coordinates.values()
+    url = (
+      "https://api.open-meteo.com/v1/forecast"
+      f"?latitude={lat}&longitude={lon}"
+      "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&forecast_days=1&timezone=Europe%2FParis"
+    )
+    resp = requests.get(url, timeout=5)
+    resp.raise_for_status()
+    data = resp.json()
+    return jsonify(data["daily"])
+  except Exception as e:
+    logger.error("Forecast error :", e)
+    return jsonify({"error": "Error in calling open-meteo api"})
+
 @app.route("/api/watering-type")
 def classify_watering():
   temp = request.args.get("temp", type=float)
@@ -262,8 +280,12 @@ def OpenWaterDelay():
     return jsonify({"error": "Watering is already in progress."}), 409
   if not IfWater():
     logger.warning("There is not enough water")
-    return jsonify({"error": "Not enough water."}), 507   
-  task_id = add_task(duration, "in progress")
+    return jsonify({"error": "Not enough water."}), 507
+  temp_precip = get_minmax_temperature_precip().get_json()
+  task_id = add_task(duration, "in progress", 
+                     min_temp=temp_precip["temperature_2m_min"][0], 
+                     max_temp=temp_precip["temperature_2m_max"][0], 
+                     precipitation=temp_precip["precipitation_sum"][0])
   cancel_event = threading.Event()
   cancel_flags[task_id] = cancel_event
 
