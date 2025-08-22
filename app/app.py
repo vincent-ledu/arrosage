@@ -279,11 +279,11 @@ def closeWaterSupply():
 
   cancelled_tasks = []
   for task in get_tasks_by_status("in progress"):
-    cancel_event = cancel_flags.get(task.get("id"))
+    cancel_event = cancel_flags.get(task.id)
     if cancel_event:
       cancel_event.set()
-      update_status(task.get("id"), "canceled")
-      cancelled_tasks.append(task.get("id"))
+      update_status(task.id, "canceled")
+      cancelled_tasks.append(task.id)
   if len(cancelled_tasks) > 0:
     return jsonify({"message": f"Task {cancelled_tasks} terminated"}), 200
   return jsonify({"error": "Water is already closed"}), 404

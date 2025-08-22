@@ -29,8 +29,8 @@ def test_add_task(db):
   assert task_id is not None
   task = get_task(task_id)
   assert task is not None
-  assert task['id'] == task_id
-  assert task['status'] == "in progress"
+  assert task.id == task_id
+  assert task.status == "in progress"
   update_status(task_id, "completed")
 
 def test_get_all_tasks(db):
@@ -43,7 +43,7 @@ def test_update_status(db):
   task_id = add_task(10, "in progress")
   update_status(task_id, "completed")
   task = get_task(task_id)
-  assert task['status'] == "completed"
+  assert task.status == "completed"
 
 def test_get_tasks_by_status(db):
   task_id1 = add_task(10, "in progress")
@@ -52,9 +52,9 @@ def test_get_tasks_by_status(db):
   
   completed_tasks = get_tasks_by_status("completed")
   assert len(completed_tasks) == 1
-  assert completed_tasks[0]['id'] == task_id1
+  assert completed_tasks[0].id == task_id1
 
   pending_tasks = get_tasks_by_status("in progress")
   assert len(pending_tasks) == 1
-  assert pending_tasks[0]['id'] == task_id2
+  assert pending_tasks[0].id == task_id2
 
