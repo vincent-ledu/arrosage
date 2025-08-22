@@ -12,10 +12,11 @@ import requests
 from flask_babel import Babel, gettext as _, lazy_gettext as _l
 
 from config.config import load_config, save_config
-from db.db import init_db, get_connection, get_tasks_by_status, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day
+from db.db import init_db, get_connection, get_tasks_by_status, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day, get_daily_durations_for_done
 from db.database import engine
 from db.models import Base
-from services.weather import fetch_open_meteo, aggregate_by_partday 
+from services.weather import fetch_open_meteo, aggregate_by_partday
+from utils.serializer import task_to_dict
 
 
 ctlInst = None
@@ -135,6 +136,24 @@ def get_temperature_max():
     logger.error("Forecast error :", e)
     return jsonify({"error": "Error in calling open-meteo api"})
 
+def get_minmax_temperature_precip():
+  try:
+    coordinates = get_coordinates()
+    logger.debug(f"Coordinates: ${coordinates}")
+    lat, lon = coordinates.values()
+    url = (
+      "https://api.open-meteo.com/v1/forecast"
+      f"?latitude={lat}&longitude={lon}"
+      "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&forecast_days=1&timezone=Europe%2FParis"
+    )
+    resp = requests.get(url, timeout=5)
+    resp.raise_for_status()
+    data = resp.json()
+    return jsonify(data["daily"])
+  except Exception as e:
+    logger.error("Forecast error :", e)
+    return jsonify({"error": "Error in calling open-meteo api"})
+
 @app.route("/api/watering-type")
 def classify_watering():
   temp = request.args.get("temp", type=float)
@@ -178,10 +197,6 @@ def settings_page():
 @app.route('/history')
 def history_page():
   return render_template("history.html")
-
-@app.route('/history_heatmap')
-def history_heatmap_page():
-  return render_template("history_heatmap.html")
 
 def handler(signal_received, frame):
   # on gere un cleanup propre
@@ -230,7 +245,7 @@ def DebugWaterLevels():
 
 @app.route('/api/tasks')
 def task_list():
-   return jsonify(get_all_tasks())
+   return jsonify([task_to_dict(t) for t in get_all_tasks()]), 200
 
 
 @app.route('/api/tasks/<task_id>')
@@ -239,11 +254,7 @@ def task_status(task_id):
   if not task:
       return jsonify({"error": f"Task {task_id} not found"}), 404
   logger.debug(task)
-  return jsonify({
-      "status": task["status"],
-      "start_time": task["start_time"],
-      "duration": task["duration"]
-  })
+  return jsonify(task_to_dict(task)), 200
 
 def IfWater():
   return CheckWaterLevel()["level"] > 0
@@ -269,10 +280,12 @@ def OpenWaterDelay():
     return jsonify({"error": "Watering is already in progress."}), 409
   if not IfWater():
     logger.warning("There is not enough water")
-    return jsonify({"error": "Not enough water."}), 507   
-  
-  start_time = time.time()
-  task_id = add_task(start_time, duration, "in progress")
+    return jsonify({"error": "Not enough water."}), 507
+  temp_precip = get_minmax_temperature_precip().get_json()
+  task_id = add_task(duration, "in progress", 
+                     min_temp=temp_precip["temperature_2m_min"][0], 
+                     max_temp=temp_precip["temperature_2m_max"][0], 
+                     precipitation=temp_precip["precipitation_sum"][0])
   cancel_event = threading.Event()
   cancel_flags[task_id] = cancel_event
 
@@ -288,29 +301,20 @@ def closeWaterSupply():
 
   cancelled_tasks = []
   for task in get_tasks_by_status("in progress"):
-    cancel_event = cancel_flags.get(task.get("id"))
+    cancel_event = cancel_flags.get(task.id)
     if cancel_event:
       cancel_event.set()
-      update_status(task.get("id"), "canceled")
-      cancelled_tasks.append(task.get("id"))
+      update_status(task.id, "canceled")
+      cancelled_tasks.append(task.id)
   if len(cancelled_tasks) > 0:
     return jsonify({"message": f"Task {cancelled_tasks} terminated"}), 200
   return jsonify({"error": "Water is already closed"}), 404
 
 @app.route('/api/history')
 def get_history():
-  history = defaultdict(int)
-  for task in get_tasks_by_status("completed"):
-    day = datetime.fromtimestamp(task["start_time"]).strftime('%Y-%m-%d')
-    history[day] += task.get("duration", 0)
-
-  # Convert durations en minutes, rounded
-  result = [{"date": day, "duration": round(seconds / 60, 1)} for day, seconds in sorted(history.items())]
+  result = get_daily_durations_for_done()
+  logger.debug(f"History result: {result}")
   return jsonify(result)
-
-@app.route('/api/history-heatmap')
-def history_heatmap():
-  return jsonify(get_tasks_summary_by_day())
 
 @app.route('/healthz')
 def healthz():
