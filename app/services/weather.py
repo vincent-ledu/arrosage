@@ -70,24 +70,30 @@ def slice_partday(dt: datetime) -> str:
   return "other"
 
 def aggregate_by_partday(data):
-  # logger.info(f"Aggregating data by part of the day: {data}")
   H = data["hourly"]
-  logger.info(f"############## Hourly data: {H}")
   times = [datetime.fromisoformat(t) for t in H["time"]]
 
   # Regroupe par date -> (morning/afternoon) -> liste d’indices horaires
   buckets = defaultdict(lambda: {"night": [], "morning": [], "afternoon": [], "evening": []})
+  temps_by_date = defaultdict(list)
   for i, dt in enumerate(times):
     half = slice_partday(dt)
     if half != "other":
       dkey = dt.date().isoformat()
       buckets[dkey][half].append(i)
+      # Collect temperature for min/max
+      temp = H["temperature_2m"][i]
+      if temp is not None:
+        temps_by_date[dkey].append(temp)
 
   out = []
   for dkey, halves in sorted(buckets.items()):
     row = {"date": dkey}
-    min_temp = None
-    max_temp = None
+    # Add min/max temperature for the day
+    temps = temps_by_date[dkey]
+    row["temp_min"] = round(min(temps), 1) if temps else None
+    row["temp_max"] = round(max(temps), 1) if temps else None
+
     for half_name, idxs in halves.items():
       if not idxs:
         row[f"{half_name}_icon"] = "—"
@@ -97,7 +103,6 @@ def aggregate_by_partday(data):
 
       # Dominant / sévère weather_code
       codes = [H["weather_code"][i] for i in idxs]
-      # priorité “sévérité” : on prend le max du code si égalité de fréquence
       freq = Counter(codes).most_common()
       max_count = freq[0][1]
       candidates = [c for c, k in freq if k == max_count]
@@ -105,18 +110,14 @@ def aggregate_by_partday(data):
       icon_text = wmo_icon_text(dom_code)
 
       precip = sum(H["precipitation"][i] or 0 for i in idxs)
-      temps = [H["temperature_2m"][i] for i in idxs if H["temperature_2m"][i] is not None]
-      tavg = round(sum(temps)/len(temps), 1) if temps else None
-      min_temp = min(temps) if temps else None
-      max_temp = max(temps) if temps else None
+      temps_half = [H["temperature_2m"][i] for i in idxs if H["temperature_2m"][i] is not None]
+      tavg = round(sum(temps_half)/len(temps_half), 1) if temps_half else None
 
       row[f"{half_name}_icon"] = icon_text[0]
       row[f"{half_name}_text"] = icon_text[1]
       row[f"{half_name}_precip_mm"] = round(precip, 1)
       row[f"{half_name}_temp_avg"] = tavg
 
-    row["min_temp"] = min_temp
-    row["max_temp"] = max_temp
     out.append(row)
   return out
 
@@ -125,5 +126,5 @@ if __name__ == "__main__":
   lat, lon = 48.8566, 2.3522  # Paris
   data = fetch_open_meteo(lat, lon)
   aggregated_data = aggregate_by_partday(data)
-  # for row in aggregated_data:
-  #   print(row)
+  for row in aggregated_data:
+    print(row)

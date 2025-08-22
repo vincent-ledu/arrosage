@@ -15,6 +15,7 @@ block content %}
       </thead>
       <tbody>
         <tr id="forecast-forecast"></tr>
+        <tr id="forecast-minmax"></tr>
         <tr id="forecast-rain"></tr>
         <tr id="forecast-watering"></tr>
       </tbody>
@@ -163,6 +164,16 @@ block content %}
     }
   }
 
+  async function stopOpenWater() {
+    const response = await fetch("/api/command/close-water");
+    const data = await response.json();
+    document.getElementById("message").textContent = data.message;
+    document.getElementById("open-btn").disabled = false;
+    document.getElementById("close-btn").disabled = true;
+    clearInterval(intervalCheck);
+    document.getElementById("status-info").textContent = "";
+  }
+
   async function loadForecast() {
     try {
       const response = await fetch("/api/forecast");
@@ -176,6 +187,7 @@ block content %}
 
       const daysRow = ["<th>&nbsp;</th>"];
       const forecastRow = ["<td>☁️/☀️-🌡️</td>"];
+      const minmaxRow = ["<td>❄️<br>🔥</td>"];
       const rainRow = ["<td>🌧️mm</td>"];
       const wateringRow = ["<td>🚿</td>"];
 
@@ -188,6 +200,9 @@ block content %}
         )}<br>${data[i].afternoon_icon} ${Math.floor(
           data[i].afternoon_temp_avg
         )}<br>${data[i].evening_icon} ${Math.floor(data[i].evening_temp_avg)}`;
+        const minmax = `${Math.ceil(data[i].temp_min)}°C<br>${Math.floor(
+          data[i].temp_max
+        )}°C`;
         const rain =
           Math.round(
             (
@@ -201,6 +216,7 @@ block content %}
 
         daysRow.push(`<th>${dayLabel}</th>`);
         forecastRow.push(`<td>${forecast}</td>`);
+        minmaxRow.push(`<td>${minmax}</td>`);
         rainRow.push(`<td>${rain}</td>`);
         wateringRow.push(`<td>${watering}</td>`);
       }
@@ -208,6 +224,7 @@ block content %}
       document.getElementById("forecast-days").innerHTML = daysRow.join("");
       document.getElementById("forecast-forecast").innerHTML =
         forecastRow.join("");
+      document.getElementById("forecast-minmax").innerHTML = minmaxRow.join("");
       document.getElementById("forecast-rain").innerHTML = rainRow.join("");
       document.getElementById("forecast-watering").innerHTML =
         wateringRow.join("");

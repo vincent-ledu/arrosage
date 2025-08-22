@@ -173,8 +173,6 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-arrosage.db
-
+**/arrosage.db
 .vscode/
 app/.vscode/
-*arrosage.db
