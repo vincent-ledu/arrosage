@@ -108,7 +108,7 @@ See `utils/deploy.sh`
 
 # TODO
 
-- [ ] 👾 Fix front (~~flag~~, ~~white main zone~~, ~~textbox width~~, label for watering, get current watering task...)
+- [ ] 👾 Fix front (~~flag~~, ~~white main zone~~, ~~textbox width~~, label for Rain, ~~get current watering task~~...)
 - [ ] 🏎️ Add data in cache
 - [ ] 🧊 Prevent watering when temperature < 0°
 - [ ] 🗓️ Settings for month watering: checks which month watering is enabled

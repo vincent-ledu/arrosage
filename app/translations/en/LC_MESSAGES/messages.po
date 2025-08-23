@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-08-23 10:46+0200\n"
+"POT-Creation-Date: 2025-08-23 11:03+0200\n"
 "PO-Revision-Date: 2025-07-22 19:22+0200\n"
 "Last-Translator: Vincent <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -173,6 +173,19 @@ msgstr "History"
 msgid "Settings"
 msgstr "Settings"
 
+#: templates/history.html:8
+msgid "Display last:"
+msgstr "Display last:"
+
+#: templates/history.html:10 templates/history.html:11
+#: templates/history.html:12 templates/history.html:15
+msgid "days"
+msgstr "days"
+
+#: templates/history.html:16
+msgid "Today"
+msgstr "Today"
+
 #: templates/history.html:46 templates/history.html:60
 #: templates/history.html:97
 msgid "Temp. min"
@@ -189,13 +202,18 @@ msgstr "Precipitations"
 
 #: templates/history.html:62 templates/history.html:121
 #: templates/history.html:185
-msgid "Rain"
+#, fuzzy
+msgid "HRain"
 msgstr "Rain"
 
 #: templates/history.html:179
 #, fuzzy
 msgid "Temperature"
 msgstr "Moderate"
+
+#: templates/history.html:207
+msgid "Period"
+msgstr "Period"
 
 #: templates/index.html:4
 msgid "Auto watering"

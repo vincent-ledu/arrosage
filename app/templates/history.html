@@ -5,15 +5,15 @@ content %}
 
   <!-- Contrôles -->
   <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px;">
-    <label>Période:
+    <label>{{ _('Display last:') }}:
       <select id="daysSelect">
-        <option value="15" selected>15 jours</option>
-        <option value="30">30 jours</option>
-        <option value="60">60 jours</option>
+        <option value="15" selected>15 {{ _('days') }}</option>
+        <option value="30">30 {{ _('days') }}</option>
+        <option value="60">60 {{ _('days') }}</option>
       </select>
     </label>
-    <button id="btnPrev" type="button">⏮️ -15 jours (anciens)</button>
-    <button id="btnToday" type="button">📅 Aujourd’hui</button>
+    <button id="btnPrev" type="button">⏮️ -15 {{ _('days') }}</button>
+    <button id="btnToday" type="button">📅 {{ _('Today') }}</button>
 
     <span style="opacity:.8; margin-left:auto" id="windowInfo"></span>
   </div>
@@ -59,7 +59,7 @@ content %}
 <script>
   const TEMP_MIN = "{{ _('Temp. min') }}";
   const TEMP_MAX = "{{ _('Temp. max') }}";
-  const RAIN = "{{ _('Rain') }}";
+  const RAIN = "{{ _('HRain') }}";
   const WATER = "{{ _('Watering') }}";
   
   (function () {
@@ -118,7 +118,7 @@ content %}
     };
     const dsRain = {
       type: "bar",
-      label: "{{ _('Rain') }} (mm)",
+      label: "{{ _('HRain') }} (mm)",
       data: rain,
       yAxisID: "yWaterRain",
       borderWidth: 0,
@@ -182,7 +182,7 @@ content %}
           },
           yWaterRain: {
             position: "right",
-            title: { display: true, text: "{{ _('Watering') }} (min) / {{ _('Rain') }} (mm)" },
+            title: { display: true, text: "{{ _('Watering') }} (min) / {{ _('HRain') }} (mm)" },
             grid: { display: false },
             offset: true,
             beginAtZero: true,
@@ -204,7 +204,7 @@ content %}
 
     // affiche info de fenêtre (start..end)
     if (lastMeta) {
-      info.textContent = `Fenêtre: ${lastMeta.start} → ${lastMeta.end} (${lastMeta.days}j)`;
+      info.textContent = "{{ _('Period')}}" + `: ${lastMeta.start} → ${lastMeta.end} (${lastMeta.days}j)`;
       btnPrev.disabled = !lastMeta.has_prev;
       // si on a demandé end explicite, on mémorise ; sinon (reset Aujourd'hui) => null
       currentEnd = end || null;
