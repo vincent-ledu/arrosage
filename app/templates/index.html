@@ -22,8 +22,6 @@ block content %}
     </table>
   </section>
 
-  <button onclick="getLevel()">{{ _('Refresh levels')}}</button>
-
   <div style="margin-top: 10px">
     <input
       type="number"
@@ -53,22 +51,6 @@ block content %}
     reinforced: "XL",
     high: "XXL",
   };
-  function getTemperatureWatering() {
-    fetch("/api/temperature-max")
-      .then((res) => res.text())
-      .then((temp) => {
-        if (temp !== undefined) {
-          document.getElementById(
-            "temperature-max"
-          ).textContent = `🌡️: ${Math.floor(temp)}°C`;
-          getWatering(temp);
-        } else {
-          document.getElementById(
-            "temperature-max"
-          ).textContent = `{{ _('Error: Unable to retrieve temperature') }}`;
-        }
-      });
-  }
   async function getWatering(temp) {
     return fetch(`/api/watering-type?temp=${temp}`).then((res) => {
       if (res.ok) {
@@ -118,6 +100,12 @@ block content %}
     intervalCheck = setInterval(() => {
       checkStatus();
     }, 3000);
+  }
+
+  async function getCurrentTaskId() {
+    const response = await fetch("/api/tasks/current-task");
+    const data = await response.json();
+    return data.task_id || null;
   }
 
   async function checkStatus() {
@@ -238,7 +226,17 @@ block content %}
 
   window.onload = () => {
     getLevel();
-    //getTemperatureWatering();
+    currentTaskId = null;
+    getCurrentTaskId().then((taskId) => {
+      currentTaskId = taskId;
+      console.log("Current Task ID fetched:", currentTaskId);
+      if (currentTaskId) {
+        checkStatus();
+        intervalCheck = setInterval(() => {
+          checkStatus();
+        }, 3000);
+      }
+    });
     document.getElementById("open-btn").disabled = false;
     document.getElementById("close-btn").disabled = true;
   };

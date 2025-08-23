@@ -259,6 +259,15 @@ def task_status(task_id):
   logger.debug(task)
   return jsonify(task_to_dict(task)), 200
 
+@app.route('/api/tasks/current-task')
+def current_task():
+  tasks = get_tasks_by_status("in progress")
+  if not tasks:
+      return jsonify({"task_id": None}), 200
+  task = tasks[0]
+  logger.debug(task)
+  return jsonify({"task_id": task.id}), 200
+
 def IfWater():
   return CheckWaterLevel()["level"] > 0
 
