@@ -1,45 +1,188 @@
-{% extends "base.html" %} {% block title %}{{ _('History') }}{% endblock %} {%
-block head_extra %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-{% endblock %} {% block content %}
-<h2>{{ _('Watering history') }}</h2>
-<canvas id="historyChart"></canvas>
+{% extends "base.html" %} {% block title %}Historique{% endblock %} {% block
+content %}
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 1rem">
+  <h2 style="margin: 0 0 1rem 0">{{ _('History') }}</h1>
+
+  <div
+    style="
+      background: #fff;
+      border: 1px solid #aaa;
+      border-radius: 12px;
+      padding: 16px;
+    "
+  >
+    <div
+      id="historyChartWrap"
+      style="position: relative; height: 420px; width: 100%"
+    >
+      <canvas id="historyChart"></canvas>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+        align-items: center;
+      "
+    >
+      <label><input type="checkbox" id="toggleMin" checked /> {{ _('Temp. min') }}</label>
+      <label><input type="checkbox" id="toggleMax" checked /> {{ _('Temp. max') }}</label>
+      <label
+        ><input type="checkbox" id="toggleRain" checked /> {{ _('Precipitations') }}</label
+      >
+      <label><input type="checkbox" id="toggleWater" checked /> {{ _('Watering') }}</label>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js v4 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <script>
-  async function fetchHistory() {
-    const response = await fetch("/api/history");
-    const data = await response.json();
+  const TEMP_MIN = "{{ _('Temp. min') }}";
+  const TEMP_MAX = "{{ _('Temp. max') }}";
+  const RAIN = "{{ _('Rain') }}";
+  const WATER = "{{ _('Watering') }}";
+  
+  (async function () {
+    // Récupération des données: [{day, min_temp, max_temp, precip_mm, duration_min, runs}, ...]
+    const resp = await fetch("/api/history/series");
+    const serie = await resp.json();
 
-    const labels = data.map((entry) => entry.date);
-    const durations = data.map((entry) => entry.duration);
+    // Données formatées
+    const labels = serie.map((d) => d.day);
+    const tMin = serie.map((d) => d.min_temp ?? null);
+    const tMax = serie.map((d) => d.max_temp ?? null);
+    const rain = serie.map((d) => d.precip_mm ?? 0);
+    const water = serie.map((d) => d.duration_min ?? 0);
 
-    const ctx = document.getElementById("historyChart").getContext("2d");
-    new Chart(ctx, {
+    // Contexte
+    const canvas = document.getElementById("historyChart");
+    const ctx = canvas.getContext("2d");
+
+    // Détruit un éventuel ancien graphique (si la page est rendue/injectée 2x)
+    window.__charts = window.__charts || {};
+    const CHART_ID = "historyChart";
+    if (window.__charts[CHART_ID]) {
+      window.__charts[CHART_ID].destroy();
+    }
+
+    // Jeux de données
+    const dsMin = {
+      type: "line",
+      label: "{{ _('Temp. min') }} (°C)",
+      data: tMin,
+      tension: 0.25,
+      pointRadius: 2,
+      yAxisID: "yTemp",
+      borderWidth: 2,
+      spanGaps: true,
+      borderColor: "#1e90ff", // bleu
+      backgroundColor: "#1e90ff",
+    };
+    const dsMax = {
+      type: "line",
+      label: "{{ _('Temp. max') }} (°C)",
+      data: tMax,
+      tension: 0.25,
+      pointRadius: 2,
+      yAxisID: "yTemp",
+      borderWidth: 2,
+      spanGaps: true,
+      borderColor: "#ff4500", // orange
+      backgroundColor: "#ff4500",
+    };
+    const dsRain = {
       type: "bar",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: "{{ _('Watering Duration (min)') }}",
-            data: durations,
-            backgroundColor: "rgba(75, 192, 192, 0.6)",
-            borderColor: "rgba(75, 192, 192, 1)",
-            borderWidth: 1,
-          },
-        ],
-      },
+      label: "{{ _('Rain') }} (mm)",
+      data: rain,
+      yAxisID: "yWaterRain",
+      borderWidth: 0,
+      borderRadius: 6,
+      barPercentage: 0.7,
+      categoryPercentage: 0.8,
+      backgroundColor: "rgba(0, 123, 255, 0.6)", // bleu clair
+      borderColor: "rgba(0, 123, 255, 1)",
+    };
+    const dsWater = {
+      type: "bar",
+      label: "{{ _('Watering') }} (min)",
+      data: water,
+      yAxisID: "yWaterRain",
+      borderWidth: 0,
+      borderRadius: 6,
+      barPercentage: 0.7,
+      categoryPercentage: 0.8,
+      backgroundColor: "rgba(0, 200, 83, 0.6)", // vert
+      borderColor: "rgba(0, 200, 83, 1)",
+    };
+
+    // Création du graphique
+    const chart = new Chart(ctx, {
+      data: { labels, datasets: [dsMin, dsMax, dsRain, dsWater] },
       options: {
+        responsive: true,
+        maintainAspectRatio: false, // OK car wrapper a une hauteur fixe
+        resizeDelay: 200, // évite les reflows rapides
+        animation: false, // supprime les micro-variations de taille
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { position: "top" },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const v = ctx.raw;
+                if (ctx.dataset.yAxisID === "yTemp")
+                  return ` ${ctx.dataset.label}: ${v?.toFixed?.(1) ?? v} °C`;
+                if (ctx.dataset.yAxisID === "yRain")
+                  return ` ${ctx.dataset.label}: ${v?.toFixed?.(1) ?? v} mm`;
+                if (ctx.dataset.yAxisID === "yWater")
+                  return ` ${ctx.dataset.label}: ${v?.toFixed?.(1) ?? v} min`;
+                return ` ${ctx.dataset.label}: ${v}`;
+              },
+            },
+          },
+        },
         scales: {
-          x: { title: { display: true, text: "{{ _('Date') }}" } },
-          y: {
-            title: { display: true, text: "{{ _('Duration (min)') }}" },
+          x: {
+            grid: { display: false },
+            ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 14 },
+          },
+          yTemp: {
+            position: "left",
+            title: { display: true, text: "{{ _('Temperature') }} (°C)" },
+            grid: { color: "rgba(128,128,128,0.15)" },
+            beginAtZero: true,
+          },
+          yWaterRain: {
+            position: "right",
+            title: { display: true, text: "{{ _('Watering') }} (min) / {{ _('Rain') }} (mm)" },
+            grid: { display: false },
+            offset: true,
             beginAtZero: true,
           },
         },
       },
     });
-  }
 
-  window.onload = fetchHistory;
+    // Mémorise l’instance pour gestion des re-renders
+    window.__charts[CHART_ID] = chart;
+
+    // Toggles
+    const toggles = [
+      { id: "toggleMin", idx: 0 },
+      { id: "toggleMax", idx: 1 },
+      { id: "toggleRain", idx: 2 },
+      { id: "toggleWater", idx: 3 },
+    ];
+    toggles.forEach((t) => {
+      document.getElementById(t.id).addEventListener("change", (e) => {
+        chart.setDatasetVisibility(t.idx, e.target.checked);
+        chart.update();
+      });
+    });
+  })();
 </script>
 {% endblock %}

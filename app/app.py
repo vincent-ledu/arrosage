@@ -17,7 +17,7 @@ from db.database import engine
 from db.models import Base
 from services.weather import fetch_open_meteo, aggregate_by_partday
 from utils.serializer import task_to_dict
-
+from routes.history_series import bp as history_series_bp
 
 ctlInst = None
 if os.environ.get("TESTING") == "1":
@@ -48,6 +48,9 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 app.secret_key = os.environ.get("SESSION_SECRET_KEY", "ish2woo}ng5Ia7sooS0Seukei Vave9oneis1so1zu9Leb1ve&o ailophai0guo-th8jizeiPho4")
+
+app.register_blueprint(history_series_bp)
+
 
 # Détection de la langue par l'URL ou les headers
 def get_locale():
