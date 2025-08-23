@@ -1,0 +1,85 @@
+{# templates/_flashes.html #} {% set styles = { 'success': 'bg-green-50
+border-green-200 text-green-900', 'info': 'bg-sky-50 border-sky-200
+text-sky-900', 'warning': 'bg-amber-50 border-amber-200 text-amber-900',
+'error': 'bg-red-50 border-red-200 text-red-900' } %}
+
+<div id="flash-container" class="max-w-3xl mx-auto px-3 space-y-2">
+  {% for category, message in get_flashed_messages(with_categories=True) %} {%
+  set cls = styles.get(category, styles['info']) %}
+  <div
+    class="flash-alert border rounded-xl px-4 py-3 {{ cls }}"
+    role="alert"
+    data-autohide="1"
+  >
+    <div class="flex items-start gap-3">
+      <div class="font-medium">
+        {% if category == 'success' %}✅{% elif category == 'warning' %}⚠️{%
+        elif category == 'error' %}⛔{% else %}ℹ️{% endif %}
+      </div>
+      <div class="flex-1">{{ message|safe }}</div>
+      <button
+        type="button"
+        class="flash-close ml-2 text-sm opacity-70 hover:opacity-100"
+        aria-label="Fermer"
+      >
+        ✖
+      </button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+  // Fermeture manuelle & auto‑disparition
+  (function () {
+    const container = document.getElementById("flash-container");
+    if (!container) return;
+    container.addEventListener("click", (e) => {
+      if (e.target.classList.contains("flash-close")) {
+        e.target.closest(".flash-alert")?.remove();
+      }
+    });
+    // auto-hide après 4s
+    Array.from(
+      container.querySelectorAll('.flash-alert[data-autohide="1"]')
+    ).forEach((el) => {
+      setTimeout(() => el.remove(), 4000);
+    });
+  })();
+
+  function showFlash(message, category = "info", autohide = true) {
+    const styles = {
+      success: "bg-green-50 border-green-200 text-green-900",
+      info: "bg-sky-50 border-sky-200 text-sky-900",
+      warning: "bg-amber-50 border-amber-200 text-amber-900",
+      error: "bg-red-50 border-red-200 text-red-900",
+    };
+    const container = document.getElementById("flash-container");
+    if (!container) return;
+
+    const cls = styles[category] || styles["info"];
+    const div = document.createElement("div");
+    div.className = `flash-alert border rounded-xl px-4 py-3 ${cls}`;
+    div.innerHTML = `
+    <div class="flex items-start gap-3">
+      <div class="font-medium">${
+        category === "success"
+          ? "✅"
+          : category === "warning"
+          ? "⚠️"
+          : category === "error"
+          ? "⛔"
+          : "ℹ️"
+      }</div>
+      <div class="flex-1">${message}</div>
+      <button type="button" class="flash-close ml-2 text-sm opacity-70 hover:opacity-100">✖</button>
+    </div>
+  `;
+    container.appendChild(div);
+
+    div
+      .querySelector(".flash-close")
+      .addEventListener("click", () => div.remove());
+    if (autohide) setTimeout(() => div.remove(), 4000);
+  }
+</script>

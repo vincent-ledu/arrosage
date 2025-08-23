@@ -108,12 +108,12 @@ See `utils/deploy.sh`
 
 # TODO
 
+- [ ] 💬 Investigate "Message flash" in flask for user error display
 - [ ] 👾 Fix front (~~flag~~, ~~white main zone~~, ~~textbox width~~, label for Rain, ~~get current watering task~~...)
 - [ ] 🏎️ Add data in cache
 - [ ] 🧊 Prevent watering when temperature < 0°
 - [ ] 🗓️ Settings for month watering: checks which month watering is enabled
 - [ ] 🚿 Compute water volume per watering (settings with pump capacity)
-- [ ] 💬 Investigate "Message flash" in flask for user error display
 - [ ] 🏗️ Go to a Domain Driven Design approach
 - [ ] 🗓️ Set cron in application
 
