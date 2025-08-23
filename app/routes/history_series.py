@@ -51,7 +51,7 @@ def history_series():
                 func.date(Task.created_at).label("day"),
                 func.avg(Task.min_temp).label("min_temp"),
                 func.avg(Task.max_temp).label("max_temp"),
-                func.sum(precip_col).label("precip_mm"),
+                func.avg(precip_col).label("precip_mm"),
                 func.sum(Task.duration).label("duration_sec"),
                 func.count().label("runs"),
             )
