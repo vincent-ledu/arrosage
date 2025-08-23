@@ -1,45 +1,266 @@
-{% extends "base.html" %} {% block title %}{{ _('History') }}{% endblock %} {%
-block head_extra %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-{% endblock %} {% block content %}
-<h2>{{ _('Watering history') }}</h2>
-<canvas id="historyChart"></canvas>
+{% extends "base.html" %} {% block title %}Historique{% endblock %} {% block
+content %}
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 1rem">
+  <h2 style="margin: 0 0 1rem 0">{{ _('History') }}</h1>
+
+  <!-- Contrôles -->
+  <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px;">
+    <label>Période:
+      <select id="daysSelect">
+        <option value="15" selected>15 jours</option>
+        <option value="30">30 jours</option>
+        <option value="60">60 jours</option>
+      </select>
+    </label>
+    <button id="btnPrev" type="button">⏮️ -15 jours (anciens)</button>
+    <button id="btnToday" type="button">📅 Aujourd’hui</button>
+
+    <span style="opacity:.8; margin-left:auto" id="windowInfo"></span>
+  </div>
+
+
+  <div
+    style="
+      background: #fff;
+      border: 1px solid #aaa;
+      border-radius: 12px;
+      padding: 16px;
+    "
+  >
+    <div
+      id="historyChartWrap"
+      style="position: relative; height: 420px; width: 100%"
+    >
+      <canvas id="historyChart"></canvas>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+        align-items: center;
+      "
+    >
+      <label><input type="checkbox" id="toggleMin" checked /> {{ _('Temp. min') }}</label>
+      <label><input type="checkbox" id="toggleMax" checked /> {{ _('Temp. max') }}</label>
+      <label
+        ><input type="checkbox" id="toggleRain" checked /> {{ _('Precipitations') }}</label
+      >
+      <label><input type="checkbox" id="toggleWater" checked /> {{ _('Watering') }}</label>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js v4 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <script>
-  async function fetchHistory() {
-    const response = await fetch("/api/history");
-    const data = await response.json();
+  const TEMP_MIN = "{{ _('Temp. min') }}";
+  const TEMP_MAX = "{{ _('Temp. max') }}";
+  const RAIN = "{{ _('Rain') }}";
+  const WATER = "{{ _('Watering') }}";
+  
+  (function () {
+  const canvas = document.getElementById("historyChart");
+  const ctx = canvas.getContext("2d");
+  const daysSelect = document.getElementById("daysSelect");
+  const btnPrev = document.getElementById("btnPrev");
+  const btnToday = document.getElementById("btnToday");
+  const info = document.getElementById("windowInfo");
 
-    const labels = data.map((entry) => entry.date);
-    const durations = data.map((entry) => entry.duration);
+  // état de la fenêtre courante
+  let currentDays = parseInt(daysSelect.value, 10);
+  let currentEnd = null; // string 'YYYY-MM-DD' ou null (= aujourd'hui)
+  let lastMeta = null;
 
-    const ctx = document.getElementById("historyChart").getContext("2d");
-    new Chart(ctx, {
+  // Chart instance guard
+  window.__charts = window.__charts || {};
+  const CHART_ID = 'historyChart';
+  if (window.__charts[CHART_ID]) {
+    window.__charts[CHART_ID].destroy();
+  }
+
+  let chart = null;
+
+  function buildDatasets(serie) {
+    const labels = serie.map(d => d.day);
+    const tMin   = serie.map(d => d.min_temp ?? null);
+    const tMax   = serie.map(d => d.max_temp ?? null);
+    const rain   = serie.map(d => d.precip_mm ?? 0);
+    const water  = serie.map(d => d.duration_min ?? 0);
+
+    // Jeux de données
+    const dsMin = {
+      type: "line",
+      label: "{{ _('Temp. min') }} (°C)",
+      data: tMin,
+      tension: 0.25,
+      pointRadius: 2,
+      yAxisID: "yTemp",
+      borderWidth: 2,
+      spanGaps: true,
+      borderColor: "#1e90ff", // bleu
+      backgroundColor: "#1e90ff",
+    };
+    const dsMax = {
+      type: "line",
+      label: "{{ _('Temp. max') }} (°C)",
+      data: tMax,
+      tension: 0.25,
+      pointRadius: 2,
+      yAxisID: "yTemp",
+      borderWidth: 2,
+      spanGaps: true,
+      borderColor: "#ff4500", // orange
+      backgroundColor: "#ff4500",
+    };
+    const dsRain = {
       type: "bar",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: "{{ _('Watering Duration (min)') }}",
-            data: durations,
-            backgroundColor: "rgba(75, 192, 192, 0.6)",
-            borderColor: "rgba(75, 192, 192, 1)",
-            borderWidth: 1,
-          },
-        ],
-      },
+      label: "{{ _('Rain') }} (mm)",
+      data: rain,
+      yAxisID: "yWaterRain",
+      borderWidth: 0,
+      borderRadius: 6,
+      barPercentage: 0.7,
+      categoryPercentage: 0.8,
+      backgroundColor: "rgba(0, 123, 255, 0.6)", // bleu clair
+      borderColor: "rgba(0, 123, 255, 1)",
+    };
+    const dsWater = {
+      type: "bar",
+      label: "{{ _('Watering') }} (min)",
+      data: water,
+      yAxisID: "yWaterRain",
+      borderWidth: 0,
+      borderRadius: 6,
+      barPercentage: 0.7,
+      categoryPercentage: 0.8,
+      backgroundColor: "rgba(0, 200, 83, 0.6)", // vert
+      borderColor: "rgba(0, 200, 83, 1)",
+    };
+
+    return { labels, datasets: [dsMin, dsMax, dsRain, dsWater] };
+  }
+    function ensureChart(data) {
+    if (chart) {
+      chart.destroy();
+    }
+    chart = new Chart(ctx, {
+      data,
       options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        resizeDelay: 200,
+        animation: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const v = ctx.raw;
+                if (ctx.dataset.yAxisID === 'yTemp')  return ` ${ctx.dataset.label}: ${v?.toFixed?.(1) ?? v} °C`;
+                if (ctx.dataset.yAxisID === 'yRain')  return ` ${ctx.dataset.label}: ${v?.toFixed?.(1) ?? v} mm`;
+                if (ctx.dataset.yAxisID === 'yWater') return ` ${ctx.dataset.label}: ${v?.toFixed?.(1) ?? v} min`;
+                return ` ${ctx.dataset.label}: ${v}`;
+              }
+            }
+          }
+        },
         scales: {
-          x: { title: { display: true, text: "{{ _('Date') }}" } },
-          y: {
-            title: { display: true, text: "{{ _('Duration (min)') }}" },
+          x: {
+            grid: { display: false },
+            ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 14 },
+          },
+          yTemp: {
+            position: "left",
+            title: { display: true, text: "{{ _('Temperature') }} (°C)" },
+            grid: { color: "rgba(128,128,128,0.15)" },
+            beginAtZero: true,
+          },
+          yWaterRain: {
+            position: "right",
+            title: { display: true, text: "{{ _('Watering') }} (min) / {{ _('Rain') }} (mm)" },
+            grid: { display: false },
+            offset: true,
             beginAtZero: true,
           },
         },
-      },
+      }
     });
+    window.__charts[CHART_ID] = chart;
+  }
+  
+  async function loadAndRender({ days, end=null } = {}) {
+    const params = new URLSearchParams();
+    params.set("days", String(days ?? currentDays));
+    if (end) params.set("end", end);
+
+    const resp = await fetch(`/api/history/series?${params.toString()}`);
+    const payload = await resp.json();
+    lastMeta = payload.meta || null;
+
+    // affiche info de fenêtre (start..end)
+    if (lastMeta) {
+      info.textContent = `Fenêtre: ${lastMeta.start} → ${lastMeta.end} (${lastMeta.days}j)`;
+      btnPrev.disabled = !lastMeta.has_prev;
+      // si on a demandé end explicite, on mémorise ; sinon (reset Aujourd'hui) => null
+      currentEnd = end || null;
+    }
+
+    const ds = buildDatasets(payload.data || []);
+    ensureChart(ds);
+
+    // ré-applique la visibilité selon les toggles
+    const toggles = [
+      { id: 'toggleMin',   idx: 0 },
+      { id: 'toggleMax',   idx: 1 },
+      { id: 'toggleRain',  idx: 2 },
+      { id: 'toggleWater', idx: 3 },
+    ];
+    toggles.forEach(t => {
+      const checked = document.getElementById(t.id).checked;
+      chart.setDatasetVisibility(t.idx, checked);
+    });
+    chart.update();
   }
 
-  window.onload = fetchHistory;
+  // Listeners
+  daysSelect.addEventListener("change", async () => {
+    currentDays = parseInt(daysSelect.value, 10) || 15;
+    // garde la même fin si on navigue ; sinon aujourd'hui si null
+    await loadAndRender({ days: currentDays, end: currentEnd });
+  });
+
+  btnPrev.addEventListener("click", async () => {
+    if (!lastMeta || !lastMeta.prev_end) return;
+    // on recule la fenêtre : end = prev_end (jour juste avant la fenêtre actuelle)
+    await loadAndRender({ days: currentDays, end: lastMeta.prev_end });
+  });
+
+  btnToday.addEventListener("click", async () => {
+    currentEnd = null; // revient à aujourd'hui
+    await loadAndRender({ days: currentDays, end: null });
+  });
+
+  // Toggles visibilité
+  const toggles = [
+    { id: 'toggleMin',   idx: 0 },
+    { id: 'toggleMax',   idx: 1 },
+    { id: 'toggleRain',  idx: 2 },
+    { id: 'toggleWater', idx: 3 },
+  ];
+  toggles.forEach(t => {
+    document.getElementById(t.id).addEventListener('change', (e) => {
+      chart.setDatasetVisibility(t.idx, e.target.checked);
+      chart.update();
+    });
+  });
+
+  // Initial load
+  loadAndRender({ days: currentDays, end: currentEnd });
+})();
 </script>
 {% endblock %}

@@ -114,7 +114,7 @@ See `utils/deploy.sh`
 - [ ] 🗓️ Settings for month watering: checks which month watering is enabled
 - [ ] 🔥 Add temperature to history graph
 - [ ] 🚿 Compute water volume per watering (settings with pump capacity)
-- [ ] 👾 Fix front (flag, white main zone, textbox width, label for watering, get current watering task...)
+- [ ] 👾 Fix front (~~flag~~, ~~white main zone~~, ~~textbox width~~, label for watering, get current watering task...)
 - [ ] 💬 Investigate "Message flash" in flask for user error display
 - [ ] 🏗️ Go to a Domain Driven Design approach
 - [ ] 🗓️ Set cron in application

@@ -21,19 +21,22 @@
         <li><a href="/">🌿 {{ _('Watering') }}</a></li>
         <li><a href="/history">📊 {{ _('History') }}</a></li>
         <li><a href="/settings">⚙️ {{ _('Settings') }}</a></li>
+        <li>
+          <form
+            method="post"
+            action="{{ url_for('change_language', lang_code='fr') if get_locale() != 'fr' else url_for('change_language', lang_code='en') }}"
+          >
+            <select
+              onchange="window.location.href='/change-lang/' + this.value"
+            >
+              <option value="fr" {% if get_locale() == 'fr' %}selected{% endif
+              %}>🇫🇷 <option value="en" {% if get_locale() == 'en' %}selected{%
+              endif %}>🇬🇧
+            </select>
+          </form>
+        </li>
       </ul>
     </nav>
-    <div style="float: right">
-      <form
-        method="post"
-        action="{{ url_for('change_language', lang_code='fr') if get_locale() != 'fr' else url_for('change_language', lang_code='en') }}"
-      >
-        <select onchange="window.location.href='/change-lang/' + this.value">
-          <option value="fr" {% if get_locale() == 'fr' %}selected{% endif %}>🇫🇷
-          <option value="en" {% if get_locale() == 'en' %}selected{% endif %}>🇬🇧
-        </select>
-      </form>
-    </div>
     <main>{% block content %}{% endblock %}</main>
   </body>
 </html>
