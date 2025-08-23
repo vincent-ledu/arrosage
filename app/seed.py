@@ -26,6 +26,6 @@ for day_offset in range(30):
         max_temp = random.uniform(20.0, 30.0)  # Température max entre 20 et 30 °C
         precipitation = random.uniform(0.0, 5.0)  # Précipitation entre 0 et 5 mm
 
-        add_task(duration, status, min_temp=min_temp, max_temp=max_temp, precipitation=precipitation, created_at=day_dt)
+        add_task(duration, status)
 
 print("✅ Fake data inserted.")
