@@ -1,23 +1,34 @@
 # app/routes/history_series.py
 
 from flask import Blueprint, jsonify, request
-from sqlalchemy import func
-from datetime import datetime, timedelta, timezone, time as dtime
+from sqlalchemy import func, literal, bindparam, String
+from datetime import date, datetime, timedelta
 from db.db import get_session
-from db.models import Task  # adapte si besoin
+from db.models import Task, ForecastStats  # ForecastStats.date est un DATE (ou TEXT 'YYYY-MM-DD')
 
 bp = Blueprint("history_series", __name__)
 
 def _parse_date_ymd(s: str):
     try:
-        # date naive -> on attachera UTC plus bas
-        return datetime.strptime(s, "%Y-%m-%d")
+        return datetime.strptime(s, "%Y-%m-%d").date()
     except Exception:
         return None
 
+def _as_iso_date_str(x) -> str | None:
+    if x is None:
+        return None
+    if hasattr(x, "isoformat"):
+        try:
+            return x.isoformat()
+        except Exception:
+            pass
+    s = str(x)
+    # tronque "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DD"
+    return s[:10] if len(s) >= 10 else s
+
 @bp.get("/api/history/series")
 def history_series():
-    # --- Params ---
+    # -------- paramètres --------
     try:
         days = int(request.args.get("days", 15))
     except ValueError:
@@ -25,67 +36,67 @@ def history_series():
     days = max(1, min(days, 365))
 
     end_param = request.args.get("end")
-
-    # toujours travailler en UTC
-    now_utc = datetime.now(timezone.utc)
-    today_utc_date = now_utc.date()
-
-    end_naive = _parse_date_ymd(end_param) if end_param else None
-    # borne de fin en date (locale naïve) => convertie en UTC-date (on considère que ce sont des dates civiles)
-    end_date = (end_naive.date() if end_naive else today_utc_date)
-    if end_date > today_utc_date:
-        end_date = today_utc_date
-
+    today = date.today()
+    end_date = _parse_date_ymd(end_param) or today
+    if end_date > today:
+        end_date = today
     start_date = end_date - timedelta(days=days - 1)
 
-    # >>> BORNES AWARE EN UTC <<<
-    start_dt = datetime.combine(start_date, dtime.min, tzinfo=timezone.utc)
-    end_dt_excl = datetime.combine(end_date + timedelta(days=1), dtime.min, tzinfo=timezone.utc)
+    start_iso = start_date.isoformat()  # "YYYY-MM-DD"
+    end_iso   = end_date.isoformat()
 
-    # précipitations : gère l'ancienne faute de frappe
-    precip_col = getattr(Task, "precipitation", None) or getattr(Task, "precipitaiton")
+    # Bind params en STRING (clé jour ISO)
+    bp_start_iso = bindparam("bp_start_iso", start_iso, type_=String())
+    bp_end_iso   = bindparam("bp_end_iso",   end_iso,   type_=String())
 
     with get_session() as s:
-        rows = (
+        # clé jour ISO côté tasks et forecast_stats
+        day_str_tasks = func.strftime("%Y-%m-%d", Task.created_at)
+        day_str_fs    = func.strftime("%Y-%m-%d", ForecastStats.date)
+
+        # Agrégation des tâches "completed" par jour ISO
+        tasks_agg_sq = (
             s.query(
-                func.date(Task.created_at).label("day"),
-                func.avg(Task.min_temp).label("min_temp"),
-                func.avg(Task.max_temp).label("max_temp"),
-                func.avg(precip_col).label("precip_mm"),
+                day_str_tasks.label("day_str"),
                 func.sum(Task.duration).label("duration_sec"),
                 func.count().label("runs"),
             )
             .filter(Task.status == "completed")
-            .filter(Task.created_at >= start_dt)   # AWARE
-            .filter(Task.created_at < end_dt_excl) # AWARE
-            .group_by(func.date(Task.created_at))
-            .order_by(func.date(Task.created_at))
+            .filter(day_str_tasks >= bp_start_iso)
+            .filter(day_str_tasks <= bp_end_iso)
+            .group_by(day_str_tasks)
+        ).subquery()
+
+        # Météo + LEFT JOIN sur la clé string
+        rows = (
+            s.query(
+                ForecastStats.date.label("day"),
+                ForecastStats.min_temp.label("min_temp"),
+                ForecastStats.max_temp.label("max_temp"),
+                ForecastStats.precipitation.label("precip_mm"),
+                func.coalesce(tasks_agg_sq.c.duration_sec, literal(0)).label("duration_sec"),
+                func.coalesce(tasks_agg_sq.c.runs,        literal(0)).label("runs"),
+            )
+            .outerjoin(tasks_agg_sq, tasks_agg_sq.c.day_str == day_str_fs)
+            .filter(day_str_fs >= bp_start_iso)
+            .filter(day_str_fs <= bp_end_iso)
+            .order_by(ForecastStats.date)
             .all()
         )
 
-        # y a-t-il des données avant start_date ?
-        oldest_row = (
-            s.query(func.min(func.date(Task.created_at)))
-             .filter(Task.status == "completed")
-             .first()
-        )
-        oldest_day = oldest_row[0] if oldest_row and oldest_row[0] else None
-        has_prev = False
-        if oldest_day:
-            try:
-                oldest_day_dt = datetime.strptime(str(oldest_day), "%Y-%m-%d").date()
-                has_prev = oldest_day_dt < start_date
-            except Exception:
-                has_prev = False
+        # pour le bouton "-15j"
+        oldest_row = s.query(func.min(ForecastStats.date)).first()
+        oldest_iso = _as_iso_date_str(oldest_row[0] if oldest_row else None)
+        has_prev = bool(oldest_iso and oldest_iso < start_iso)
 
     data = [
         {
-            "day": str(r.day),
+            "day": r.day.isoformat().split('T')[0] if r.day else None,
             "min_temp": float(r.min_temp) if r.min_temp is not None else None,
             "max_temp": float(r.max_temp) if r.max_temp is not None else None,
             "precip_mm": float(r.precip_mm) if r.precip_mm is not None else 0.0,
             "duration_min": round((r.duration_sec or 0) / 60.0, 1),
-            "runs": int(r.runs),
+            "runs": int(r.runs or 0),
         }
         for r in rows
     ]
@@ -95,8 +106,8 @@ def history_series():
     return jsonify({
         "meta": {
             "days": days,
-            "start": start_date.isoformat(),
-            "end": end_date.isoformat(),
+            "start": start_iso,
+            "end": end_iso,
             "has_prev": has_prev,
             "prev_end": prev_end.isoformat() if prev_end else None,
         },

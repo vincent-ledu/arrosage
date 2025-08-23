@@ -108,8 +108,7 @@ See `utils/deploy.sh`
 
 # TODO
 
-- [ ] 👾 Fix front (~~flag~~, ~~white main zone~~, ~~textbox width~~, label for Rain, ~~get current watering task~~...)
-- [ ] 🏎️ Add data in cache
+- [ ] 🏎️ Add data in cache for data of the day
 - [ ] 🧊 Prevent watering when temperature < 0°
 - [ ] 🗓️ Settings for month watering: checks which month watering is enabled
 - [ ] 🚿 Compute water volume per watering (settings with pump capacity)
@@ -128,6 +127,11 @@ See `utils/deploy.sh`
 - [x] 📊 Review graph: add min max temperature, precipitation, last 30 days
 - [x] 🔥 Add temperature to history graph
 - [x] 💬 Investigate "Message flash" in flask for user error display
+- [x] 👾 Fix front (flag, white main zone, textbox width, label for Rain, get current watering task...)
+- [x] 📊 Review graph: improve data model
+  - [x] #️⃣ create a separate table for temperature, precipitations
+  - [x] #️⃣ import data
+  - [x] 📊 make a join for history display
 
 # Inventory
 

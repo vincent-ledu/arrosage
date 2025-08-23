@@ -59,7 +59,7 @@ content %}
 <script>
   const TEMP_MIN = "{{ _('Temp. min') }}";
   const TEMP_MAX = "{{ _('Temp. max') }}";
-  const RAIN = "{{ _('HRain') }}";
+  const RAIN = "{{ _('Precipitation') }}";
   const WATER = "{{ _('Watering') }}";
   
   (function () {
@@ -118,7 +118,7 @@ content %}
     };
     const dsRain = {
       type: "bar",
-      label: "{{ _('HRain') }} (mm)",
+      label: "{{ _('Precipitation') }} (mm)",
       data: rain,
       yAxisID: "yWaterRain",
       borderWidth: 0,
@@ -175,16 +175,15 @@ content %}
             ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 14 },
           },
           yTemp: {
-            position: "left",
+            position: "right",
             title: { display: true, text: "{{ _('Temperature') }} (°C)" },
             grid: { color: "rgba(128,128,128,0.15)" },
             beginAtZero: true,
           },
           yWaterRain: {
-            position: "right",
-            title: { display: true, text: "{{ _('Watering') }} (min) / {{ _('HRain') }} (mm)" },
+            position: "left",
+            title: { display: true, text: "{{ _('Watering') }} (min) / {{ _('Precipitation') }} (mm)" },
             grid: { display: false },
-            offset: true,
             beginAtZero: true,
           },
         },
