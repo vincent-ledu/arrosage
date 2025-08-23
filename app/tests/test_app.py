@@ -1,6 +1,5 @@
 import pytest
 import time
-import os
 
 from app import app, load_config, save_config
 

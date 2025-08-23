@@ -330,10 +330,7 @@ def OpenWaterDelay():
                       "category": "error"
                       }}), 507
   temp_precip = get_minmax_temperature_precip().get_json()
-  task_id = add_task(duration, "in progress", 
-                     min_temp=temp_precip["temperature_2m_min"][0], 
-                     max_temp=temp_precip["temperature_2m_max"][0], 
-                     precipitation=temp_precip["precipitation_sum"][0])
+  task_id = add_task(duration, "in progress")
   cancel_event = threading.Event()
   cancel_flags[task_id] = cancel_event
 

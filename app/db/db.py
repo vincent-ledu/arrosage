@@ -20,7 +20,7 @@ def init_db():
   Base.metadata.create_all(bind=engine)
 
 
-def add_task(duration, status, min_temp=None, max_temp=None, precipitation=None, created_at=None) -> str:
+def add_task(duration, status, created_at=None) -> str:
   """Insère une tâche et renvoie son id (UUID str)."""
   task_id = str(uuid.uuid4())
   dt = utcnow()
@@ -29,10 +29,7 @@ def add_task(duration, status, min_temp=None, max_temp=None, precipitation=None,
              duration=int(duration), 
              status=str(status), 
              created_at=created_at if created_at else dt,
-             updated_at=created_at if created_at else dt,
-             min_temp=None if min_temp == None else float(min_temp), 
-             max_temp=None if max_temp == None else float(max_temp), 
-             precipitation=None if precipitation == None else float(precipitation))
+             updated_at=created_at if created_at else dt)
     s.add(t)
     s.commit()
   return task_id
