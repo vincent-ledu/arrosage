@@ -81,8 +81,9 @@ block content %}
   async function startOpenWater() {
     const duration = parseInt(document.getElementById("duration").value);
     if (!duration || duration <= 0 || duration > 300) {
-      alert(
-        "{{ _('Please enter a valid duration between 1 and 300 seconds') }}"
+      showFlash(
+        "{{ _('Please enter a valid duration (1-300 seconds).') }}",
+        "error"
       );
       return;
     }

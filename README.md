@@ -113,9 +113,9 @@ See `utils/deploy.sh`
 - [ ] 🧊 Prevent watering when temperature < 0°
 - [ ] 🗓️ Settings for month watering: checks which month watering is enabled
 - [ ] 🚿 Compute water volume per watering (settings with pump capacity)
-- [ ] 💬 Investigate "Message flash" in flask for user error display
 - [ ] 🏗️ Go to a Domain Driven Design approach
 - [ ] 🗓️ Set cron in application
+- [ ] 💬 Fix message flash when non page redirect
 
 # DONE
 
@@ -127,6 +127,7 @@ See `utils/deploy.sh`
 - [x] 📊 Review data model to integrate : start and stop for water tasks, temperature & precip
 - [x] 📊 Review graph: add min max temperature, precipitation, last 30 days
 - [x] 🔥 Add temperature to history graph
+- [x] 💬 Investigate "Message flash" in flask for user error display
 
 # Inventory
 

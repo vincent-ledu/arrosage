@@ -2,7 +2,7 @@ import os
 import time
 from signal import signal, SIGINT
 from sys import exit
-from flask import Flask, request, render_template, jsonify, redirect, url_for, session
+from flask import Flask, flash, request, render_template, jsonify, redirect, url_for, session
 import threading
 from datetime import datetime
 import atexit
@@ -90,6 +90,15 @@ def log_request_info():
 
 cancel_flags = {}   # stocke les flags d’annulation : {task_id: threading.Event()}
 
+class UserVisibleError(Exception):
+    pass
+
+@app.errorhandler(UserVisibleError)
+def handle_user_visible_error(e, page):
+    flash(str(e), "error")
+    # Redirigez vers une page pertinente
+    return redirect(url_for(page))
+
 @app.route('/')
 def index():
   return render_template("index.html")
@@ -104,14 +113,14 @@ def forecast():
     partday_data = aggregate_by_partday(data)
     logger.debug(f"Aggregated data: {partday_data}")
     return jsonify(partday_data[:5]), 200
-    # return jsonify({
-    #   "dates": data["daily"]["time"],
-    #   "temps": data["daily"]["temperature_2m_max"],
-    #   "precipitations": data["daily"]["precipitation_sum"]
-    # })
   except Exception as e:
-    logger.error("Error fetching forecast data: %s", e)       
-    return jsonify({"error": str(e)}), 500
+    logger.error("Error fetching forecast data: %s", e)
+    return jsonify({"error": str(e), 
+                    "flash": {
+                      "message": "_('Error fetching weather data. Please try again later.')", 
+                      "category": "warning"
+                      }
+                      }), 500
 
 @app.route('/api/coordinates')
 def get_coordinates():
@@ -119,6 +128,7 @@ def get_coordinates():
   LATITIUDE = coordinates.get("latitude", 48.866667)  
   LONGITUDE = coordinates.get("longitude", 2.333333)
   return {"latitude": float(LATITIUDE), "longitude": float(LONGITUDE)}
+
 
 @app.route("/api/temperature-max")
 def get_temperature_max():
@@ -137,8 +147,12 @@ def get_temperature_max():
     return jsonify(data["daily"]["temperature_2m_max"][0])
   except Exception as e:
     logger.error("Forecast error :", e)
-    return jsonify({"error": "Error in calling open-meteo api"})
-
+    return jsonify({"error": "Error in calling open-meteo api", "flash": {
+                      "message": "_('Error fetching weather data. Please try again later.')", 
+                      "category": "warning"
+                      }
+                      })
+  
 def get_minmax_temperature_precip():
   try:
     coordinates = get_coordinates()
@@ -155,7 +169,12 @@ def get_minmax_temperature_precip():
     return jsonify(data["daily"])
   except Exception as e:
     logger.error("Forecast error :", e)
-    return jsonify({"error": "Error in calling open-meteo api"})
+    return jsonify({"error": "Error in calling open-meteo api", 
+                    "flash": {
+                      "message": "_('Error fetching weather data. Please try again later.')", 
+                      "category": "warning"
+                      }
+                      })
 
 @app.route("/api/watering-type")
 def classify_watering():
@@ -193,7 +212,7 @@ def settings_page():
     }
     save_config(config)
     ctlInst.setup()
-    # flash("Configuration enregistrée avec succès.")
+    flash(_('Settings saved successfully.'), "success")
     return redirect(url_for("settings_page"))
   return render_template("settings.html", config=config)
 
@@ -256,7 +275,6 @@ def task_status(task_id):
   task = get_task(task_id)
   if not task:
       return jsonify({"error": f"Task {task_id} not found"}), 404
-  logger.debug(task)
   return jsonify(task_to_dict(task)), 200
 
 @app.route('/api/tasks/current-task')
@@ -265,7 +283,6 @@ def current_task():
   if not tasks:
       return jsonify({"task_id": None}), 200
   task = tasks[0]
-  logger.debug(task)
   return jsonify({"task_id": task.id}), 200
 
 def IfWater():
@@ -282,17 +299,36 @@ def OpenWaterDelay():
   duration = request.args.get("duration", type=int)
   if duration is None:
     logger.warning("No duration provided")
-    return jsonify({"error": "Duration parameter is required"}), 400                       
+    return jsonify({"error": "Duration parameter is required", 
+                   "flash": {
+                      "message": "_('Duration parameter is required')", 
+                      "category": "error"
+                      }}
+                      ), 400                       
 
   if duration <= 0 or duration > 300:
     logger.warning("Delay is to high, risk to empty container")
-    return jsonify({"error": "Invalid duration"}), 400
+    return jsonify({"error": "Invalid duration", 
+                    "flash": {
+                      "message": "_('Value must be between 0 and 300')", 
+                      "category": "error"
+                      }
+                      }), 400
   # Vérifie s’il existe déjà une tâche en cours
   if (get_tasks_by_status("in progress")):
-    return jsonify({"error": "Watering is already in progress."}), 409
+    logger.warning("There is already a watering in progress")
+    return jsonify({"error": "Watering is already in progress.", 
+                    "flash": {
+                      "message": "_('Watering is already in progress.')", 
+                      "category": "error"
+                      }}), 409
   if not IfWater():
     logger.warning("There is not enough water")
-    return jsonify({"error": "Not enough water."}), 507
+    return jsonify({"error": "Not enough water.", 
+                    "flash": {
+                      "message": "_('Not enough water to start watering.')", 
+                      "category": "error"
+                      }}), 507
   temp_precip = get_minmax_temperature_precip().get_json()
   task_id = add_task(duration, "in progress", 
                      min_temp=temp_precip["temperature_2m_min"][0], 
@@ -319,8 +355,16 @@ def closeWaterSupply():
       update_status(task.id, "canceled")
       cancelled_tasks.append(task.id)
   if len(cancelled_tasks) > 0:
-    return jsonify({"message": f"Task {cancelled_tasks} terminated"}), 200
-  return jsonify({"error": "Water is already closed"}), 404
+    return jsonify({"message": f"Task {cancelled_tasks} terminated", 
+                    "flash": {
+                      "message": "_('Watering task terminated.')", 
+                      "category": "success"
+                      }}), 200
+  return jsonify({"error": "Water is already closed", 
+                    "flash": {
+                      "message": "_('Water is already closed.')", 
+                      "category": "warning"
+                      }}), 404
 
 @app.route('/api/history')
 def get_history():
