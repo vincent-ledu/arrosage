@@ -108,7 +108,6 @@ See `utils/deploy.sh`
 
 # TODO
 
-- [ ] 💬 Investigate "Message flash" in flask for user error display
 - [ ] 👾 Fix front (~~flag~~, ~~white main zone~~, ~~textbox width~~, label for Rain, ~~get current watering task~~...)
 - [ ] 🏎️ Add data in cache
 - [ ] 🧊 Prevent watering when temperature < 0°
@@ -116,6 +115,7 @@ See `utils/deploy.sh`
 - [ ] 🚿 Compute water volume per watering (settings with pump capacity)
 - [ ] 🏗️ Go to a Domain Driven Design approach
 - [ ] 🗓️ Set cron in application
+- [ ] 💬 Fix message flash when non page redirect
 
 # DONE
 
@@ -127,6 +127,7 @@ See `utils/deploy.sh`
 - [x] 📊 Review data model to integrate : start and stop for water tasks, temperature & precip
 - [x] 📊 Review graph: add min max temperature, precipitation, last 30 days
 - [x] 🔥 Add temperature to history graph
+- [x] 💬 Investigate "Message flash" in flask for user error display
 
 # Inventory
 
