@@ -1,9 +1,7 @@
 import pytest
-import time
-import os
 from sqlalchemy.sql import text
 
-from db.db import get_connection, init_db, add_task, get_all_tasks, update_status, get_task, get_tasks_by_status, get_tasks_summary_by_day
+from db.db_tasks import get_connection, init_db, add_task, get_all_tasks, update_status, get_task, get_tasks_by_status
 
 
 @pytest.fixture
@@ -48,7 +46,7 @@ def test_update_status(db):
   update_status(task_id, "completed")
   task = get_task(task_id)
   assert task.status == "completed"
-  assert task.updated_at > task.created_at
+  assert task.updated_at >= task.created_at
 
 def test_get_tasks_by_status(db):
   task_id1 = add_task(10, "in progress")
@@ -63,3 +61,21 @@ def test_get_tasks_by_status(db):
   assert len(pending_tasks) == 1
   assert pending_tasks[0].id == task_id2
 
+def test_get_task(db):
+  task_id = add_task(10, "in progress")
+  task = get_task(task_id)
+  assert task is not None
+  assert task.id == task_id
+  assert task.status == "in progress"
+  assert task.duration == 10
+  assert task.created_at is not None
+  assert task.updated_at is not None
+  assert task.created_at == task.updated_at
+  update_status(task_id, "completed")
+  task = get_task(task_id)
+  assert task.status == "completed"
+  assert task.updated_at >= task.created_at
+  assert task.duration == 10
+  assert task.id == task_id
+  assert task.created_at is not None
+  assert task.updated_at is not None

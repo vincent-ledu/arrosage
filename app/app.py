@@ -4,17 +4,15 @@ from signal import signal, SIGINT
 from sys import exit
 from flask import Flask, flash, request, render_template, jsonify, redirect, url_for, session
 import threading
-from datetime import datetime
+from datetime import date
 import atexit
-from collections import defaultdict
 import logging
 import requests
 from flask_babel import Babel, gettext as _, lazy_gettext as _l
 
 from config.config import load_config, save_config
-from db.db import init_db, get_connection, get_tasks_by_status, add_task, update_status, get_task, get_all_tasks, get_tasks_summary_by_day, get_daily_durations_for_done
-from db.database import engine
-from db.models import Base
+from db.db_tasks import init_db, get_connection, get_tasks_by_status, add_task, update_status, get_task, get_all_tasks, get_daily_durations_for_done
+from db.db_forecast_stats import add_forecast_data, get_forecast_data
 from services.weather import fetch_open_meteo, aggregate_by_partday
 from utils.serializer import task_to_dict
 from routes.history_series import bp as history_series_bp
@@ -107,11 +105,9 @@ def index():
 def forecast():
   try:
     coordinates = get_coordinates()
-    logger.debug(f"Coordinates: {coordinates}")
     lat, lon = coordinates.values()
     data = fetch_open_meteo(lat, lon)
     partday_data = aggregate_by_partday(data)
-    logger.debug(f"Aggregated data: {partday_data}")
     return jsonify(partday_data[:5]), 200
   except Exception as e:
     logger.error("Error fetching forecast data: %s", e)
@@ -133,48 +129,66 @@ def get_coordinates():
 @app.route("/api/temperature-max")
 def get_temperature_max():
   try:
-    coordinates = get_coordinates()
-    logger.debug(f"Coordinates: ${coordinates}")
-    lat, lon = coordinates.values()
-    url = (
-      "https://api.open-meteo.com/v1/forecast"
-      f"?latitude={lat}&longitude={lon}"
-      "&daily=temperature_2m_max&forecast_days=1&timezone=Europe%2FParis"
-    )
-    resp = requests.get(url, timeout=5)
-    resp.raise_for_status()
-    data = resp.json()
-    return jsonify(data["daily"]["temperature_2m_max"][0])
+    fs = get_forecast_data(date.today())
+    if fs is None:
+      logger.info("No forecast data in DB, fetching from API")
+      coordinates = get_coordinates()
+      lat, lon = coordinates.values()
+      url = (
+        "https://api.open-meteo.com/v1/forecast"
+        f"?latitude={lat}&longitude={lon}"
+        "&daily=temperature_2m_max&forecast_days=1&timezone=Europe%2FParis"
+      )
+      resp = requests.get(url, timeout=5)
+      resp.raise_for_status()
+      data = resp.json()
+      return jsonify(data["daily"]["temperature_2m_max"][0])
+    logger.info("Forecast data found in DB")
+    return jsonify(fs["max_temp"])
   except Exception as e:
-    logger.error("Forecast error :", e)
+    logger.error("Forecast error :%s", e)
     return jsonify({"error": "Error in calling open-meteo api", "flash": {
                       "message": "_('Error fetching weather data. Please try again later.')", 
                       "category": "warning"
                       }
-                      })
+                      }), 500
   
-def get_minmax_temperature_precip():
+@app.route("/api/forecast-minmax-precip", methods=["POST"])  
+def store_minmax_temperature_precip():
   try:
-    coordinates = get_coordinates()
-    logger.debug(f"Coordinates: ${coordinates}")
-    lat, lon = coordinates.values()
-    url = (
-      "https://api.open-meteo.com/v1/forecast"
-      f"?latitude={lat}&longitude={lon}"
-      "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&forecast_days=1&timezone=Europe%2FParis"
-    )
-    resp = requests.get(url, timeout=5)
-    resp.raise_for_status()
-    data = resp.json()
-    return jsonify(data["daily"])
+    fs = get_forecast_data(date.today())
+    if fs is None:
+      logger.info("No forecast data in DB, fetching from API")
+      coordinates = get_coordinates()
+      logger.debug(f"Coordinates: ${coordinates}")
+      lat, lon = coordinates.values()
+      url = (
+        "https://api.open-meteo.com/v1/forecast"
+        f"?latitude={lat}&longitude={lon}"
+        "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&forecast_days=1&timezone=Europe%2FParis"
+      )
+      resp = requests.get(url, timeout=5)
+      resp.raise_for_status()
+      data = resp.json()
+      add_forecast_data(date.today(),
+                        data["daily"]["temperature_2m_min"][0],
+                        data["daily"]["temperature_2m_max"][0],
+                        data["daily"]["precipitation_sum"][0])
+      return jsonify(data["daily"]), 201
+    logger.info("Forecast data found in DB")
+    return jsonify({
+      "temperature_2m_max": fs["max_temp"],
+      "temperature_2m_min": fs["min_temp"],
+      "precipitation_sum": fs["precipitation"]
+    }), 302
   except Exception as e:
-    logger.error("Forecast error :", e)
+    logger.error("Forecast error : %s", e)
     return jsonify({"error": "Error in calling open-meteo api", 
                     "flash": {
                       "message": "_('Error fetching weather data. Please try again later.')", 
                       "category": "warning"
                       }
-                      })
+                      }), 500
 
 @app.route("/api/watering-type")
 def classify_watering():
@@ -329,7 +343,6 @@ def OpenWaterDelay():
                       "message": "_('Not enough water to start watering.')", 
                       "category": "error"
                       }}), 507
-  temp_precip = get_minmax_temperature_precip().get_json()
   task_id = add_task(duration, "in progress")
   cancel_event = threading.Event()
   cancel_flags[task_id] = cancel_event

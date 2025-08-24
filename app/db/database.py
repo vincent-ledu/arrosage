@@ -9,6 +9,8 @@ if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
+    pool_pre_ping=True,        # évite les connexions mortes
+    pool_recycle=1800,         # recycle au bout de 30 min
     echo=SQL_ECHO,
     future=True,
     connect_args=connect_args,

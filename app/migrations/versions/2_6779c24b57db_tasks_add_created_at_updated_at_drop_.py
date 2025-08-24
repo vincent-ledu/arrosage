@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'add_created_updated_drop_start_time'
+revision: str = '6779c24b57db'
 down_revision: Union[str, Sequence[str], None] = 'a56e0b3d45ab'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -28,18 +28,15 @@ def upgrade() -> None:
     # SQLite: datetime(<epoch>, 'unixepoch') -> 'YYYY-MM-DD HH:MM:SS'
     conn.execute(sa.text("""
         UPDATE tasks
-        SET created_at = datetime(start_time, 'unixepoch'),
-            updated_at = datetime(start_time + duration, 'unixepoch')
+        SET created_at = from_unixtime(start_time),
+            updated_at = from_unixtime(start_time + duration)
         WHERE created_at IS NULL OR updated_at IS NULL
     """))
 
     # 3) Set NOT NULL + index (Alembic will create indexes if they don't exist)
     with op.batch_alter_table("tasks") as batch_op:
         batch_op.alter_column("created_at", existing_type=sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP"))
-        batch_op.alter_column("updated_at", existing_type=sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP"))
-        # If you need to explicitly add named indexes (often auto via autogenerate)
-        # batch_op.create_index("ix_tasks_created_at", ["created_at"])
-        # batch_op.create_index("ix_tasks_updated_at", ["updated_at"])
+        batch_op.alter_column("updated_at", existing_type=sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP"), onupdate=sa.text("CURRENT_TIMESTAMP"))
         batch_op.create_index("ix_tasks_status", ["status"], unique=False)
 
     # 4) Remove start_time

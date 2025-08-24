@@ -3,7 +3,7 @@
 from flask import Blueprint, jsonify, request
 from sqlalchemy import func, literal, bindparam, String
 from datetime import date, datetime, timedelta
-from db.db import get_session
+from db.db_tasks import get_session
 from db.models import Task, ForecastStats  # ForecastStats.date est un DATE (ou TEXT 'YYYY-MM-DD')
 
 bp = Blueprint("history_series", __name__)

@@ -19,8 +19,14 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Upgrade schema."""
-    pass
+    op.create_table('tasks', 
+        sa.Column('id', sa.String(length=64), nullable=False),
+        sa.Column('status', sa.String(length=20), nullable=False),
+        sa.Column('duration', sa.INTEGER(), nullable=False),
+        sa.Column('start_time', sa.Integer()),
+        sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_tasks_start_time'), 'tasks', ['start_time'], unique=False)
 
 
 def downgrade() -> None:

@@ -1,7 +1,7 @@
 """tasks: add min/max temperature and precipitation when watering
 
 Revision ID: b7597a4f9179
-Revises: add_created_updated_drop_start_time
+Revises: 6779c24b57db
 Create Date: 2025-08-22 14:10:49.940620
 
 """
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'add_min_max_temperature_and_precipitation'
-down_revision: Union[str, Sequence[str], None] = 'add_created_updated_drop_start_time'
+revision: str = 'b7597a4f9179'
+down_revision: Union[str, Sequence[str], None] = '6779c24b57db'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
