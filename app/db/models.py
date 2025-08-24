@@ -1,31 +1,31 @@
 # app/models.py
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, date
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Integer, Float
+from sqlalchemy import String, Integer, Float, Date, DateTime, func
+from sqlalchemy.sql.sqltypes import TIMESTAMP
 
 from db.database import Base
-from utils.types import UTCDateTime, utcnow
 
 class ForecastStats(Base):
     __tablename__ = "forecast_stats"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    date: Mapped[datetime] = mapped_column(UTCDateTime(), nullable=False, index=True)  # date UTC
+    date: Mapped[date] = mapped_column(Date, nullable=False, index=True)  # date UTC
     min_temp: Mapped[float] = mapped_column(Float, nullable=False)  # en °C
     max_temp: Mapped[float] = mapped_column(Float, nullable=False)  # en °C
     precipitation: Mapped[float] = mapped_column(Float, nullable=False)  # en mm
     created_at: Mapped[datetime] = mapped_column(
-        UTCDateTime(),
-        default=utcnow,          # défini côté app : aware UTC
+        DateTime(timezone=True),
+        default=func.now(),
         nullable=False,
         index=True,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        UTCDateTime(),
-        default=utcnow,          # initialisé à la création
-        onupdate=utcnow,         # mis à jour à chaque UPDATE
+        DateTime(timezone=True),
+        default=func.now(),          # initialisé à la création
+        onupdate=func.now(),         # mis à jour à chaque UPDATE
         nullable=False,
         index=True,
     )
@@ -38,16 +38,16 @@ class Task(Base):
     duration: Mapped[int] = mapped_column(Integer)  # en secondes
 
     created_at: Mapped[datetime] = mapped_column(
-        UTCDateTime(),
-        default=utcnow,          # défini côté app : aware UTC
+        DateTime(timezone=True),
+        default=func.now(),          # défini côté app : aware UTC
         nullable=False,
         index=True,
     )
 
     updated_at: Mapped[datetime] = mapped_column(
-        UTCDateTime(),
-        default=utcnow,          # initialisé à la création
-        onupdate=utcnow,         # mis à jour à chaque UPDATE
+        DateTime(timezone=True),
+        default=func.now(),
+        onupdate=func.now(),
         nullable=False,
         index=True,
     )

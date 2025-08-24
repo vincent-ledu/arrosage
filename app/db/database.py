@@ -4,11 +4,10 @@ from config.config import SQLALCHEMY_DATABASE_URL, SQL_ECHO
 
 # SQLite: pragmas utiles, threads
 connect_args = {}
-if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
-
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
+    pool_pre_ping=True,        # évite les connexions mortes
+    pool_recycle=1800,         # recycle au bout de 30 min
     echo=SQL_ECHO,
     future=True,
     connect_args=connect_args,

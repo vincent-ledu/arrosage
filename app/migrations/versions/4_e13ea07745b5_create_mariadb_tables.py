@@ -1,39 +1,45 @@
-"""forecast: create table, import data, drop column from tasks
+"""create forecast_stats, import, drop tasks columns
 
-Revision ID: 2a1830e9b62f
-Revises: add_min_max_temperature_and_precipitation
-Create Date: 2025-08-23 18:48:46.621258
+Revision ID: e13ea07745b5
+Revises: b7597a4f9179
+Create Date: 2025-08-24 09:26:22.522194
 
 """
 from typing import Sequence, Union
-
-from alembic import op
 import requests
-import json
-import sqlalchemy as sa
-import pathlib
+from datetime import date, timedelta
 from config.config import load_config
-from datetime import date , timedelta
-
-
-# revision identifiers, used by Alembic.
-revision: str = 'create_forecast_stats_import_drop_tasks_columns'
-down_revision: Union[str, Sequence[str], None] = 'add_min_max_temperature_and_precipitation'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+from alembic import op
+import sqlalchemy as sa
 
 config = load_config()
 
+# revision identifiers, used by Alembic.
+revision: str = 'e13ea07745b5'
+down_revision: Union[str, Sequence[str], None] = 'b7597a4f9179'
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
+
+
 def upgrade() -> None:
-    # 1) Create forecast_stats table
-    forecast_stats_table = op.create_table(
-        'forecast_stats',
-        sa.Column('id', sa.Integer, primary_key=True),
-        sa.Column('date', sa.Date, nullable=False),
-        sa.Column('min_temp', sa.Float, nullable=True),
-        sa.Column('max_temp', sa.Float, nullable=True),
-        sa.Column('precipitation', sa.Float, nullable=True),
+    """create mariadb schema."""
+    forecast_stats_table = op.create_table('forecast_stats',
+        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column('date', sa.Date(), nullable=False),
+        sa.Column('min_temp', sa.FLOAT(), nullable=False),
+        sa.Column('max_temp', sa.FLOAT(), nullable=False),
+        sa.Column('precipitation', sa.FLOAT(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('date')
     )
+    op.drop_column('tasks', 'min_temp')
+    op.drop_column('tasks', 'max_temp')
+    op.drop_column('tasks', 'precipitation')
+    
+    op.create_index(op.f('ix_forecast_stats_date'), 'forecast_stats', ['date'], unique=True)
+    op.create_index(op.f('ix_tasks_id'), 'tasks', ['id'], unique=False)
 
     # 2) Récupération des données open-meteo
     # Latitude/Longitude
@@ -63,9 +69,7 @@ def upgrade() -> None:
         {"date": dt, "min_temp": tmin, "max_temp": tmax, "precipitation": pr}
         for dt, tmin, tmax, pr in zip(dates, d["temperature_2m_min"], d["temperature_2m_max"], d["precipitation_sum"])
     ]
-    print(f"archive-api - data: {rows}")
-
-
+    
     url = (
         f"https://api.open-meteo.com/v1/forecast"
         f"?latitude={lat}&longitude={lon}"
@@ -85,21 +89,12 @@ def upgrade() -> None:
                 {"date": dates[i], "min_temp": d["temperature_2m_min"][i], "max_temp": d["temperature_2m_max"][i], "precipitation": d["precipitation_sum"][i]}
             )
     
-    print(f"forcecast-api - data: {rows}")
     # Insertion en bulk
     op.bulk_insert(forecast_stats_table, rows)
 
-    # 3) Drop min_temp, max_temp, precipitation from tasks
-    # SQLite does not support DROP COLUMN directly before v3.35 (2021).
-    # Alembic's batch_alter_table uses a workaround (table recreation) for SQLite.
-    with op.batch_alter_table('tasks', recreate='always') as batch_op:
-        batch_op.drop_column('min_temp')
-        batch_op.drop_column('max_temp')
-        batch_op.drop_column('precipitation')
-    
 
 def downgrade() -> None:
-
+    
     # 1) Re-add min_temp, max_temp, precipitation to tasks
     with op.batch_alter_table('tasks', recreate='always') as batch_op:
         batch_op.add_column(sa.Column('min_temp', sa.Float, nullable=True))

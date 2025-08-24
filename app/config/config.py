@@ -2,19 +2,49 @@
 import json
 import os
 import logging
-
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
+load_dotenv()
 
 CONFIG_FILE = "config.json"
 DEFAULT_CONFIG = {
     "pump": 2,
     "valve": 3,
-    "levels": [7, 8, 9, 10]
+    "levels": [7, 8, 9, 10],
+    "watering": {
+    "low": {
+      "threshold": 15,
+      "morning-duration": 30,
+      "evening-duration": 30
+    },
+    "moderate": {
+      "threshold": 20,
+      "morning-duration": 45,
+      "evening-duration": 45
+    },
+    "standard": {
+      "threshold": 25,
+      "morning-duration": 60,
+      "evening-duration": 60
+    },
+    "reinforced": {
+      "threshold": 30,
+      "morning-duration": 75,
+      "evening-duration": 75
+    },
+    "high": {
+      "threshold": 35,
+      "morning-duration": 90,
+      "evening-duration": 90
+    }
+  },
+  "coordinates": {
+    "latitude": 48.866667,
+    "longitude": 2.333333
+  }
 }
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DEFAULT_DB_PATH = os.path.join(os.path.dirname(BASE_DIR), "arrosage.db")
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 SQL_ECHO = os.getenv("SQL_ECHO", "0") == "1"
 
 def load_config():

@@ -1,30 +1,21 @@
 # app/routes/history_series.py
 
 from flask import Blueprint, jsonify, request
-from sqlalchemy import func, literal, bindparam, String
-from datetime import date, datetime, timedelta
-from db.db import get_session
-from db.models import Task, ForecastStats  # ForecastStats.date est un DATE (ou TEXT 'YYYY-MM-DD')
+from sqlalchemy import func, literal, cast, Float, Integer
+from datetime import date, datetime, timedelta, time
+
+from db.db_tasks import get_session
+from db.models import Task, ForecastStats  # ForecastStats.date = Date, Task.created_at = DateTime
 
 bp = Blueprint("history_series", __name__)
 
-def _parse_date_ymd(s: str):
+def _parse_date_ymd(s: str | None) -> date | None:
+    if not s:
+        return None
     try:
-        return datetime.strptime(s, "%Y-%m-%d").date()
-    except Exception:
+        return date.fromisoformat(s)  # "YYYY-MM-DD"
+    except ValueError:
         return None
-
-def _as_iso_date_str(x) -> str | None:
-    if x is None:
-        return None
-    if hasattr(x, "isoformat"):
-        try:
-            return x.isoformat()
-        except Exception:
-            pass
-    s = str(x)
-    # tronque "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DD"
-    return s[:10] if len(s) >= 10 else s
 
 @bp.get("/api/history/series")
 def history_series():
@@ -35,67 +26,58 @@ def history_series():
         days = 15
     days = max(1, min(days, 365))
 
-    end_param = request.args.get("end")
     today = date.today()
-    end_date = _parse_date_ymd(end_param) or today
+    end_date = _parse_date_ymd(request.args.get("end")) or today
     if end_date > today:
         end_date = today
     start_date = end_date - timedelta(days=days - 1)
 
-    start_iso = start_date.isoformat()  # "YYYY-MM-DD"
-    end_iso   = end_date.isoformat()
-
-    # Bind params en STRING (clé jour ISO)
-    bp_start_iso = bindparam("bp_start_iso", start_iso, type_=String())
-    bp_end_iso   = bindparam("bp_end_iso",   end_iso,   type_=String())
+    # bornes temporelles pour filtrer les DATETIME (intervalle semi-ouvert [start_dt, end_dt_next))
+    start_dt = datetime.combine(start_date, time.min)  # 00:00:00
+    end_dt_next = datetime.combine(end_date + timedelta(days=1), time.min)  # jour suivant 00:00:00
 
     with get_session() as s:
-        # clé jour ISO côté tasks et forecast_stats
-        day_str_tasks = func.strftime("%Y-%m-%d", Task.created_at)
-        day_str_fs    = func.strftime("%Y-%m-%d", ForecastStats.date)
-
-        # Agrégation des tâches "completed" par jour ISO
+        # 1) Agrégation des tâches complétées par jour (DATE(Task.created_at))
         tasks_agg_sq = (
             s.query(
-                day_str_tasks.label("day_str"),
-                func.sum(Task.duration).label("duration_sec"),
-                func.count().label("runs"),
+                func.date(Task.created_at).label("day"),
+                cast(func.sum(Task.duration), Integer).label("duration_sec"),
+                cast(func.count(), Integer).label("runs"),
             )
             .filter(Task.status == "completed")
-            .filter(day_str_tasks >= bp_start_iso)
-            .filter(day_str_tasks <= bp_end_iso)
-            .group_by(day_str_tasks)
+            .filter(Task.created_at >= start_dt)
+            .filter(Task.created_at < end_dt_next)
+            .group_by(func.date(Task.created_at))
         ).subquery()
 
-        # Météo + LEFT JOIN sur la clé string
+        # 2) Plage météo + LEFT JOIN sur la clé DATE
         rows = (
             s.query(
                 ForecastStats.date.label("day"),
-                ForecastStats.min_temp.label("min_temp"),
-                ForecastStats.max_temp.label("max_temp"),
-                ForecastStats.precipitation.label("precip_mm"),
-                func.coalesce(tasks_agg_sq.c.duration_sec, literal(0)).label("duration_sec"),
-                func.coalesce(tasks_agg_sq.c.runs,        literal(0)).label("runs"),
+                cast(ForecastStats.min_temp, Float).label("min_temp"),
+                cast(ForecastStats.max_temp, Float).label("max_temp"),
+                cast(ForecastStats.precipitation, Float).label("precip_mm"),
+                cast(func.coalesce(tasks_agg_sq.c.duration_sec, 0), Integer).label("duration_sec"),
+                cast(func.coalesce(tasks_agg_sq.c.runs, 0), Integer).label("runs"),
             )
-            .outerjoin(tasks_agg_sq, tasks_agg_sq.c.day_str == day_str_fs)
-            .filter(day_str_fs >= bp_start_iso)
-            .filter(day_str_fs <= bp_end_iso)
+            .outerjoin(tasks_agg_sq, tasks_agg_sq.c.day == ForecastStats.date)
+            .filter(ForecastStats.date >= start_date)
+            .filter(ForecastStats.date <= end_date)
             .order_by(ForecastStats.date)
             .all()
         )
 
-        # pour le bouton "-15j"
-        oldest_row = s.query(func.min(ForecastStats.date)).first()
-        oldest_iso = _as_iso_date_str(oldest_row[0] if oldest_row else None)
-        has_prev = bool(oldest_iso and oldest_iso < start_iso)
+        # 3) Pour le bouton "-15j" : plus ancienne date météo disponible
+        oldest_date = s.query(func.min(ForecastStats.date)).scalar()
+        has_prev = bool(oldest_date and oldest_date < start_date)
 
     data = [
         {
-            "day": r.day.isoformat().split('T')[0] if r.day else None,
+            "day": r.day.isoformat() if r.day else None,
             "min_temp": float(r.min_temp) if r.min_temp is not None else None,
             "max_temp": float(r.max_temp) if r.max_temp is not None else None,
             "precip_mm": float(r.precip_mm) if r.precip_mm is not None else 0.0,
-            "duration_min": round((r.duration_sec or 0) / 60.0, 1),
+            "duration_min": round((r.duration_sec or 0) / 60, 1),
             "runs": int(r.runs or 0),
         }
         for r in rows
@@ -106,8 +88,8 @@ def history_series():
     return jsonify({
         "meta": {
             "days": days,
-            "start": start_iso,
-            "end": end_iso,
+            "start": start_date.isoformat(),
+            "end": end_date.isoformat(),
             "has_prev": has_prev,
             "prev_end": prev_end.isoformat() if prev_end else None,
         },

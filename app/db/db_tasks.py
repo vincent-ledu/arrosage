@@ -1,4 +1,4 @@
-import os
+from __future__ import annotations
 import uuid
 from typing import Optional, Dict, List
 
@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 
 from db.database import engine, get_session, Base
 from db.models import Task
-from utils.types import utcnow
+from datetime import date as DateType, datetime
+from typing import Optional, Dict
 
 def get_connection() -> Session:
   """Compatibilité ascendante : renvoie une session SQLAlchemy utilisable via 'with'."""
@@ -23,7 +24,7 @@ def init_db():
 def add_task(duration, status, created_at=None) -> str:
   """Insère une tâche et renvoie son id (UUID str)."""
   task_id = str(uuid.uuid4())
-  dt = utcnow()
+  dt = datetime.now()
   with get_session() as s:
     t = Task(id=task_id, 
              duration=int(duration), 
@@ -70,37 +71,36 @@ def update_status(task_id, new_status) -> None:
     s.execute(
       update(Task)
       .where(Task.id == str(task_id))
-      .values(status=str(new_status))
+      .values(status=str(new_status), updated_at=datetime.now())
     )
     s.commit()
 
 
 def get_task(task_id) -> Optional[Dict]:
-  with get_session() as s:  # type: Session
+  with get_session() as s:
     return s.get(Task, str(task_id))
-
 
 def get_all_tasks() -> List[Dict]:
   with get_session() as s:
     return s.scalars(select(Task).order_by(Task.created_at.desc())).all()
   
-def get_tasks_summary_by_day():
-    """
-    Retourne { 'YYYY-MM-DD': total_duration_seconds } pour les tâches terminées.
-    """
-    with get_session() as s:
-        dur_expr = (
-            cast(func.strftime('%s', Task.updated_at), Integer)
-            - cast(func.strftime('%s', Task.created_at), Integer)
-        )
-        day_expr = func.date(Task.created_at)  # 'YYYY-MM-DD' (UTC par défaut)
+# def get_tasks_summary_by_day():
+#     """
+#     Retourne { 'YYYY-MM-DD': total_duration_seconds } pour les tâches terminées.
+#     """
+#     with get_session() as s:
+#         dur_expr = (
+#             cast(func.strftime('%s', Task.updated_at), Integer)
+#             - cast(func.strftime('%s', Task.created_at), Integer)
+#         )
+#         day_expr = func.date(Task.created_at)  # 'YYYY-MM-DD' (UTC par défaut)
 
-        stmt = (
-            select(day_expr.label("day"), func.sum(dur_expr).label("sum_dur"))
-            .where(Task.status == "completed" or Task.status == "cancelled")
-            .group_by(day_expr)
-            .order_by(day_expr)
-        )
+#         stmt = (
+#             select(day_expr.label("day"), func.sum(dur_expr).label("sum_dur"))
+#             .where(Task.status == "completed" or Task.status == "cancelled")
+#             .group_by(day_expr)
+#             .order_by(day_expr)
+#         )
 
-        rows = s.execute(stmt).all()
-        return {day: int(sum_dur or 0) for day, sum_dur in rows}
+#         rows = s.execute(stmt).all()
+#         return {day: int(sum_dur or 0) for day, sum_dur in rows}
