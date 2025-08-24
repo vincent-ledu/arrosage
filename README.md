@@ -57,6 +57,7 @@ The valve has to be pluged with cable directly to the 5V low level trigger.
 
 - nginx, as reverse proxy and protect access to sensitive action (watering, gpio pin settings, ...) from outside the lan network.
 - gunicorn, as wsgi python server. As mentionned when you start a python Flask project, default webserver in Flask is not to use in production.
+- mariadb, as database. Tried with SQLite, but it's a big crap, specially for datetime...
 
 ⚙️ **Specific Configuration:**
 

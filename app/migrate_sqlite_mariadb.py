@@ -3,12 +3,20 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 from datetime import date, datetime
 import os
-from db.models import Base, Task, ForecastStats  # mêmes modèles pour les deux
+from db.models import Base, Task
+from dotenv import load_dotenv
+import logging
 
-SQLITE_URL = "sqlite:////home/vincent/projects/perso/arrosage/app/arrosage.db"  # adapte le chemin
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+load_dotenv()  # charge les variables d'environnement depuis le fichier .env
+
+SQLITE_URL = "sqlite:///./arrosage.db"  # adapte le chemin
 MARIADB_URL = os.environ.get("DATABASE_URL")
 if not MARIADB_URL:
-    MARIADB_URL = f"mariadb+pymysql://{os.environ.get("DBUSER")}:{os.environ.get("DBPASSWORD")}@localhost:3306/watering?charset=utf8mb4"
+    logger.error("DATABASE_URL is not set in environment variables.")
+    exit(1)
 
 src_engine = create_engine(SQLITE_URL, future=True)
 dst_engine = create_engine(MARIADB_URL, pool_pre_ping=True, future=True)

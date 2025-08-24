@@ -18,7 +18,7 @@ from utils.serializer import task_to_dict
 from routes.history_series import bp as history_series_bp
 
 ctlInst = None
-if os.environ.get("TESTING") == "1":
+if os.environ.get("FLASK_ENV") in ["development", "test"]:
   from control.control_fake import FakeControl
   ctlInst = FakeControl()
 else:

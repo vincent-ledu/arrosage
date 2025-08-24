@@ -18,7 +18,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 config.set_main_option("sqlalchemy.url", SQLALCHEMY_DATABASE_URL)
-
+print("SQLALCHEMY_DATABASE_URL =", SQLALCHEMY_DATABASE_URL)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
@@ -48,11 +48,14 @@ def run_migrations_offline() -> None:
     context.configure(
         url=url,
         target_metadata=target_metadata,
-        render_as_batch= True,  # Use batch mode for SQLite
-        compare_server_default= False,  # Compare server defaults
-        literal_binds=True,
+        # Détecter les diff de types et de defaults côté serveur
+        compare_type=True,
+        compare_server_default=True,
+        # Utile si tu génères du SQL en mode offline; sinon tu peux laisser False
+        literal_binds=False,
+        # Optionnel en MySQL; tu peux supprimer entièrement cette ligne
         dialect_opts={"paramstyle": "named"},
-    )
+   )
 
     with context.begin_transaction():
         context.run_migrations()
