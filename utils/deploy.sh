@@ -70,7 +70,12 @@ log "ℹ️ [deploy] Mise à jour de pip…"
 pip install $PIP_OPTS --upgrade pip wheel
 
 log "ℹ️ [deploy] Configuration des variables d’environnement…"
+set -a
 source /etc/default/arrosage
+set +a 
+
+log "ℹ️ [deploy] DATABASE_URL=${DATABASE_URL:-<non défini>}"
+
 
 log "ℹ️ [deploy] Mise en place du backup de la base de données…"
 cp $REPO_ROOT/utils/backup_arrosage.sh /usr/local/bin/backup_arrosage.sh
