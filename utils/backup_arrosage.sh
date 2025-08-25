@@ -5,14 +5,6 @@ source /etc/default/arrosage
 # Read database variables from /etc/default/arrosage
 # Expected variables: MARIADB_HOST, MARIADB_USER, MARIADB_PASSWORD, MARIADB_DATABASE, MARIADB_BACKUP_LOCATION
 
-DBUSER=wateringdevuser
-DBPASSWORD=password
-DBHOST=localhost
-DBPORT=3306
-DBNAME=wateringdev
-DBOPTIONS="charset=utf8mb4"
-DBDRIVER="mysql+pymysql"
-
 DB_HOST="${DBHOST:-localhost}"
 DB_USER="${DBUSER:-root}"
 DB_PASS="${DBPASSWORD:-}"
