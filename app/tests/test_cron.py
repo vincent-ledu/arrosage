@@ -1,6 +1,10 @@
 import pytest
+from dotenv import load_dotenv
 from cron import watering
 
+def pytest_configure(config):
+    # Charger le .env.test en priorité
+    load_dotenv(dotenv_path=".env.test", override=True)
 
 def test_watering(monkeypatch):
     # Mock requests.get
@@ -22,7 +26,7 @@ def test_watering(monkeypatch):
     monkeypatch.setattr(cron.requests, "get", fake_get)
 
     # Mock load_config to return a specific configuration
-    monkeypatch.setattr(cron, "load_config", lambda: {
+    monkeypatch.setattr(cron.local_config, "load_config", lambda: {
         "watering": {
             "low": {"morning-duration": 10, "evening-duration": 20},
             "moderate": {"morning-duration": 30, "evening-duration": 40},

@@ -44,7 +44,16 @@ DEFAULT_CONFIG = {
     "longitude": 2.333333
   }
 }
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+# mysql+pymysql://wateringdevuser:password@localhost:3306/wateringdev
+DBUSER=os.getenv("DBUSER", "wateringdevuser")
+DBPASSWORD=os.getenv("DBPASSWORD", "password")
+DBHOST=os.getenv("DBHOST", "localhost")
+DBPORT=os.getenv("DBPORT", "3306")
+DBNAME=os.getenv("DBNAME", "wateringdev")
+DBOPTIONS=os.getenv("DBOPTIONS", "charset=utf8mb4")
+DBDRIVER=os.getenv("DBDRIVER", "mysql+pymysql")
+
+SQLALCHEMY_DATABASE_URL = f"{DBDRIVER}://{DBUSER}:{DBPASSWORD}@{DBHOST}:{DBPORT}/{DBNAME}?{DBOPTIONS}"
 SQL_ECHO = os.getenv("SQL_ECHO", "0") == "1"
 
 def load_config():

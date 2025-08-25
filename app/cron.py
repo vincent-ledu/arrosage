@@ -1,6 +1,6 @@
 import sys
 import requests
-from config.config import load_config
+import config.config as local_config
 import logging
 
 
@@ -22,7 +22,7 @@ def watering(time_of_day):
       "X-Real-IP": "192.168.0.105"
   }
 
-  watering_config = load_config()["watering"]
+  watering_config = local_config.load_config()["watering"]
   logger.info(f"Loaded watering configuration: {watering_config}")
 
   # Récupération du type d'arrosage

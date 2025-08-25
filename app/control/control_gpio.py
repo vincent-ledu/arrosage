@@ -3,7 +3,7 @@ import logging
 import time
 
 from control.control_interface import Control
-from config.config import load_config
+import config.config as local_config
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class GPIOControl(Control):
     # Initialisation générale (mode BCM)
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
-    config = load_config()
+    config = local_config.load_config()
     self.releaseAll()
 
     self.control_state["pump"] = config["pump"]

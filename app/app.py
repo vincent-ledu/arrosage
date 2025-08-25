@@ -10,15 +10,19 @@ import logging
 import requests
 from flask_babel import Babel, gettext as _, lazy_gettext as _l
 
-from config.config import load_config, save_config
-from db.db_tasks import init_db, get_connection, get_tasks_by_status, add_task, update_status, get_task, get_all_tasks, get_daily_durations_for_done
-from db.db_forecast_stats import add_forecast_data, get_forecast_data
+import config.config as local_config
+from db.db_tasks import init_db, get_connection, get_tasks_by_status, add_task, update_status, get_task, get_all_tasks
+from db.db_forecast_stats import add_forecast_data, get_forecast_data, get_forecast_data_by_date
 from services.weather import fetch_open_meteo, aggregate_by_partday
 from utils.serializer import task_to_dict
 from routes.history_series import bp as history_series_bp
 
+ENVIRONMENT = os.environ.get("FLASK_ENV", "production")
+PORT = int(os.environ.get("PORT", 3000))
+HOST = os.environ.get("HOST", "0.0.0.0")
+
 ctlInst = None
-if os.environ.get("FLASK_ENV") in ["development", "test"]:
+if ENVIRONMENT in ["development", "test"]:
   from control.control_fake import FakeControl
   ctlInst = FakeControl()
 else:
@@ -34,7 +38,7 @@ if not os.path.exists("/var/log/gunicorn"):
 
 # Configuration globale du logger
 logging.basicConfig(
-  level=logging.DEBUG,  # DEBUG pour + de détails
+  level=logging.DEBUG if ENVIRONMENT == "development" else logging.info,
   format="%(asctime)s [%(levelname)s] %(message)s",
   handlers=[
     logging.FileHandler("/var/log/gunicorn/arrosage.log"),   # Log dans un fichier
@@ -43,6 +47,7 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
 
 app.secret_key = os.environ.get("SESSION_SECRET_KEY", "ish2woo}ng5Ia7sooS0Seukei Vave9oneis1so1zu9Leb1ve&o ailophai0guo-th8jizeiPho4")
@@ -120,7 +125,7 @@ def forecast():
 
 @app.route('/api/coordinates')
 def get_coordinates():
-  coordinates = load_config()["coordinates"]
+  coordinates = local_config.load_config()["coordinates"]
   LATITIUDE = coordinates.get("latitude", 48.866667)  
   LONGITUDE = coordinates.get("longitude", 2.333333)
   return {"latitude": float(LATITIUDE), "longitude": float(LONGITUDE)}
@@ -129,22 +134,16 @@ def get_coordinates():
 @app.route("/api/temperature-max")
 def get_temperature_max():
   try:
-    fs = get_forecast_data(date.today())
-    if fs is None:
-      logger.info("No forecast data in DB, fetching from API")
-      coordinates = get_coordinates()
-      lat, lon = coordinates.values()
-      url = (
-        "https://api.open-meteo.com/v1/forecast"
-        f"?latitude={lat}&longitude={lon}"
-        "&daily=temperature_2m_max&forecast_days=1&timezone=Europe%2FParis"
-      )
-      resp = requests.get(url, timeout=5)
-      resp.raise_for_status()
-      data = resp.json()
-      return jsonify(data["daily"]["temperature_2m_max"][0])
-    logger.info("Forecast data found in DB")
-    return jsonify(fs["max_temp"])
+    data = get_minmax_temperature_precip()
+    if isinstance(data, tuple):
+      data, status_code = data
+      if status_code != 200 and status_code != 201:
+        logger.error(f"Error fetching temperature max: {data}")
+        return data, status_code
+    max_temp = data.get_json().get("temperature_2m_max")
+    if max_temp is None:
+      raise ValueError("Max temperature not found in forecast data")
+    return jsonify(max_temp), 200
   except Exception as e:
     logger.error("Forecast error :%s", e)
     return jsonify({"error": "Error in calling open-meteo api", "flash": {
@@ -153,10 +152,10 @@ def get_temperature_max():
                       }
                       }), 500
   
-@app.route("/api/forecast-minmax-precip", methods=["POST"])  
-def store_minmax_temperature_precip():
+@app.route("/api/forecast-minmax-precip")  
+def get_minmax_temperature_precip():
   try:
-    fs = get_forecast_data(date.today())
+    fs = get_forecast_data_by_date(date.today())
     if fs is None:
       logger.info("No forecast data in DB, fetching from API")
       coordinates = get_coordinates()
@@ -174,13 +173,17 @@ def store_minmax_temperature_precip():
                         data["daily"]["temperature_2m_min"][0],
                         data["daily"]["temperature_2m_max"][0],
                         data["daily"]["precipitation_sum"][0])
-      return jsonify(data["daily"]), 201
+      return jsonify({
+        "temperature_2m_max": data["daily"]["temperature_2m_max"][0],
+        "temperature_2m_min": data["daily"]["temperature_2m_min"][0],
+        "precipitation_sum": data["daily"]["precipitation_sum"][0]}), 201
     logger.info("Forecast data found in DB")
+    logger.debug(f"Forecast data from DB: {fs}")
     return jsonify({
-      "temperature_2m_max": fs["max_temp"],
-      "temperature_2m_min": fs["min_temp"],
-      "precipitation_sum": fs["precipitation"]
-    }), 302
+      "temperature_2m_max": fs.max_temp,
+      "temperature_2m_min": fs.min_temp,
+      "precipitation_sum": fs.precipitation
+    }), 200
   except Exception as e:
     logger.error("Forecast error : %s", e)
     return jsonify({"error": "Error in calling open-meteo api", 
@@ -194,21 +197,30 @@ def store_minmax_temperature_precip():
 def classify_watering():
   temp = request.args.get("temp", type=float)
   if temp is None:
-    temp = get_temperature_max().get_json()
+    temp_data, status_code = get_temperature_max()
+    logger.debug(f"Temperature max data: {temp_data.get_json()}")
+    if status_code != 200:
+      return jsonify({"error": "Failed to fetch temperature"}), 500
+    temp_json = temp_data.get_json()
+    temp = temp_json if isinstance(temp_json, (int, float)) else temp_json
     if isinstance(temp, dict) and "error" in temp:
       return jsonify({"error": "Failed to fetch temperature"}), 500
-  watering = load_config()["watering"]
-  logger.debug(f"Watering configuration: {watering}")
-  
+  watering = local_config.load_config()["watering"]
+
   if temp is None:
-    return "unknown"
+    return "unknown", 200
+
   for watering_type, settings in watering.items():
     if temp < settings["threshold"]:
-      return watering_type
+      return watering_type, 200
+
+  # If no type matched, return the highest type
+  highest_type = max(watering.items(), key=lambda x: x[1]["threshold"])[0]
+  return highest_type, 200
 
 @app.route('/settings/', methods=["GET", "POST"])
 def settings_page():
-  config = load_config()
+  config = local_config.load_config()
   if request.method == "POST":
     config["pump"] = int(request.form.get("pump", 2))
     config["valve"] = int(request.form.get("valve", 3))
@@ -224,7 +236,7 @@ def settings_page():
       "latitude": float(request.form.get("latitude", 48.866667)),
       "longitude": float(request.form.get("longitude", 2.333333))
     }
-    save_config(config)
+    local_config.save_config(config)
     ctlInst.setup()
     flash(_('Settings saved successfully.'), "success")
     return redirect(url_for("settings_page"))
@@ -285,17 +297,17 @@ def task_list():
 
 
 @app.route('/api/tasks/<task_id>')
-def task_status(task_id):
+def get_task_by_id(task_id):
   task = get_task(task_id)
   if not task:
       return jsonify({"error": f"Task {task_id} not found"}), 404
   return jsonify(task_to_dict(task)), 200
 
-@app.route('/api/tasks/current-task')
+@app.route('/api/task')
 def current_task():
   tasks = get_tasks_by_status("in progress")
   if not tasks:
-      return jsonify({"task_id": None}), 200
+      return jsonify({"task_id": None}), 404
   task = tasks[0]
   return jsonify({"task_id": task.id}), 200
 
@@ -376,11 +388,11 @@ def closeWaterSupply():
                       "category": "warning"
                       }}), 404
 
-@app.route('/api/history')
-def get_history():
-  result = get_daily_durations_for_done()
-  logger.debug(f"History result: {result}")
-  return jsonify(result)
+# @app.route('/api/history')
+# def get_history():
+#   result = get_daily_durations_for_done()
+#   logger.debug(f"History result: {result}")
+#   return jsonify(result)
 
 @app.route('/healthz')
 def healthz():
@@ -396,6 +408,9 @@ def healthz():
     return "Service Unavailable", 503
 
 @app.route('/health')
+@app.route('/healthz')
+@app.route('/healthcheck')
+@app.route('/api/healthcheck')
 def health():
   try:
     ctlInst.getLevel()  # Vérifie si le contrôle fonctionne
@@ -408,23 +423,12 @@ def health():
     logger.error(f"Health check failed: {e}")
     return jsonify({"status": "unhealthy"}), 500
 
-@app.route('/api/healthcheck')
-def healthcheck():
-  try:
-    ctlInst.getLevel()  # Vérifie si le contrôle fonctionne
-    conn = get_connection()
-    if conn is None:
-      raise Exception("Database connection failed")
-    conn.close()
-    get_temperature_max()
-    return jsonify({"status": "healthy"}), 200
-  except Exception as e:
-    logger.error(f"Health check failed: {e}")
-    return jsonify({"status": "unhealthy"}), 500
 
 if __name__ == '__main__':
   # On prévient Python d'utiliser la method handler quand un signal SIGINT est reçu
   signal(SIGINT, handler)
   #Register the function to be called on exit
   atexit.register(cleanup_app)
+  logger.info(f"Environment: {os.environ.get('FLASK_ENV', 'production')}")
+  logger.info(f"SQLALCHEMY_DATABASE_URL: {local_config.SQLALCHEMY_DATABASE_URL}")
   app.run(host="0.0.0.0", port=3000, debug=True)

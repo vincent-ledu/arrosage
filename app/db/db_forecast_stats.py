@@ -57,3 +57,8 @@ def get_forecast_data(data_id: int) -> Optional[ForecastStats]:
   """Récupère les données météo par id."""
   with get_session() as s:
     return s.get(ForecastStats, data_id)
+
+def get_forecast_data_by_date(date: DateType) -> Optional[ForecastStats]:
+  """Récupère les données météo par date."""
+  with get_session() as s:
+    return s.query(ForecastStats).filter(ForecastStats.date == date).first()

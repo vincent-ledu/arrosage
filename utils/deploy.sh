@@ -88,10 +88,9 @@ else
   exit 1
 fi
 
-log "ℹ️ [deploy] Optimisation des accès sqlite…"
-# Si tu utilises SQLite, active le WAL mode pour de meilleures performances.
-if command -v sqlite3 >/dev/null 2>&1; then
-  sqlite3 "$NEW_RELEASE/arrosage.db" "PRAGMA journal_mode=WAL;"
+log "ℹ️ [deploy] Installation des dépendances…"
+if [[ -f "$NEW_RELEASE/requirements.txt" ]]; then
+  pip install $PIP_OPTS -r "$NEW_RELEASE/requirements.txt"
 fi
 
 log "ℹ️ [deploy] Upgrade Alembic (migrations)…"
@@ -99,11 +98,6 @@ if command -v alembic >/dev/null 2>&1 && [[ -f "$NEW_RELEASE/alembic.ini" ]]; th
   (cd "$NEW_RELEASE" && alembic upgrade head || true)
 else
   log "⚠️ [deploy] Alembic non trouvé ou pas de migrations à appliquer."
-fi
-
-log "ℹ️ [deploy] Installation des dépendances…"
-if [[ -f "$NEW_RELEASE/requirements.txt" ]]; then
-  pip install $PIP_OPTS -r "$NEW_RELEASE/requirements.txt"
 fi
 
 # (Optionnel) i18n si présent
@@ -120,12 +114,6 @@ if [[ ! -f "$SHARED_DIR/config/config.json" ]]; then
   echo '{}' > "$SHARED_DIR/config/config.json"
 fi
 ln -sfn "$SHARED_DIR/config/config.json" "$NEW_RELEASE/config.json"
-
-# Exemple: base SQLite (créée si absente)
-if [[ ! -f "$SHARED_DIR/db/arrosage.db" ]]; then
-  touch "$SHARED_DIR/db/arrosage.db"
-fi
-ln -sfn "$SHARED_DIR/db/arrosage.db" "$NEW_RELEASE/arrosage.db"
 
 # Logs (app + gunicorn) dans shared/log
 mkdir -p "$SHARED_DIR/log"

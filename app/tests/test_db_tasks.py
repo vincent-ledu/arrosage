@@ -1,8 +1,11 @@
 import pytest
 from sqlalchemy.sql import text
-
+from dotenv import load_dotenv
 from db.db_tasks import get_connection, init_db, add_task, get_all_tasks, update_status, get_task, get_tasks_by_status
 
+def pytest_configure(config):
+    # Charger le .env.test en priorité
+    load_dotenv(dotenv_path=".env.test", override=True)
 
 @pytest.fixture
 def db():

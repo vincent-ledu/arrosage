@@ -41,30 +41,30 @@ def get_tasks_by_status(status):
     stmt = select(Task).where(Task.status == status).order_by(Task.created_at.desc())
     return s.scalars(stmt).all()
 
-def get_daily_durations_for_done():
-    """
-    Somme des durées par jour (UTC), pour les statuts 'completed' ou 'cancelled'.
-    Retourne une liste de dicts: [{"day": "YYYY-MM-DD", "sum_dur": 123}, ...]
-    """
-    with get_session() as s:
-        dur_expr = (
-            cast(func.strftime('%s', Task.updated_at), Integer) -
-            cast(func.strftime('%s', Task.created_at), Integer)
-        )
-        day_expr = func.date(Task.created_at)  # UTC par défaut sous SQLite
+# def get_daily_durations_for_done():
+#     """
+#     Somme des durées par jour (UTC), pour les statuts 'completed' ou 'cancelled'.
+#     Retourne une liste de dicts: [{"day": "YYYY-MM-DD", "sum_dur": 123}, ...]
+#     """
+#     with get_session() as s:
+#         dur_expr = (
+#             cast(func.strftime('%s', Task.updated_at), Integer) -
+#             cast(func.strftime('%s', Task.created_at), Integer)
+#         )
+#         day_expr = func.date(Task.created_at)  # UTC par défaut sous SQLite
 
-        stmt = (
-            select(
-                day_expr.label("date"),
-                func.coalesce(func.sum(dur_expr), 0).label("duration"),
-            )
-            .where(Task.status.in_(["completed", "cancelled"]))
-            .group_by(day_expr)
-            .order_by(day_expr)
-        )
+#         stmt = (
+#             select(
+#                 day_expr.label("date"),
+#                 func.coalesce(func.sum(dur_expr), 0).label("duration"),
+#             )
+#             .where(Task.status.in_(["completed", "cancelled"]))
+#             .group_by(day_expr)
+#             .order_by(day_expr)
+#         )
 
-        rows = s.execute(stmt).all()
-        return [{"date": r.date, "duration": round(r.duration / 60, 1)} for r in rows]
+#         rows = s.execute(stmt).all()
+#         return [{"date": r.date, "duration": round(r.duration / 60, 1)} for r in rows]
 
 def update_status(task_id, new_status) -> None:
   with get_session() as s:
