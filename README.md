@@ -109,9 +109,15 @@ See `utils/deploy.sh`
 
 # TODO
 
-- [ ] 🏎️ Add data in cache for data of the day
+- [ ] 🧪 Improve unittest
+  - [ ] 📊 Bind to test instance database
+  - [ ] 🧪 Add more unit tests
+- [ ] 🚚 Review deploy script
+  - [ ] 🚚 Remove sqlite backup
+  - [ ] ➕ Add mariadb backup
 - [ ] 🧊 Prevent watering when temperature < 0°
 - [ ] 🗓️ Settings for month watering: checks which month watering is enabled
+- [ ] 🏎️ Cache forecasts data for 1 day, rename existing table to weather_data
 - [ ] 🚿 Compute water volume per watering (settings with pump capacity)
 - [ ] 🏗️ Go to a Domain Driven Design approach
 - [ ] 🗓️ Set cron in application
@@ -133,6 +139,7 @@ See `utils/deploy.sh`
   - [x] #️⃣ create a separate table for temperature, precipitations
   - [x] #️⃣ import data
   - [x] 📊 make a join for history display
+- [x] 🏎️ Add data in cache for data of the day
 
 # Inventory
 

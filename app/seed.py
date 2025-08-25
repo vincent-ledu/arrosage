@@ -3,7 +3,8 @@ import random
 from datetime import datetime, timedelta, time
 from zoneinfo import ZoneInfo  # Python 3.9+
 import uuid
-from db.db_tasks import init_db, add_task, add_forecast_data
+from db.db_tasks import init_db, add_task
+from db.db_forecast_stats import add_forecast_data
 
 # Initialisation
 init_db()

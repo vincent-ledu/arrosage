@@ -104,7 +104,7 @@ block content %}
   }
 
   async function getCurrentTaskId() {
-    const response = await fetch("/api/tasks/current-task");
+    const response = await fetch("/api/task");
     const data = await response.json();
     return data.task_id || null;
   }

@@ -1,7 +1,7 @@
 # app/routes/history_series.py
 
 from flask import Blueprint, jsonify, request
-from sqlalchemy import func, literal, cast, Float, Integer
+from sqlalchemy import func, cast, Float, Integer
 from datetime import date, datetime, timedelta, time
 
 from db.db_tasks import get_session

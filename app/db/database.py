@@ -1,14 +1,14 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from config.config import SQLALCHEMY_DATABASE_URL, SQL_ECHO
+import config.config as local_config
 
 # SQLite: pragmas utiles, threads
 connect_args = {}
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
+    local_config.SQLALCHEMY_DATABASE_URL,
     pool_pre_ping=True,        # évite les connexions mortes
     pool_recycle=1800,         # recycle au bout de 30 min
-    echo=SQL_ECHO,
+    echo=local_config.SQL_ECHO,
     future=True,
     connect_args=connect_args,
 )
