@@ -61,10 +61,14 @@ def test_settings_page_post(client):
     'reinforced_evening_duration': '75',
     'high_threshold': '35',
     'high_morning_duration': '90',
-    'high_evening_duration': '90'
+    'high_evening_duration': '90',
+    'enabled_months': ['4', '5', '6', '7', '8', '9']
   }, follow_redirects=True)
   assert response.status_code == 200
-  assert b'Settings saved successfully' in response.data
+  assert (
+    b'Settings saved successfully' in response.data
+    or 'Paramètres sauvés avec succès' in response.data.decode('utf-8')
+  )
 
 def test_history_page(client):
   response = client.get('/history')
