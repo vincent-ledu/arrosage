@@ -67,6 +67,38 @@ block content %}
       </p>
     </fieldset>
     <fieldset style="margin-top: 1rem">
+      <legend>{{ _('Watering enabled months:') }}</legend>
+      <table style="border-collapse: collapse">
+        <tr>
+          {% for month in range(1, 13) %}
+          <th style="padding: 4px 8px">
+            {{ _('Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov
+            Dec').split()[month-1] }}
+          </th>
+          {% endfor %}
+        </tr>
+        <tr>
+          {% for month in range(1, 13) %}
+          <td style="text-align: center; padding: 4px 8px">
+            <input
+              type="checkbox"
+              name="enabled_months"
+              value="{{ month }}"
+              {%
+              if
+              month
+              in
+              config.enabled_months
+              %}checked{%
+              endif
+              %}
+            />
+          </td>
+          {% endfor %}
+        </tr>
+      </table>
+    </fieldset>
+    <fieldset style="margin-top: 1rem">
       <legend>{{ _('Watering duration:') }}</legend>
       <table>
         <tr>

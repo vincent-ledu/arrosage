@@ -236,6 +236,7 @@ def settings_page():
       "latitude": float(request.form.get("latitude", 48.866667)),
       "longitude": float(request.form.get("longitude", 2.333333))
     }
+    config["enabled_months"] = [int(m) for m in request.form.getlist("enabled_months")]
     local_config.save_config(config)
     ctlInst.setup()
     flash(_('Settings saved successfully.'), "success")
@@ -370,6 +371,15 @@ def OpenWaterDelay():
     return jsonify({"error": "Temperature is too low to water.", 
                     "flash": {
                       "message": f"{_('Temperature is too low to water.')}", 
+                      "category": "warning"
+                      }}), 400
+  current_month = date.today().month
+  enabled_months = local_config.load_config().get("enabled_months", list(range(1,13)))
+  if current_month not in enabled_months:
+    logger.warning("Watering is disabled for the current month")
+    return jsonify({"error": "Watering is disabled for the current month.", 
+                    "flash": {
+                      "message": f"{_('Watering is disabled for the current month.')}", 
                       "category": "warning"
                       }}), 400
   task_id = add_task(duration, "in progress")
