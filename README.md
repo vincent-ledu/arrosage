@@ -109,11 +109,20 @@ See `utils/deploy.sh`
 
 # TODO
 
-- [ ] 🏎️ Cache forecasts data for 1 day, rename existing table to weather_data. Add 6h TTL for cached data
+- [ ] 🏎️ Improve cached data
+  - [x] 📊 Rename existing table to weather_data
+  - [x] 📊 Create table to forecat_data
+  - [x] ⏱️ Refresh weather data of the day for 6h.
+  - [ ] 🧪 Unit testing
+  - [ ] 🏎️ Cache forecat for 4 next days (j+1 to j+4) in table forecast_data
+  - [ ] ⏱️ Cache forecat data for 6h.
+  - [ ] ❌ Delete old forecast data
+  - [ ] 🧪 Unit testing
 - [ ] 🚿 Compute water volume per watering (settings with pump capacity)
 - [ ] 🏗️ Go to a Domain Driven Design approach
 - [ ] 🗓️ Set cron in application
 - [ ] 💬 Fix message flash when non page redirect
+- [ ] 👾 Analyze warning message in venv creation and dependancies installation
 
 # DONE
 

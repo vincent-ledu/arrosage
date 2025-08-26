@@ -4,7 +4,7 @@ from datetime import datetime, date
 from dotenv import load_dotenv
 
 from db.database import engine, get_session, Base
-from db.db_forecast_stats import init_db, get_connection, get_forecast_data, add_forecast_data
+from db.db_weather_data import init_db, get_connection, get_weather_data, add_weather_data
 
 def pytest_configure(config):
     # Charger le .env.test en priorité
@@ -23,16 +23,16 @@ def db(monkeypatch):
 
     # Nettoyage : supprime les données de toutes les tables
     with get_connection() as s:
-      tables = ["forecast_stats"]
+      tables = ["tasks"]
       for table in tables:
           s.execute(text(f"DELETE FROM {table}"))
       s.commit()
 
 def test_add_forecast_data(db):
   dt = datetime.now()
-  data_id = add_forecast_data("2025-01-01", 18.2, 25.3, 12.3)
+  data_id = add_weather_data("2025-01-01", 18.2, 25.3, 12.3)
   assert data_id is not None
-  data = get_forecast_data(data_id)
+  data = get_weather_data(data_id)
   assert data is not None
   assert data.id == data_id
   assert data.min_temp == 18.2
@@ -44,9 +44,9 @@ def test_add_forecast_data(db):
 
 def test_get_forecast_data_by_date(db):
   dt = date(2025, 1, 2)
-  data_id = add_forecast_data(dt, 15.0, 22.0, 5.0)
+  data_id = add_weather_data(dt, 15.0, 22.0, 5.0)
   assert data_id is not None
-  data = get_forecast_data(data_id)
+  data = get_weather_data(data_id)
   assert data is not None
   assert data.id == data_id
   assert data.min_temp == 15.0
@@ -58,9 +58,9 @@ def test_get_forecast_data_by_date(db):
 
 def test_get_forecast_data(db):
   dt = date(2025, 1, 3)
-  data_id = add_forecast_data(dt, 10.0, 20.0, 0.0)
+  data_id = add_weather_data(dt, 10.0, 20.0, 0.0)
   assert data_id is not None
-  data = get_forecast_data(data_id)
+  data = get_weather_data(data_id)
   assert data is not None
   assert data.id == data_id
   assert data.min_temp == 10.0

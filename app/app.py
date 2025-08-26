@@ -4,7 +4,7 @@ from signal import signal, SIGINT
 from sys import exit
 from flask import Flask, flash, request, render_template, jsonify, redirect, url_for, session
 import threading
-from datetime import date
+from datetime import date, timedelta, datetime
 import atexit
 import logging
 import requests
@@ -12,7 +12,7 @@ from flask_babel import Babel, gettext as _, lazy_gettext as _l
 
 import config.config as local_config
 from db.db_tasks import init_db, get_connection, get_tasks_by_status, add_task, update_status, get_task, get_all_tasks
-from db.db_forecast_stats import add_forecast_data, get_forecast_data, get_forecast_data_by_date
+from db.db_weather_data import add_weather_data, get_weather_data_by_date
 from services.weather import fetch_open_meteo, aggregate_by_partday
 from utils.serializer import task_to_dict
 from routes.history_series import bp as history_series_bp
@@ -20,6 +20,7 @@ from routes.history_series import bp as history_series_bp
 ENVIRONMENT = os.environ.get("FLASK_ENV", "production")
 PORT = int(os.environ.get("PORT", 3000))
 HOST = os.environ.get("HOST", "0.0.0.0")
+TTL = timedelta(hours=6)
 
 ctlInst = None
 if ENVIRONMENT in ["development", "test"]:
@@ -152,14 +153,19 @@ def get_temperature_max():
                       }
                       }), 500
   
+
+def is_fresh(data) -> bool:
+  if not data:
+      return False
+  return datetime.now() < (data.updated_at + TTL)
+
 @app.route("/api/forecast-minmax-precip")  
 def get_minmax_temperature_precip():
   try:
-    fs = get_forecast_data_by_date(date.today())
-    if fs is None:
-      logger.info("No forecast data in DB, fetching from API")
+    fs = get_weather_data_by_date(date.today())
+    if fs is None or not is_fresh(fs):
+      logger.info("No forecast data in DB or not fresh, fetching from API")
       coordinates = get_coordinates()
-      logger.debug(f"Coordinates: ${coordinates}")
       lat, lon = coordinates.values()
       url = (
         "https://api.open-meteo.com/v1/forecast"
@@ -169,7 +175,7 @@ def get_minmax_temperature_precip():
       resp = requests.get(url, timeout=5)
       resp.raise_for_status()
       data = resp.json()
-      add_forecast_data(date.today(),
+      add_weather_data(date.today(),
                         data["daily"]["temperature_2m_min"][0],
                         data["daily"]["temperature_2m_max"][0],
                         data["daily"]["precipitation_sum"][0])

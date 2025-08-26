@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, time
 from zoneinfo import ZoneInfo  # Python 3.9+
 import uuid
 from db.db_tasks import init_db, add_task
-from db.db_forecast_stats import add_forecast_data
+from app.db.db_weather_data import add_weather_data
 
 # Initialisation
 init_db()
@@ -29,6 +29,6 @@ for day_offset in range(30):
         min_temp = random.uniform(10.0, 20.0)  # Température min entre 10 et 20 °C
         max_temp = random.uniform(20.0, 30.0)  # Température max entre 20 et 30 °C
         precipitation = random.uniform(0.0, 5.0)  # Précipitation entre 0 et 5 mm
-        add_forecast_data(day_dt.date(), round(min_temp, 1), round(max_temp, 1), round(precipitation, 1))
+        add_weather_data(day_dt.date(), round(min_temp, 1), round(max_temp, 1), round(precipitation, 1))
 
 print("✅ Fake data inserted.")

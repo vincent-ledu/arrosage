@@ -7,7 +7,7 @@ from typing import Optional, Union
 from zoneinfo import ZoneInfo
 
 from db.database import engine, get_session, Base
-from db.models import ForecastStats
+from db.models import WeatherData
 from sqlalchemy import text
 
 
@@ -20,13 +20,13 @@ def init_db():
   """Crée la table si absente (idempotent), comme avant."""
   Base.metadata.create_all(bind=engine)
 
-def add_forecast_data(date: DateType, min_temp: float, max_temp: float, precipitation: float) -> int:
+def add_weather_data(date: DateType, min_temp: float, max_temp: float, precipitation: float) -> int:
     """Insère ou met à jour les données météo pour une date donnée. Renvoie l'id de la ligne."""
 
     with get_session() as s:
         # Utilisation de INSERT ... ON DUPLICATE KEY UPDATE pour MariaDB/MySQL
         stmt = text("""
-            INSERT INTO forecast_stats (date, min_temp, max_temp, precipitation, created_at, updated_at)
+            INSERT INTO weather_data (date, min_temp, max_temp, precipitation, created_at, updated_at)
             VALUES (:date, :min_temp, :max_temp, :precipitation, :created_at, :updated_at)
             ON DUPLICATE KEY UPDATE
                 min_temp = VALUES(min_temp),
@@ -47,18 +47,18 @@ def add_forecast_data(date: DateType, min_temp: float, max_temp: float, precipit
         s.commit()
         # Récupère l'id (suppose que la colonne 'date' est unique)
         result = s.execute(
-            text("SELECT id FROM forecast_stats WHERE date = :date"),
+            text("SELECT id FROM weather_data WHERE date = :date"),
             {"date": date}
         )
         row = result.first()
         return row.id if row else None
   
-def get_forecast_data(data_id: int) -> Optional[ForecastStats]:
+def get_weather_data(data_id: int) -> Optional[WeatherData]:
   """Récupère les données météo par id."""
   with get_session() as s:
-    return s.get(ForecastStats, data_id)
+    return s.get(WeatherData, data_id)
 
-def get_forecast_data_by_date(date: DateType) -> Optional[ForecastStats]:
+def get_weather_data_by_date(date: DateType) -> Optional[WeatherData]:
   """Récupère les données météo par date."""
   with get_session() as s:
-    return s.query(ForecastStats).filter(ForecastStats.date == date).first()
+    return s.query(WeatherData).filter(WeatherData.date == date).first()
