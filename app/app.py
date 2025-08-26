@@ -236,6 +236,7 @@ def settings_page():
       "latitude": float(request.form.get("latitude", 48.866667)),
       "longitude": float(request.form.get("longitude", 2.333333))
     }
+    config["enabled_months"] = [int(m) for m in request.form.getlist("enabled_months")]
     local_config.save_config(config)
     ctlInst.setup()
     flash(_('Settings saved successfully.'), "success")

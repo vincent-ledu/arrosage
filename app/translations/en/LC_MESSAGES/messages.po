@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-08-26 16:08+0200\n"
+"POT-Creation-Date: 2025-08-26 16:31+0200\n"
 "PO-Revision-Date: 2025-07-22 19:22+0200\n"
 "Last-Translator: Vincent <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -306,26 +306,38 @@ msgid "Longitude:"
 msgstr "Longitude:"
 
 #: templates/settings.html:70
+msgid "Watering enabled months:"
+msgstr "Watering enabled months:"
+
+#: templates/settings.html:75
+msgid ""
+"Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov\n"
+"            Dec"
+msgstr ""
+"Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov\n"
+"            Dec"
+
+#: templates/settings.html:102
 msgid "Watering duration:"
 msgstr "Watering duration:"
 
-#: templates/settings.html:73
+#: templates/settings.html:105
 msgid "Type"
 msgstr "Type"
 
-#: templates/settings.html:74
+#: templates/settings.html:106
 msgid "Threshold"
 msgstr "Threshold"
 
-#: templates/settings.html:75
+#: templates/settings.html:107
 msgid "Morning"
 msgstr "Morning"
 
-#: templates/settings.html:76
+#: templates/settings.html:108
 msgid "Evening"
 msgstr "Evening"
 
-#: templates/settings.html:116
+#: templates/settings.html:148
 msgid "Save"
 msgstr "Save"
 
