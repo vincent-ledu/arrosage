@@ -373,6 +373,15 @@ def OpenWaterDelay():
                       "message": f"{_('Temperature is too low to water.')}", 
                       "category": "warning"
                       }}), 400
+  current_month = date.today().month
+  enabled_months = local_config.load_config().get("enabled_months", list(range(1,13)))
+  if current_month not in enabled_months:
+    logger.warning("Watering is disabled for the current month")
+    return jsonify({"error": "Watering is disabled for the current month.", 
+                    "flash": {
+                      "message": f"{_('Watering is disabled for the current month.')}", 
+                      "category": "warning"
+                      }}), 400
   task_id = add_task(duration, "in progress")
   cancel_event = threading.Event()
   cancel_flags[task_id] = cancel_event
