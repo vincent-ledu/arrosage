@@ -107,6 +107,22 @@ def test_open_water_command_temp_too_low(client):
     assert data['error'] == 'Temperature is too low to water.'  # Adjust based on your actual error message
     # Ensure the error message matches your API's response for temp too low
 
+def test_open_water_command_month_not_enabled(client):
+  # Mock the config to disable current month
+  original_load_config = local_config.load_config
+  def mock_load_config():
+    config = original_load_config()
+    current_month = time.localtime().tm_mon
+    config['enabled_months'] = [m for m in range(1, 13) if m != current_month]
+    return config
+  with unittest.mock.patch.object(local_config, 'load_config', side_effect=mock_load_config):
+    response = client.get('/api/command/open-water?duration=5')
+    assert response.status_code == 400  # Assuming the API returns a 400 for month not enabled
+    data = response.get_json()
+    assert 'error' in data
+    assert data['error'] == 'Watering is disabled for the current month.'  # Adjust based on your actual error message
+    # Ensure the error message matches your API's response for month not enabled
+
 def test_close_water_command(client):
   response = client.get('/api/command/open-water?duration=5')
   assert response.status_code == 202
