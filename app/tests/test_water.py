@@ -1,4 +1,6 @@
 import pytest
+import unittest.mock
+
 import time
 from dotenv import load_dotenv
 
@@ -58,10 +60,53 @@ def test_open_water_command_missing_duration(client):
   assert 'error' in data
   assert data['error'] == 'Duration parameter is required'  # Adjust based on your actual error message
   # Ensure the error message matches your API's response for missing duration
+
 def test_open_water_command_invalid_method(client):
   response = client.post('/api/command/open-water?duration=60')
   assert response.status_code == 405  # Assuming the API returns a 405 for invalid method
-  
+
+def test_open_water_command_already_in_progress(client):
+  response = client.get('/api/command/open-water?duration=5')
+  assert response.status_code == 202
+  response = client.get('/api/command/open-water?duration=5')
+  assert response.status_code == 409  # Assuming the API returns a 409 for already in progress
+  data = response.get_json()
+  assert 'error' in data
+  assert data['error'] == 'Watering is already in progress.'  # Adjust based on your actual error message
+  # Ensure the error message matches your API's response for already in progress
+  time.sleep(6)  # Wait for the first watering to complete
+
+def test_open_water_command_not_enough_water(client):
+  # Mock getLevel to return a low value (simulate not enough water)
+  with unittest.mock.patch('app.ctlInst.getLevel', return_value=0):
+    response = client.get('/api/command/open-water?duration=300')
+    assert response.status_code == 507  # Assuming the API returns a 507 for not enough water
+    data = response.get_json()
+    assert 'error' in data
+    assert data['error'] == 'Not enough water.'  # Adjust based on your actual error message
+    # Ensure the error message matches your API's response for not enough water
+
+def test_open_water_command_too_long_duration(client):
+  response = client.get('/api/command/open-water?duration=1000')
+  assert response.status_code == 400  # Assuming the API returns a 400 for too long duration
+  data = response.get_json()
+  assert 'error' in data
+  assert data['error'] == 'Invalid duration'  # Adjust based on your actual error message
+  # Ensure the error message matches your API's response for too long duration
+
+def test_open_water_command_temp_too_low(client):
+  # Mock get_minmax_temperature_precip to simulate temperature too low
+  class MockResponse:
+    def get_json(self):
+      return {'temperature_2m_min': 2.1, 'temperature_2m_max': 5.5, 'precipitation_sum': 0}
+  with unittest.mock.patch('app.get_minmax_temperature_precip', return_value=(MockResponse(), 200)):
+    response = client.get('/api/command/open-water?duration=5')
+    assert response.status_code == 400  # Assuming the API returns a 400 for temp too low
+    data = response.get_json()
+    assert 'error' in data
+    assert data['error'] == 'Temperature is too low to water.'  # Adjust based on your actual error message
+    # Ensure the error message matches your API's response for temp too low
+
 def test_close_water_command(client):
   response = client.get('/api/command/open-water?duration=5')
   assert response.status_code == 202

@@ -327,7 +327,7 @@ def OpenWaterDelay():
     logger.warning("No duration provided")
     return jsonify({"error": "Duration parameter is required", 
                    "flash": {
-                      "message": "_('Duration parameter is required')", 
+                      "message": f"{_('Duration parameter is required')}", 
                       "category": "error"
                       }}
                       ), 400                       
@@ -336,7 +336,7 @@ def OpenWaterDelay():
     logger.warning("Delay is to high, risk to empty container")
     return jsonify({"error": "Invalid duration", 
                     "flash": {
-                      "message": "_('Value must be between 0 and 300')", 
+                      "message": f"{_('Value must be between 0 and 300')}", 
                       "category": "error"
                       }
                       }), 400
@@ -345,16 +345,33 @@ def OpenWaterDelay():
     logger.warning("There is already a watering in progress")
     return jsonify({"error": "Watering is already in progress.", 
                     "flash": {
-                      "message": "_('Watering is already in progress.')", 
+                      "message": f"{_('Watering is already in progress.')}",
                       "category": "error"
                       }}), 409
   if not IfWater():
     logger.warning("There is not enough water")
     return jsonify({"error": "Not enough water.", 
                     "flash": {
-                      "message": "_('Not enough water to start watering.')", 
+                      "message": f"{_('Not enough water to start watering.')}", 
                       "category": "error"
                       }}), 507
+  
+  weather_data, status_code = get_minmax_temperature_precip()
+  logger.debug(f"Weather data for watering check: {weather_data.get_json()}")
+  if status_code != 200 and status_code != 201:
+    logger.error(f"Error fetching temperature max: {weather_data}")
+    return weather_data, status_code
+  min_temp = weather_data.get_json().get("temperature_2m_min")
+  if min_temp is None:
+    logger.error("Min temperature not found in forecast data")
+    return jsonify({"error": "Min temperature not found in forecast data"}), 500
+  if min_temp < 5:
+    logger.warning("Temperature is too low to water")
+    return jsonify({"error": "Temperature is too low to water.", 
+                    "flash": {
+                      "message": f"{_('Temperature is too low to water.')}", 
+                      "category": "warning"
+                      }}), 400
   task_id = add_task(duration, "in progress")
   cancel_event = threading.Event()
   cancel_flags[task_id] = cancel_event
@@ -394,19 +411,6 @@ def closeWaterSupply():
 #   logger.debug(f"History result: {result}")
 #   return jsonify(result)
 
-@app.route('/healthz')
-def healthz():
-  try:
-    ctlInst.getLevel()  # Vérifie si le contrôle fonctionne
-    conn = get_connection()
-    if conn is None:
-      raise Exception("Database connection failed")
-    conn.close()
-    return "OK", 200
-  except Exception as e:
-    logger.error(f"Health check failed: {e}")
-    return "Service Unavailable", 503
-
 @app.route('/health')
 @app.route('/healthz')
 @app.route('/healthcheck')
@@ -430,5 +434,4 @@ if __name__ == '__main__':
   #Register the function to be called on exit
   atexit.register(cleanup_app)
   logger.info(f"Environment: {os.environ.get('FLASK_ENV', 'production')}")
-  logger.info(f"SQLALCHEMY_DATABASE_URL: {local_config.SQLALCHEMY_DATABASE_URL}")
   app.run(host="0.0.0.0", port=3000, debug=True)

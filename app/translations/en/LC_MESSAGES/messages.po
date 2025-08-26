@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-08-23 11:03+0200\n"
+"POT-Creation-Date: 2025-08-26 16:08+0200\n"
 "PO-Revision-Date: 2025-07-22 19:22+0200\n"
 "Last-Translator: Vincent <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -16,32 +16,57 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.17.0\n"
+"Generated-By: Babel 2.10.3\n"
 
-#: app.py:69
+#: app.py:72
 #, fuzzy
 msgid "Low"
 msgstr "Low"
 
-#: app.py:70
+#: app.py:73
 #, fuzzy
 msgid "Moderate"
 msgstr "Moderate"
 
-#: app.py:71
+#: app.py:74
 #, fuzzy
 msgid "Standard"
 msgstr "Standard"
 
-#: app.py:72
+#: app.py:75
 #, fuzzy
 msgid "Reinforced"
 msgstr "Réinforced"
 
-#: app.py:73
+#: app.py:76
 #, fuzzy
 msgid "High"
 msgstr "High"
+
+#: app.py:241
+msgid "Settings saved successfully."
+msgstr "Settings saved successfully."
+
+#: app.py:330
+msgid "Duration parameter is required"
+msgstr "Duration parameter is requireds"
+
+#: app.py:339
+msgid "Value must be between 0 and 300"
+msgstr "Value must be between 0 and 300"
+
+#: app.py:348
+#, fuzzy
+msgid "Watering is already in progress."
+msgstr "Watering in progress"
+
+#: app.py:355
+msgid "Not enough water to start watering."
+msgstr "Not enough water to start watering."
+
+#: app.py:372
+msgid "Temperature is too low to water."
+msgstr "Temperature is too low to water"
 
 #: services/weather.py:18
 msgid "Clear sky"
@@ -161,7 +186,7 @@ msgstr "Unknown weather code"
 
 #: templates/base.html:5 templates/base.html:21 templates/history.html:51
 #: templates/history.html:63 templates/history.html:133
-#: templates/history.html:185 templates/index.html:1 templates/index.html:36
+#: templates/history.html:185 templates/index.html:1 templates/index.html:34
 msgid "Watering"
 msgstr "Watering"
 
@@ -203,15 +228,15 @@ msgstr "Precipitations"
 #: templates/history.html:62 templates/history.html:121
 #: templates/history.html:185
 #, fuzzy
-msgid "HRain"
-msgstr "Rain"
+msgid "Precipitation"
+msgstr "Precipitations"
 
 #: templates/history.html:179
 #, fuzzy
 msgid "Temperature"
 msgstr "Moderate"
 
-#: templates/history.html:207
+#: templates/history.html:206
 msgid "Period"
 msgstr "Period"
 
@@ -219,43 +244,36 @@ msgstr "Period"
 msgid "Auto watering"
 msgstr "Auto watering"
 
-#: templates/index.html:25
-msgid "Refresh levels"
-msgstr "Refresh levels"
-
-#: templates/index.html:39
+#: templates/index.html:37
 msgid "Stop watering"
 msgstr "Stop watering"
 
-#: templates/index.html:68
-msgid "Error: Unable to retrieve temperature"
-msgstr "Error: Unable to retrieve temperature"
-
-#: templates/index.html:95
+#: templates/index.html:77
 msgid "Error: Unable to retrieve water level"
 msgstr "Error: Unable to retrieve water level"
 
-#: templates/index.html:103
-msgid "Please enter a valid duration between 1 and 300 seconds"
+#: templates/index.html:85
+#, fuzzy
+msgid "Please enter a valid duration (1-300 seconds)."
 msgstr "Please enter a valid duration between 1 and 300 seconds"
 
-#: templates/index.html:130
+#: templates/index.html:119
 msgid "Watering in progress"
 msgstr "Watering in progress"
 
-#: templates/index.html:131
+#: templates/index.html:120
 msgid "Watering completed"
 msgstr "Watering completed"
 
-#: templates/index.html:132
+#: templates/index.html:121
 msgid "Watering canceled"
 msgstr "Watering canceled"
 
-#: templates/index.html:152
+#: templates/index.html:141
 msgid "Started at:"
 msgstr "Started at:"
 
-#: templates/index.html:152
+#: templates/index.html:141
 msgid "Time remaining"
 msgstr "Time remaining"
 
@@ -337,4 +355,13 @@ msgstr "Save"
 
 #~ msgid "Water level"
 #~ msgstr "Water level"
+
+#~ msgid "HRain"
+#~ msgstr "Rain"
+
+#~ msgid "Refresh levels"
+#~ msgstr "Refresh levels"
+
+#~ msgid "Error: Unable to retrieve temperature"
+#~ msgstr "Error: Unable to retrieve temperature"
 
