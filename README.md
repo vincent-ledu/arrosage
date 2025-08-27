@@ -113,7 +113,7 @@ See `utils/deploy.sh`
   - [x] 📊 Rename existing table to weather_data
   - [x] 📊 Create table to forecat_data
   - [x] ⏱️ Refresh weather data of the day for 6h.
-  - [ ] 🧪 Unit testing
+  - [x] 🧪 Unit testing
   - [ ] 🏎️ Cache forecat for 4 next days (j+1 to j+4) in table forecast_data
   - [ ] ⏱️ Cache forecat data for 6h.
   - [ ] ❌ Delete old forecast data

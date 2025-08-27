@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 
 from app import app
 from config import config as local_config
+import db.db_weather_data as db_weather_data
+from datetime import date, timedelta
 
 def pytest_configure(config):
     # Charger le .env.test en priorité
@@ -40,6 +42,38 @@ def test_minmax_temperature_precip(client):
   assert isinstance(data['temperature_2m_max'], float)
   assert isinstance(data['temperature_2m_min'], float)
   assert isinstance(data['precipitation_sum'], float)
+
+"""
+Test de la mise en cache des données météo.
+"""
+def test_minmax_temperature_precip_cache(client):
+  db_weather_data.delete_weather_data_by_date(date.today())  # Supprime les données si elles existent
+  response1 = client.get('/api/forecast-minmax-precip')
+  assert response1.status_code in [201]
+  data1 = response1.get_json()
+  time.sleep(2)  # Attendre un peu pour s'assurer que le cache est en place
+  response2 = client.get('/api/forecast-minmax-precip')
+  assert response2.status_code in [200]
+  data2 = response2.get_json()
+  assert data1 == data2  # Les données doivent être identiques si elles sont mises en cache
+
+"""
+Test du TTL, en mockant le TTL à 2 secondes.
+"""
+def test_minmax_temperature_precip_cache_ttl(client, monkeypatch):
+  db_weather_data.delete_weather_data_by_date(date.today())  # Supprime les données si elles existent
+
+  # Mock le TTL à 2 secondes
+  monkeypatch.setattr('app.TTL', timedelta(seconds=1))
+
+  response1 = client.get('/api/forecast-minmax-precip')
+  assert response1.status_code in [201]
+  data1 = response1.get_json()
+  time.sleep(2)  # Attendre plus longtemps que le TTL
+  response2 = client.get('/api/forecast-minmax-precip')
+  assert response2.status_code in [201]  # Devrait être 201 car les données sont rafraîchies
+  data2 = response2.get_json()
+  assert data1 == data2  # Les données devraient être identiques même après le rafraîchissement
 
 def test_forecast_data(client):
   response = client.get('/api/forecast')

@@ -52,7 +52,12 @@ def add_weather_data(date: DateType, min_temp: float, max_temp: float, precipita
         )
         row = result.first()
         return row.id if row else None
-  
+
+def delete_weather_data_by_date(date: DateType) -> None:
+  with get_session() as s:
+    s.execute(text("DELETE FROM weather_data WHERE date = :date"), {"date": date})
+    s.commit()
+
 def get_weather_data(data_id: int) -> Optional[WeatherData]:
   """Récupère les données météo par id."""
   with get_session() as s:

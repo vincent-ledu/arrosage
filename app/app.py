@@ -192,6 +192,7 @@ def get_minmax_temperature_precip():
     }), 200
   except Exception as e:
     logger.error("Forecast error : %s", e)
+    logger.exception(e)
     return jsonify({"error": "Error in calling open-meteo api", 
                     "flash": {
                       "message": "_('Error fetching weather data. Please try again later.')", 
