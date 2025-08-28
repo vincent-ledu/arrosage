@@ -3,11 +3,8 @@ import random
 from datetime import datetime, timedelta, time
 from zoneinfo import ZoneInfo  # Python 3.9+
 import uuid
-from db.db_tasks import init_db, add_task
+from db.db_tasks import add_task
 from app.db.db_weather_data import add_weather_data
-
-# Initialisation
-init_db()
 
 # Timestamp actuel
 tz = ZoneInfo("Europe/Paris")

@@ -63,7 +63,7 @@ Test du TTL, en mockant le TTL à 2 secondes.
 def test_minmax_temperature_precip_cache_ttl(client, monkeypatch):
   db_weather_data.delete_weather_data_by_date(date.today())  # Supprime les données si elles existent
 
-  # Mock le TTL à 2 secondes
+  # Mock le TTL à 1 secondes
   monkeypatch.setattr('app.TTL', timedelta(seconds=1))
 
   response1 = client.get('/api/forecast-minmax-precip')
@@ -77,7 +77,7 @@ def test_minmax_temperature_precip_cache_ttl(client, monkeypatch):
 
 def test_forecast_data(client):
   response = client.get('/api/forecast')
-  assert response.status_code == 200
+  assert response.status_code in [200, 201]
   data = response.get_json()
   assert isinstance(data, list)
   if len(data) > 0:
@@ -91,6 +91,30 @@ def test_forecast_data(client):
     assert 'morning_text' in entry
     assert 'morning_precip_mm' in entry
     assert isinstance(entry['date'], str)
+
+def test_forecast_data_TTL(client, monkeypatch):
+  # initialize cache if not set
+  response = client.get("/api/forecast")
+  assert response.status_code in [200, 201]
+  data = response.get_json()
+  assert isinstance(data, list)
+  assert len(data) >= 5
+
+  # test data are in cache
+  response = client.get("/api/forecast")
+  assert response.status_code in [200]
+  data = response.get_json()
+  assert isinstance(data, list)
+  assert len(data) >= 5
+
+  # Mock le TTL à 1 secondes
+  monkeypatch.setattr('app.TTL', timedelta(seconds=1))
+  time.sleep(2)
+  response = client.get("/api/forecast")
+  assert response.status_code in [201]
+  data = response.get_json()
+  assert isinstance(data, list)
+  assert len(data) >= 5
 
 def test_watering_type(client):
   response = client.get('/api/watering-type')

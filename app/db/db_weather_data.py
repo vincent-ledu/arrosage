@@ -1,5 +1,3 @@
-# app/db/db.py (ou où se trouve get_forecast_data)
-
 from sqlalchemy.orm import Session
 
 from datetime import date as DateType, datetime
@@ -14,11 +12,6 @@ from sqlalchemy import text
 def get_connection() -> Session:
   """Compatibilité ascendante : renvoie une session SQLAlchemy utilisable via 'with'."""
   return get_session()
-
-
-def init_db():
-  """Crée la table si absente (idempotent), comme avant."""
-  Base.metadata.create_all(bind=engine)
 
 def add_weather_data(date: DateType, min_temp: float, max_temp: float, precipitation: float) -> int:
     """Insère ou met à jour les données météo pour une date donnée. Renvoie l'id de la ligne."""

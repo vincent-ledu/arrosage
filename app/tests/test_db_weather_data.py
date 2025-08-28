@@ -9,17 +9,8 @@ def pytest_configure(config):
     # Charger le .env.test en priorité
     load_dotenv(dotenv_path=".env.test", override=True)
 
-@pytest.fixture
-def db():
-  db_weather_data.init_db()
-  yield
-  # Cleanup if necessary
-
 @pytest.fixture(autouse=True)
 def db(monkeypatch):
-    db_weather_data.init_db()  # crée la base et les tables
-    yield
-
     # Nettoyage : supprime les données de toutes les tables
     with db_weather_data.get_connection() as s:
       tables = ["tasks"]

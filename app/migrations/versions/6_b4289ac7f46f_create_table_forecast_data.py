@@ -24,15 +24,35 @@ def upgrade() -> None:
     op.create_table('forecast_data',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('date', sa.Date(), nullable=False),
-    sa.Column('min_temp', sa.Float(), nullable=False),
-    sa.Column('max_temp', sa.Float(), nullable=False),
-    sa.Column('precipitation', sa.Float(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('temp_min', sa.Float(), nullable=False),
+    sa.Column('temp_max', sa.Float(), nullable=False),
+
+    sa.Column('night_icon', sa.String(length=4), nullable=True),
+    sa.Column('night_text', sa.String(length=32), nullable=True),
+    sa.Column('night_precip_mm', sa.Float(), nullable=True),
+    sa.Column('night_temp_avg', sa.Float(), nullable=True),
+
+    sa.Column('morning_icon', sa.String(length=4), nullable=True),
+    sa.Column('morning_text', sa.String(length=32), nullable=True),
+    sa.Column('morning_precip_mm', sa.Float(), nullable=True),
+    sa.Column('morning_temp_avg', sa.Float(), nullable=True),
+
+    sa.Column('afternoon_icon', sa.String(length=4), nullable=True),
+    sa.Column('afternoon_text', sa.String(length=32), nullable=True),
+    sa.Column('afternoon_precip_mm', sa.Float(), nullable=True),
+    sa.Column('afternoon_temp_avg', sa.Float(), nullable=True),
+
+    sa.Column('evening_icon', sa.String(length=4), nullable=True),
+    sa.Column('evening_text', sa.String(length=32), nullable=True),
+    sa.Column('evening_precip_mm', sa.Float(), nullable=True),
+    sa.Column('evening_temp_avg', sa.Float(), nullable=True),
+
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_forecast_data_created_at'), 'forecast_data', ['created_at'], unique=False)
-    op.create_index(op.f('ix_forecast_data_date'), 'forecast_data', ['date'], unique=False)
+    op.create_index(op.f('ix_forecast_data_date'), 'forecast_data', ['date'], unique=True)
     op.create_index(op.f('ix_forecast_data_updated_at'), 'forecast_data', ['updated_at'], unique=False)
     # ### end Alembic commands ###
 

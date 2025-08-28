@@ -109,15 +109,7 @@ See `utils/deploy.sh`
 
 # TODO
 
-- [ ] 🏎️ Improve cached data
-  - [x] 📊 Rename existing table to weather_data
-  - [x] 📊 Create table to forecat_data
-  - [x] ⏱️ Refresh weather data of the day for 6h.
-  - [x] 🧪 Unit testing
-  - [ ] 🏎️ Cache forecat for 4 next days (j+1 to j+4) in table forecast_data
-  - [ ] ⏱️ Cache forecat data for 6h.
-  - [ ] ❌ Delete old forecast data
-  - [ ] 🧪 Unit testing
+- [ ] 📊 Add an endpoint to resfresh weather data
 - [ ] 🚿 Compute water volume per watering (settings with pump capacity)
 - [ ] 🏗️ Go to a Domain Driven Design approach
 - [ ] 🗓️ Set cron in application
@@ -149,6 +141,15 @@ See `utils/deploy.sh`
   - [x] ➕ Add mariadb backup
 - [x] 🧊 Prevent watering when temperature < 0°
 - [x] 🗓️ Settings for month watering: checks which month watering is enabled
+- [x] 🏎️ Improve cached data
+  - [x] 📊 Rename existing table to weather_data
+  - [x] 📊 Create table to forecat_data
+  - [x] ⏱️ Refresh weather data of the day for 6h.
+  - [x] 🧪 Unit testing
+  - [x] 🏎️ Cache forecat for 4 next days (j+1 to j+4) in table forecast_data
+  - [x] ⏱️ Cache forecat data for 6h.
+  - [x] ❌ Delete old forecast data
+  - [x] 🧪 Unit testing
 
 # Inventory
 

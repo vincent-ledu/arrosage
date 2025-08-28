@@ -53,7 +53,7 @@ def fetch_open_meteo(lat, lon, days=7):
   params = {
     "latitude": lat,
     "longitude": lon,
-    "hourly": "weather_code,cloudcover,temperature_2m,precipitation,precipitation_probability",
+    "hourly": "weather_code,cloudcover,temperature_2m,precipitation",
     "forecast_days": days,
     "timezone": "Europe/Paris",
   }
