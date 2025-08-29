@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-08-26 16:31+0200\n"
+"POT-Creation-Date: 2025-08-29 22:09+0200\n"
 "PO-Revision-Date: 2025-07-22 19:22+0200\n"
 "Last-Translator: Vincent <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -43,30 +43,34 @@ msgstr "Renforcé"
 msgid "High"
 msgstr "Haut"
 
-#: app.py:241
+#: app.py:263
 msgid "Settings saved successfully."
 msgstr "Paramètres sauvés avec succès."
 
-#: app.py:330
+#: app.py:352
 msgid "Duration parameter is required"
 msgstr "Paramètre durée requis"
 
-#: app.py:339
+#: app.py:361
 msgid "Value must be between 0 and 300"
 msgstr "Valeur entre 0 et 300"
 
-#: app.py:348
+#: app.py:370
 #, fuzzy
 msgid "Watering is already in progress."
 msgstr "Arrosage en cours"
 
-#: app.py:355
+#: app.py:377
 msgid "Not enough water to start watering."
 msgstr "Pas assez d'eau pour arroser"
 
-#: app.py:372
+#: app.py:394
 msgid "Temperature is too low to water."
 msgstr "Température trop basse pour arroser."
+
+#: app.py:403
+msgid "Watering is disabled for the current month."
+msgstr "Arrosage désactivé pour le mois en cours."
 
 #: services/weather.py:18
 msgid "Clear sky"
@@ -197,6 +201,10 @@ msgstr "Historique"
 #: templates/base.html:23 templates/settings.html:1 templates/settings.html:4
 msgid "Settings"
 msgstr "Paramètres"
+
+#: templates/base.html:44
+msgid "version"
+msgstr "version : "
 
 #: templates/history.html:8
 msgid "Display last:"

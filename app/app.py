@@ -76,6 +76,12 @@ def inject_translations():
             "high": _("High")
         })
 
+app.config["VERSION"] = local_config.VERSION
+
+@app.context_processor
+def inject_version():
+    return dict(version=app.config["VERSION"])
+
 app.config['BABEL_DEFAULT_LOCALE'] = 'fr'
 app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'translations'
 

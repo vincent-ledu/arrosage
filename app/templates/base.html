@@ -40,4 +40,9 @@
     {% include "_flashes.html" %}
     <main>{% block content %}{% endblock %}</main>
   </body>
+  <footer class="footer">
+    <p style="float: right; padding-right: 10px; color: #666">
+      {{ _('version') }}{{ version }}
+    </p>
+  </footer>
 </html>
