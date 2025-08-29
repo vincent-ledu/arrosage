@@ -59,7 +59,7 @@ SQL_ECHO = os.getenv("SQL_ECHO", "0") == "1"
 
 def load_version():
     try:
-        with open(os.path.join(os.path.dirname(__file__), "version.txt")) as f:
+        with open(os.path.join(os.path.dirname(__file__), "../version.txt")) as f:
             return f.read().strip()
     except FileNotFoundError:
         return "dev"
