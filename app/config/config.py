@@ -57,6 +57,16 @@ SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL", f"{DBDRIVER}://{D
 print(f"Using database : {SQLALCHEMY_DATABASE_URL.split('/')[3]}")
 SQL_ECHO = os.getenv("SQL_ECHO", "0") == "1"
 
+def load_version():
+    try:
+        with open(os.path.join(os.path.dirname(__file__), "version.txt")) as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return "dev"
+
+VERSION = load_version()
+
+
 def load_config():
     if not os.path.exists(CONFIG_FILE):
         save_config(DEFAULT_CONFIG)
