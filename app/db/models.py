@@ -30,6 +30,9 @@ class WeatherData(Base):
         index=True,
     )
 
+    def __repr__(self) -> str:
+        return f"<WeatherData(date={self.date}, min={self.min_temp}, max={self.max_temp}, created_at={self.created_at}, updated_at={self.updated_at})>"
+
 class ForecastData(Base):
     __tablename__ = "forecast_data"
 

@@ -7,7 +7,10 @@ from zoneinfo import ZoneInfo
 from db.database import engine, get_session, Base
 from db.models import WeatherData
 from sqlalchemy import text
+import logging
 
+
+logger = logging.getLogger(__name__)
 
 def get_connection() -> Session:
   """Compatibilité ascendante : renvoie une session SQLAlchemy utilisable via 'with'."""
@@ -15,17 +18,16 @@ def get_connection() -> Session:
 
 def add_weather_data(date: DateType, min_temp: float, max_temp: float, precipitation: float) -> int:
     """Insère ou met à jour les données météo pour une date donnée. Renvoie l'id de la ligne."""
-
+    logger.debug(f'insert weather data at {date}')
     with get_session() as s:
         # Utilisation de INSERT ... ON DUPLICATE KEY UPDATE pour MariaDB/MySQL
         stmt = text("""
-            INSERT INTO weather_data (date, min_temp, max_temp, precipitation, created_at, updated_at)
-            VALUES (:date, :min_temp, :max_temp, :precipitation, :created_at, :updated_at)
+            INSERT INTO weather_data (date, min_temp, max_temp, precipitation)
+            VALUES (:date, :min_temp, :max_temp, :precipitation)
             ON DUPLICATE KEY UPDATE
                 min_temp = VALUES(min_temp),
                 max_temp = VALUES(max_temp),
-                precipitation = VALUES(precipitation),
-                updated_at = VALUES(updated_at)
+                precipitation = VALUES(precipitation)
         """)
         now = datetime.now(ZoneInfo("UTC"))
         params = {
@@ -33,8 +35,6 @@ def add_weather_data(date: DateType, min_temp: float, max_temp: float, precipita
             "min_temp": min_temp,
             "max_temp": max_temp,
             "precipitation": precipitation,
-            "created_at": now,
-            "updated_at": now,
         }
         s.execute(stmt, params)
         s.commit()
