@@ -149,7 +149,7 @@ See `utils/deploy.sh`
   - [x] ⏱️ Cache forecat data for 6h.
   - [x] ❌ Delete old forecast data
   - [x] 🧪 Unit testing
-- [ ] 💬 Fix message flash when non page redirect
+- [x] 💬 Fix message flash when non page redirect
 
 # Inventory
 
