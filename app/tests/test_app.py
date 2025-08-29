@@ -49,11 +49,11 @@ Test de la mise en cache des données météo.
 def test_minmax_temperature_precip_cache(client):
   db_weather_data.delete_weather_data_by_date(date.today())  # Supprime les données si elles existent
   response1 = client.get('/api/forecast-minmax-precip')
-  assert response1.status_code in [201]
+  assert response1.status_code == 201
   data1 = response1.get_json()
   time.sleep(2)  # Attendre un peu pour s'assurer que le cache est en place
   response2 = client.get('/api/forecast-minmax-precip')
-  assert response2.status_code in [200]
+  assert response2.status_code == 200
   data2 = response2.get_json()
   assert data1 == data2  # Les données doivent être identiques si elles sont mises en cache
 

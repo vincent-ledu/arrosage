@@ -20,7 +20,7 @@ from routes.history_series import bp as history_series_bp
 ENVIRONMENT = os.environ.get("FLASK_ENV", "production")
 PORT = int(os.environ.get("PORT", 3000))
 HOST = os.environ.get("HOST", "0.0.0.0")
-TTL = timedelta(hours=6)
+TTL = timedelta(minutes=30)
 
 ctlInst = None
 if ENVIRONMENT in ["development", "test"]:
