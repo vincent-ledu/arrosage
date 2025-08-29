@@ -113,7 +113,6 @@ See `utils/deploy.sh`
 - [ ] 👾 Add freshisness information (last data update)
 - [ ] 🚿 Compute water volume per watering (settings with pump capacity)
 - [ ] 🏗️ Go to a Domain Driven Design approach
-- [ ] 💬 Fix message flash when non page redirect
 - [ ] 👾 Analyze warning message in venv creation and dependancies installation
 
 # DONE
@@ -150,6 +149,7 @@ See `utils/deploy.sh`
   - [x] ⏱️ Cache forecat data for 6h.
   - [x] ❌ Delete old forecast data
   - [x] 🧪 Unit testing
+- [ ] 💬 Fix message flash when non page redirect
 
 # Inventory
 

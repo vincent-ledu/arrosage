@@ -95,6 +95,9 @@ block content %}
       `/api/command/open-water?duration=${duration}`
     );
     const data = await response.json();
+    if (data.flash) {
+      showFlash(data.flash.message, data.flash.category);
+    }
     currentTaskId = data.task_id;
     checkStatus();
 
