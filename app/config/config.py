@@ -54,7 +54,7 @@ DBOPTIONS=os.getenv("DBOPTIONS", "charset=utf8mb4")
 DBDRIVER=os.getenv("DBDRIVER", "mysql+pymysql")
 
 SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL", f"{DBDRIVER}://{DBUSER}:{DBPASSWORD}@{DBHOST}:{DBPORT}/{DBNAME}?{DBOPTIONS}")
-print(f"Using database : {SQLALCHEMY_DATABASE_URL.split("/")[3]}")
+print(f"Using database : {SQLALCHEMY_DATABASE_URL.split('/')[3]}")
 SQL_ECHO = os.getenv("SQL_ECHO", "0") == "1"
 
 def load_config():
