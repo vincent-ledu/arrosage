@@ -111,10 +111,8 @@ See `utils/deploy.sh`
 
 - [ ] 📊 Add an endpoint to resfresh weather data
 - [ ] 👾 Add freshisness information (last data update)
-- [ ] 🏎️ Set 2 TTL: one for weather data, 1 for forecast
 - [ ] 🚿 Compute water volume per watering (settings with pump capacity)
 - [ ] 🏗️ Go to a Domain Driven Design approach
-- [ ] 🗓️ Set cron in application
 - [ ] 💬 Fix message flash when non page redirect
 - [ ] 👾 Analyze warning message in venv creation and dependancies installation
 
