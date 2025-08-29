@@ -51,6 +51,10 @@ fi
 TS="$(timestamp)"
 NEW_RELEASE="$RELEASES_DIR/$TS"
 
+log "ℹ️ [deploy] Add short commit to app"
+echo $(git rev-parse --short HEAD) > app/version.txt
+
+
 log "ℹ️ [deploy] Preparing folders…"
 mkdir -p "$RELEASES_DIR" "$SHARED_DIR"/{log,run,config,db,backups}
 # Example: if you want a shared venv, create it in $SHARED_DIR/venv and adjust below.
