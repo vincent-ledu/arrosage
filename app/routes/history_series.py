@@ -5,7 +5,7 @@ from sqlalchemy import func, cast, Float, Integer
 from datetime import date, datetime, timedelta, time
 
 from db.db_tasks import get_session
-from db.models import Task, ForecastStats  # ForecastStats.date = Date, Task.created_at = DateTime
+from db.models import Task, WeatherData  # ForecastStats.date = Date, Task.created_at = DateTime
 
 bp = Blueprint("history_series", __name__)
 
@@ -53,22 +53,22 @@ def history_series():
         # 2) Plage météo + LEFT JOIN sur la clé DATE
         rows = (
             s.query(
-                ForecastStats.date.label("day"),
-                cast(ForecastStats.min_temp, Float).label("min_temp"),
-                cast(ForecastStats.max_temp, Float).label("max_temp"),
-                cast(ForecastStats.precipitation, Float).label("precip_mm"),
+                WeatherData.date.label("day"),
+                cast(WeatherData.min_temp, Float).label("min_temp"),
+                cast(WeatherData.max_temp, Float).label("max_temp"),
+                cast(WeatherData.precipitation, Float).label("precip_mm"),
                 cast(func.coalesce(tasks_agg_sq.c.duration_sec, 0), Integer).label("duration_sec"),
                 cast(func.coalesce(tasks_agg_sq.c.runs, 0), Integer).label("runs"),
             )
-            .outerjoin(tasks_agg_sq, tasks_agg_sq.c.day == ForecastStats.date)
-            .filter(ForecastStats.date >= start_date)
-            .filter(ForecastStats.date <= end_date)
-            .order_by(ForecastStats.date)
+            .outerjoin(tasks_agg_sq, tasks_agg_sq.c.day == WeatherData.date)
+            .filter(WeatherData.date >= start_date)
+            .filter(WeatherData.date <= end_date)
+            .order_by(WeatherData.date)
             .all()
         )
 
         # 3) Pour le bouton "-15j" : plus ancienne date météo disponible
-        oldest_date = s.query(func.min(ForecastStats.date)).scalar()
+        oldest_date = s.query(func.min(WeatherData.date)).scalar()
         has_prev = bool(oldest_date and oldest_date < start_date)
 
     data = [

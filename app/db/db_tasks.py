@@ -15,12 +15,6 @@ def get_connection() -> Session:
   """Compatibilité ascendante : renvoie une session SQLAlchemy utilisable via 'with'."""
   return get_session()
 
-
-def init_db():
-  """Crée la table si absente (idempotent), comme avant."""
-  Base.metadata.create_all(bind=engine)
-
-
 def add_task(duration, status, created_at=None) -> str:
   """Insère une tâche et renvoie son id (UUID str)."""
   task_id = str(uuid.uuid4())
