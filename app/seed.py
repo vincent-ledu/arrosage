@@ -6,9 +6,7 @@ import uuid
 from db.db_tasks import add_task
 from app.db.db_weather_data import add_weather_data
 
-# Timestamp actuel
-tz = ZoneInfo("Europe/Paris")
-now = datetime.now(tz)
+now = datetime.now()
 
 # Remplir les 30 derniers jours
 for day_offset in range(30):
