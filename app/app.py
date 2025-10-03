@@ -388,6 +388,7 @@ def OpenWaterDelay():
     return jsonify({"error": "Min temperature not found in forecast data"}), 500
   if min_temp < 5:
     logger.warning("Temperature is too low to water")
+    flash(_("Temperature is too low to water."), "warning")
     return jsonify({"error": "Temperature is too low to water.", 
                     "flash": {
                       "message": f"{_('Temperature is too low to water.')}", 

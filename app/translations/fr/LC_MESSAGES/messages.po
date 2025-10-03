@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-08-29 22:09+0200\n"
+"POT-Creation-Date: 2025-10-03 19:10+0200\n"
 "PO-Revision-Date: 2025-07-22 19:22+0200\n"
 "Last-Translator: Vincent <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -43,28 +43,28 @@ msgstr "Renforcé"
 msgid "High"
 msgstr "Haut"
 
-#: app.py:263
+#: app.py:262
 msgid "Settings saved successfully."
 msgstr "Paramètres sauvés avec succès."
 
-#: app.py:352
+#: app.py:351
 msgid "Duration parameter is required"
 msgstr "Paramètre durée requis"
 
-#: app.py:361
+#: app.py:360
 msgid "Value must be between 0 and 300"
 msgstr "Valeur entre 0 et 300"
 
-#: app.py:370
+#: app.py:369
 #, fuzzy
 msgid "Watering is already in progress."
 msgstr "Arrosage en cours"
 
-#: app.py:377
+#: app.py:376
 msgid "Not enough water to start watering."
 msgstr "Pas assez d'eau pour arroser"
 
-#: app.py:394
+#: app.py:391 app.py:394
 msgid "Temperature is too low to water."
 msgstr "Température trop basse pour arroser."
 
@@ -202,7 +202,7 @@ msgstr "Historique"
 msgid "Settings"
 msgstr "Paramètres"
 
-#: templates/base.html:44
+#: templates/base.html:45
 msgid "version"
 msgstr "version : "
 
@@ -265,23 +265,23 @@ msgstr "Erreur : impossible de récupérer le niveau d’eau"
 msgid "Please enter a valid duration (1-300 seconds)."
 msgstr "Veuillez entrer une durée valide entre 1 et 300 secondes"
 
-#: templates/index.html:119
+#: templates/index.html:122
 msgid "Watering in progress"
 msgstr "Arrosage en cours"
 
-#: templates/index.html:120
+#: templates/index.html:123
 msgid "Watering completed"
 msgstr "Arrosage terminé"
 
-#: templates/index.html:121
+#: templates/index.html:124
 msgid "Watering canceled"
 msgstr "Arrosage annulé"
 
-#: templates/index.html:141
+#: templates/index.html:144
 msgid "Started at:"
 msgstr "Démarré à :"
 
-#: templates/index.html:141
+#: templates/index.html:144
 msgid "Time remaining"
 msgstr "Temps restant"
 
