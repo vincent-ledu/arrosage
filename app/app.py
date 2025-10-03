@@ -176,7 +176,6 @@ def is_fresh(data) -> bool:
 def get_minmax_temperature_precip():
   try:
     fs = db_weather_data.get_weather_data_by_date(date.today())
-    logger.debug(f"fs: {fs}")
     if fs is None or not is_fresh(fs):
       logger.info("No forecast data in DB or not fresh, fetching from API")
       coordinates = get_coordinates()

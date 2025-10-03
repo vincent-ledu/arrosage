@@ -1,17 +1,22 @@
 import sys
+import os
 import requests
 import config.config as local_config
 import logging
 
 
 # Configuration globale du logger
+_testing_mode = os.getenv("TESTING") == "1"
+
+_handlers = [logging.StreamHandler()]
+if not _testing_mode:
+  _handlers.insert(0, logging.FileHandler("/var/log/gunicorn/cron-arrosage.log"))
+
 logging.basicConfig(
-  level=logging.DEBUG,  # DEBUG pour + de détails
+  level=logging.DEBUG if _testing_mode else logging.INFO,
   format="%(asctime)s [%(levelname)s] %(message)s",
-  handlers=[
-    logging.FileHandler("/var/log/gunicorn/cron-arrosage.log"),   # Log dans un fichier
-    logging.StreamHandler()                # Log dans la console aussi
-  ]
+  handlers=_handlers,
+  force=True,
 )
 logger = logging.getLogger(__name__)
 
@@ -27,8 +32,8 @@ def watering(time_of_day):
 
   # Récupération du type d'arrosage
   watering_type_res = requests.get("http://localhost/api/watering-type", headers=headers)
-  logger.info(f"Watering type: {watering_type_res.text}")
   watering_type = watering_type_res.text
+  logger.info(f"Watering type: {watering_type}")
   duration = watering_config[watering_type][time_of_day + "-duration"]
   logger.info(f"Duration for {watering_type} at {time_of_day}: {duration} seconds")
   if (duration is None or duration <= 0):
