@@ -7,7 +7,7 @@ Wants=network-online.target
 User=www-data
 WorkingDirectory=/opt/arrosage/current
 EnvironmentFile=/etc/default/arrosage
-ExecStart=/opt/arrosage/current/.venv/bin/gunicorn -c gunicorn_conf.py --workers 1 --bind unix:/run/gunicorn/gunicorn_arrosage.sock wsgi:app
+ExecStart=/opt/arrosage/current/.venv/bin/gunicorn -c gunicorn_conf.py --workers 1 --bind unix:/run/gunicorn/gunicorn_arrosage.sock webapp.wsgi:app
 #Restart=always
 
 [Install]
