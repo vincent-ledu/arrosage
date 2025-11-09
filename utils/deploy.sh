@@ -52,7 +52,7 @@ TS="$(timestamp)"
 NEW_RELEASE="$RELEASES_DIR/$TS"
 
 log "ℹ️ [deploy] Add short commit to app"
-echo $(git rev-parse --short HEAD) > $REPO_ROOT/app/version.txt
+echo $(git rev-parse --short HEAD) > $REPO_ROOT/src/version.txt
 
 
 log "ℹ️ [deploy] Preparing folders…"
