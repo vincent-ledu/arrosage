@@ -24,7 +24,7 @@
         <li>
           <form
             method="post"
-            action="{{ url_for('change_language', lang_code='fr') if get_locale() != 'fr' else url_for('change_language', lang_code='en') }}"
+            action="{{ url_for('ui.change_language', lang_code='fr') if get_locale() != 'fr' else url_for('ui.change_language', lang_code='en') }}"
           >
             <select
               onchange="window.location.href='/change-lang/' + this.value"

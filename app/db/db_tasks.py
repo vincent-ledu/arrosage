@@ -6,25 +6,32 @@ from sqlalchemy import select, update, func, Integer, cast
 from sqlalchemy.orm import Session
 
 
-from db.database import engine, get_session, Base
-from db.models import Task
-from datetime import date as DateType, datetime
+from app.db.database import engine, get_session, Base
+from app.db.models import Task
+from datetime import date as DateType, datetime, timezone
 from typing import Optional, Dict
 
 def get_connection() -> Session:
   """Compatibilité ascendante : renvoie une session SQLAlchemy utilisable via 'with'."""
   return get_session()
 
+def _ensure_utc(dt: datetime) -> datetime:
+  """Convertit un datetime (naïf ou aware) en UTC aware sans perte d'information."""
+  if dt.tzinfo is None:
+    return datetime.fromtimestamp(dt.timestamp(), timezone.utc)
+  return dt.astimezone(timezone.utc)
+
+
 def add_task(duration, status, created_at=None) -> str:
   """Insère une tâche et renvoie son id (UUID str)."""
   task_id = str(uuid.uuid4())
-  dt = datetime.now()
+  dt = _ensure_utc(created_at) if created_at else datetime.now(timezone.utc)
   with get_session() as s:
     t = Task(id=task_id, 
              duration=int(duration), 
              status=str(status), 
-             created_at=created_at if created_at else dt,
-             updated_at=created_at if created_at else dt)
+             created_at=dt,
+             updated_at=dt)
     s.add(t)
     s.commit()
   return task_id
@@ -65,7 +72,7 @@ def update_status(task_id, new_status) -> None:
     s.execute(
       update(Task)
       .where(Task.id == str(task_id))
-      .values(status=str(new_status), updated_at=datetime.now())
+      .values(status=str(new_status), updated_at=datetime.now(timezone.utc))
     )
     s.commit()
 

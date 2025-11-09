@@ -178,3 +178,4 @@ cython_debug/
 .vscode/
 app/.vscode/
 config.json
+test.db

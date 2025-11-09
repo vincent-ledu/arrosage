@@ -59,18 +59,22 @@ class GPIOControl(Control):
           pass
 
   def openWater(self):
-    logger.info("Turning On valve")
-    GPIO.output(self.control_state["valve"], GPIO.HIGH)
+    valve_pin = self.control_state["valve"]
+    pump_pin = self.control_state["pump"]
+    logger.info("Opening valve (GPIO %s)", valve_pin)
+    GPIO.output(valve_pin, GPIO.HIGH)
     time.sleep(2)
-    logger.info("Turning On pump")
-    GPIO.output(self.control_state["pump"], GPIO.HIGH)
+    logger.info("Starting pump (GPIO %s)", pump_pin)
+    GPIO.output(pump_pin, GPIO.HIGH)
 
   def closeWater(self):
-    logger.info("Turning Off pump")
-    GPIO.output(self.control_state["pump"], GPIO.LOW)
+    pump_pin = self.control_state["pump"]
+    valve_pin = self.control_state["valve"]
+    logger.info("Stopping pump (GPIO %s)", pump_pin)
+    GPIO.output(pump_pin, GPIO.LOW)
     time.sleep(2)
-    logger.info("Turning Off valve")
-    GPIO.output(self.control_state["valve"], GPIO.LOW)
+    logger.info("Closing valve (GPIO %s)", valve_pin)
+    GPIO.output(valve_pin, GPIO.LOW)
   
   def debugWaterLevels(self):
     water_states = {}

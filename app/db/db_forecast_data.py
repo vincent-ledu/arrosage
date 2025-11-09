@@ -1,13 +1,10 @@
 from sqlalchemy.orm import Session
 
 from datetime import date as DateType, datetime
-from typing import Optional
-from zoneinfo import ZoneInfo
+from typing import List, Optional
 
-from db.database import engine, get_session, Base
-from db.models import ForecastData
-from sqlalchemy import text
-from typing import List
+from app.db.database import get_session
+from app.db.models import ForecastData
 
 def get_connection() -> Session:
   """Compatibilité ascendante : renvoie une session SQLAlchemy utilisable via 'with'."""
@@ -88,10 +85,11 @@ def add_forecast_data(data: list[dict]) -> None:
     objects = from_dict_list(data)
     
     with get_session() as s:
-      s.execute(text(f"TRUNCATE TABLE {ForecastData.__tablename__}"))
-
-      s.add_all(objects)
-      s.commit()
+        # Utilise un DELETE générique compatible avec SQLite/MySQL/PostgreSQL au lieu de
+        # TRUNCATE qui n'est pas supporté par SQLite.
+        s.query(ForecastData).delete(synchronize_session=False)
+        s.add_all(objects)
+        s.commit()
 
 def get_forecast():
   """Récupère les données des 5 prochains jours"""
