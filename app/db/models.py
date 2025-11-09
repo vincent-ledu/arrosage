@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Integer, Float, Date, DateTime, func
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 
-from db.database import Base
+from app.db.database import Base
 
 class WeatherData(Base):
     __tablename__ = "weather_data"

@@ -6,8 +6,8 @@ from sqlalchemy import select, update, func, Integer, cast
 from sqlalchemy.orm import Session
 
 
-from db.database import engine, get_session, Base
-from db.models import Task
+from app.db.database import engine, get_session, Base
+from app.db.models import Task
 from datetime import date as DateType, datetime
 from typing import Optional, Dict
 

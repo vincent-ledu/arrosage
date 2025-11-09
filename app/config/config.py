@@ -5,7 +5,10 @@ import logging
 from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
-load_dotenv()
+if os.path.exists(".env.test"):
+    load_dotenv(dotenv_path=".env.test", override=True)
+else:
+    load_dotenv()
 
 CONFIG_FILE = "config.json"
 DEFAULT_CONFIG = {
