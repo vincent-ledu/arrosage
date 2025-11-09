@@ -4,14 +4,16 @@ set -e
 # 📍 Configuration
 LOCALES=("fr" "en")
 DOMAIN="messages"
-TRANSLATION_DIR="translations"
+TRANSLATION_DIR="webapp/translations"
 BABEL_CFG="babel.cfg"
 POT_FILE="messages.pot"
+EXTRACT_TARGET="webapp"
 
-cd ../app || exit 1
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
 
 echo "🔄 Extraction des messages..."
-pybabel extract -F "$BABEL_CFG" -o "$POT_FILE" .
+pybabel extract -F "$BABEL_CFG" -o "$POT_FILE" "$EXTRACT_TARGET"
 
 echo "🆕 Mise à jour ou création des traductions..."
 for locale in "${LOCALES[@]}"; do
