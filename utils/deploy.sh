@@ -62,7 +62,7 @@ mkdir -p "$RELEASES_DIR" "$SHARED_DIR"/{log,run,config,db,backups}
 
 log "ℹ️ [deploy] Copying code to $NEW_RELEASE…"
 mkdir -p "$NEW_RELEASE"
-rsync -a "${RSYNC_EXCLUDES[@]}" "$REPO_ROOT"/ "$NEW_RELEASE"/
+rsync -a "${RSYNC_EXCLUDES[@]}" "$REPO_ROOT/app"/ "$NEW_RELEASE"/
 
 log "ℹ️ [deploy] Creating venv…"
 $PYTHON_BIN -m venv "$NEW_RELEASE/.venv"
