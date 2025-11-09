@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 
@@ -24,18 +24,18 @@ class WateringTask:
 
     def mark_completed(self) -> None:
         self.status = TaskStatus.COMPLETED
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         self.error = None
 
     def mark_canceled(self) -> None:
         self.status = TaskStatus.CANCELED
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         self.error = None
 
     def mark_error(self, message: str) -> None:
         self.status = TaskStatus.ERROR
         self.error = message
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     @property
     def is_active(self) -> bool:

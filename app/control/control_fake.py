@@ -37,10 +37,12 @@ class FakeControl(Control):
     pass
 
   def openWater(self):
-    pass
+    logger.info("FAKE: valve opened")
+    logger.info("FAKE: pump started")
 
   def closeWater(self):
-    pass
+    logger.info("FAKE: pump stopped")
+    logger.info("FAKE: valve closed")
 
   def debugWaterLevels(self):
     water_states = {}
@@ -59,4 +61,3 @@ class FakeControl(Control):
 
   def setup(self):
     pass
-

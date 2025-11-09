@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import requests
 
@@ -11,16 +11,24 @@ os.makedirs("/var/log/gunicorn", exist_ok=True)
 
 from app.services import weather
 
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _utc_timestamp() -> str:
+    return _utc_now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 _FALLBACK_DAILY = {
     "temperature_2m_min": 10.0,
     "temperature_2m_max": 20.0,
     "precipitation_sum": 0.0,
-    "updated_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+    "updated_at": _utc_timestamp(),
 }
 
 
 def _fallback_partday() -> list[dict]:
-    now = datetime.utcnow()
+    now = _utc_now()
     entries = []
     for i in range(5):
         day = (now + timedelta(days=i)).strftime("%Y-%m-%d")
@@ -45,7 +53,7 @@ def _fallback_partday() -> list[dict]:
                 "evening_text": "Clear",
                 "evening_precip_mm": 0.0,
                 "evening_temp_avg": 16.0,
-                "updated_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                "updated_at": _utc_timestamp(),
             }
         )
     return entries
@@ -67,7 +75,7 @@ class OpenMeteoClient(ForecastProvider):
                 "temperature_2m_min": float(data["temperature_2m_min"][0]),
                 "temperature_2m_max": float(data["temperature_2m_max"][0]),
                 "precipitation_sum": float(data["precipitation_sum"][0]),
-                "updated_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                "updated_at": _utc_timestamp(),
             }
         except (requests.RequestException, KeyError, IndexError, ValueError):
             return dict(_FALLBACK_DAILY)
@@ -76,7 +84,7 @@ class OpenMeteoClient(ForecastProvider):
         try:
             raw = weather.fetch_open_meteo(latitude, longitude)
             aggregated = weather.aggregate_by_partday(raw)
-            timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+            timestamp = _utc_timestamp()
             for entry in aggregated:
                 entry["updated_at"] = timestamp
             return aggregated

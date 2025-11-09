@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 from domain.watering.entities import TankLevelSnapshot
 from domain.watering.ports import DeviceController, TankLevelSensor
@@ -78,7 +78,8 @@ class DeviceTankLevelSensor(TankLevelSensor):
 
     def snapshot(self) -> TankLevelSnapshot:
         level_raw = self._controller.get_level()
-        return TankLevelSnapshot(level_percent=level_raw * 25, measured_at=datetime.utcnow())
+        measured_at = datetime.now(timezone.utc)
+        return TankLevelSnapshot(level_percent=level_raw * 25, measured_at=measured_at)
 
 
 def create_device_controller() -> DeviceControllerAdapter:

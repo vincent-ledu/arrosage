@@ -4,7 +4,7 @@ import threading
 import time
 from typing import Dict
 
-from domain.watering.entities import WateringTask
+from domain.watering.entities import TaskStatus, WateringTask
 from domain.watering.ports import DeviceController, WateringTaskRepository
 
 
@@ -29,6 +29,7 @@ class WateringRuntime:
         for task_id, event in list(self._cancel_events.items()):
             event.set()
             cancelled.append(task_id)
+            self._repository.update_status(task_id, TaskStatus.CANCELED.value)
             self._cancel_events.pop(task_id, None)
         return cancelled
 
