@@ -17,7 +17,7 @@ from flask import Flask, jsonify, request, session
 from flask_babel import Babel, lazy_gettext as _l
 from werkzeug.exceptions import HTTPException
 
-import app.config.config as local_config
+import config.config as local_config
 from babel.messages import mofile, pofile
 from interfaces.http.flask.container import build_container
 from interfaces.http.flask.routes import system, ui, watering, weather
