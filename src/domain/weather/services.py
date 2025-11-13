@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import List, Mapping, Sequence
 
 from domain.weather.ports import ForecastCache, ForecastProvider
@@ -61,7 +61,15 @@ class ForecastService:
             updated_at = updated_at_value
         else:
             updated_at = datetime.strptime(str(updated_at_value), "%Y-%m-%d %H:%M:%S")
-        return datetime.now() < updated_at + self._ttl
+
+        # Les horodatages stockés en base sont normalisés en UTC.
+        if updated_at.tzinfo is None:
+            updated_at = updated_at.replace(tzinfo=timezone.utc)
+        else:
+            updated_at = updated_at.astimezone(timezone.utc)
+
+        now = datetime.now(timezone.utc)
+        return now < updated_at + self._ttl
 
     def set_ttl(self, ttl: timedelta) -> None:
         self._ttl = ttl
