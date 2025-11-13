@@ -2,45 +2,52 @@ from __future__ import annotations
 import uuid
 from typing import Optional, Dict, List
 
-from sqlalchemy import select, update, func, Integer, cast
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 
-from db.database import engine, get_session, Base
+from db.database import get_session
 from db.models import Task
-from datetime import date as DateType, datetime, timezone
-from typing import Optional, Dict
+from datetime import datetime, timezone
+
 
 def get_connection() -> Session:
-  """Compatibilité ascendante : renvoie une session SQLAlchemy utilisable via 'with'."""
-  return get_session()
+    """Compatibilité ascendante : renvoie une session SQLAlchemy utilisable via 'with'."""
+    return get_session()
+
 
 def _ensure_utc(dt: datetime) -> datetime:
-  """Convertit un datetime (naïf ou aware) en UTC aware sans perte d'information."""
-  if dt.tzinfo is None:
-    return datetime.fromtimestamp(dt.timestamp(), timezone.utc)
-  return dt.astimezone(timezone.utc)
+    """Convertit un datetime (naïf ou aware) en UTC aware sans perte d'information."""
+    if dt.tzinfo is None:
+        return datetime.fromtimestamp(dt.timestamp(), timezone.utc)
+    return dt.astimezone(timezone.utc)
 
 
 def add_task(duration, status, created_at=None) -> str:
-  """Insère une tâche et renvoie son id (UUID str)."""
-  task_id = str(uuid.uuid4())
-  dt = _ensure_utc(created_at) if created_at else datetime.now(timezone.utc)
-  with get_session() as s:
-    t = Task(id=task_id, 
-             duration=int(duration), 
-             status=str(status), 
-             created_at=dt,
-             updated_at=dt)
-    s.add(t)
-    s.commit()
-  return task_id
+    """Insère une tâche et renvoie son id (UUID str)."""
+    task_id = str(uuid.uuid4())
+    dt = _ensure_utc(created_at) if created_at else datetime.now(timezone.utc)
+    with get_session() as s:
+        t = Task(
+            id=task_id,
+            duration=int(duration),
+            status=str(status),
+            created_at=dt,
+            updated_at=dt,
+        )
+        s.add(t)
+        s.commit()
+    return task_id
+
 
 def get_tasks_by_status(status):
-  """Récupère les tâches par statut, triées par created_at décroissant."""
-  with get_session() as s:
-    stmt = select(Task).where(Task.status == status).order_by(Task.created_at.desc())
-    return s.scalars(stmt).all()
+    """Récupère les tâches par statut, triées par created_at décroissant."""
+    with get_session() as s:
+        stmt = (
+            select(Task).where(Task.status == status).order_by(Task.created_at.desc())
+        )
+        return s.scalars(stmt).all()
+
 
 # def get_daily_durations_for_done():
 #     """
@@ -67,24 +74,27 @@ def get_tasks_by_status(status):
 #         rows = s.execute(stmt).all()
 #         return [{"date": r.date, "duration": round(r.duration / 60, 1)} for r in rows]
 
+
 def update_status(task_id, new_status) -> None:
-  with get_session() as s:
-    s.execute(
-      update(Task)
-      .where(Task.id == str(task_id))
-      .values(status=str(new_status), updated_at=datetime.now(timezone.utc))
-    )
-    s.commit()
+    with get_session() as s:
+        s.execute(
+            update(Task)
+            .where(Task.id == str(task_id))
+            .values(status=str(new_status), updated_at=datetime.now(timezone.utc))
+        )
+        s.commit()
 
 
 def get_task(task_id) -> Optional[Dict]:
-  with get_session() as s:
-    return s.get(Task, str(task_id))
+    with get_session() as s:
+        return s.get(Task, str(task_id))
+
 
 def get_all_tasks() -> List[Dict]:
-  with get_session() as s:
-    return s.scalars(select(Task).order_by(Task.created_at.desc())).all()
-  
+    with get_session() as s:
+        return s.scalars(select(Task).order_by(Task.created_at.desc())).all()
+
+
 # def get_tasks_summary_by_day():
 #     """
 #     Retourne { 'YYYY-MM-DD': total_duration_seconds } pour les tâches terminées.

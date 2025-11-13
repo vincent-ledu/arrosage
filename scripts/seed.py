@@ -1,7 +1,6 @@
 # seed.py
 import random
-from datetime import datetime, timedelta, time
-from zoneinfo import ZoneInfo  # Python 3.9+
+from datetime import datetime, timedelta
 import uuid
 from db.db_tasks import add_task
 from db.db_weather_data import add_weather_data
@@ -17,13 +16,20 @@ for day_offset in range(30):
         day_dt = now - timedelta(days=day_offset, hours=hour_offset)
         duration = random.randint(60, 300)  # Durée entre 1 et 5 min
         task_id = str(uuid.uuid4())
-        status = random.choices(["completed", "canceled", "error"], weights=[0.8, 0.1, 0.1])[0]
+        status = random.choices(
+            ["completed", "canceled", "error"], weights=[0.8, 0.1, 0.1]
+        )[0]
 
         add_task(duration, status)
-        
+
         min_temp = random.uniform(10.0, 20.0)  # Température min entre 10 et 20 °C
         max_temp = random.uniform(20.0, 30.0)  # Température max entre 20 et 30 °C
         precipitation = random.uniform(0.0, 5.0)  # Précipitation entre 0 et 5 mm
-        add_weather_data(day_dt.date(), round(min_temp, 1), round(max_temp, 1), round(precipitation, 1))
+        add_weather_data(
+            day_dt.date(),
+            round(min_temp, 1),
+            round(max_temp, 1),
+            round(precipitation, 1),
+        )
 
 print("✅ Fake data inserted.")

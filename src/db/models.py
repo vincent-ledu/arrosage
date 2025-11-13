@@ -4,14 +4,16 @@ from __future__ import annotations
 from datetime import datetime, date
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Integer, Float, Date, DateTime, func
-from sqlalchemy.sql.sqltypes import TIMESTAMP
 
 from db.database import Base
+
 
 class WeatherData(Base):
     __tablename__ = "weather_data"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, index=True)
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True, index=True
+    )
     date: Mapped[date] = mapped_column(Date, nullable=False, index=True)  # date UTC
     min_temp: Mapped[float] = mapped_column(Float, nullable=False)  # en °C
     max_temp: Mapped[float] = mapped_column(Float, nullable=False)  # en °C
@@ -24,14 +26,15 @@ class WeatherData(Base):
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=func.now(),          # initialisé à la création
-        onupdate=func.now(),         # mis à jour à chaque UPDATE
+        default=func.now(),  # initialisé à la création
+        onupdate=func.now(),  # mis à jour à chaque UPDATE
         nullable=False,
         index=True,
     )
 
     def __repr__(self) -> str:
         return f"<WeatherData(date={self.date}, min={self.min_temp}, max={self.max_temp}, created_at={self.created_at}, updated_at={self.updated_at})>"
+
 
 class ForecastData(Base):
     __tablename__ = "forecast_data"
@@ -75,7 +78,11 @@ class ForecastData(Base):
         DateTime, server_default=func.now(), nullable=False, index=True
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False, index=True
+        DateTime,
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+        index=True,
     )
 
     def __repr__(self) -> str:
@@ -85,13 +92,15 @@ class ForecastData(Base):
 class Task(Base):
     __tablename__ = "tasks"
 
-    id: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)  # UUID4 hex
+    id: Mapped[str] = mapped_column(
+        String(64), primary_key=True, index=True
+    )  # UUID4 hex
     status: Mapped[str] = mapped_column(String(20), index=True)
     duration: Mapped[int] = mapped_column(Integer)  # en secondes
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=func.now(),          # défini côté app : aware UTC
+        default=func.now(),  # défini côté app : aware UTC
         nullable=False,
         index=True,
     )

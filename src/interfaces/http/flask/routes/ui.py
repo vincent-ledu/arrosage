@@ -46,17 +46,43 @@ def settings_page():
     if request.method == "POST":
         config["pump"] = int(request.form.get("pump", config.get("pump", 2)))
         config["valve"] = int(request.form.get("valve", config.get("valve", 3)))
-        config["levels"] = [int(request.form.get(f"level{i}", default)) for i, default in enumerate(config.get("levels", [7, 8, 9, 10]))]
+        config["levels"] = [
+            int(request.form.get(f"level{i}", default))
+            for i, default in enumerate(config.get("levels", [7, 8, 9, 10]))
+        ]
 
         watering_config = config.setdefault("watering", {})
         for watering_type, settings in watering_config.items():
-            settings["threshold"] = int(request.form.get(f"{watering_type}_threshold", settings.get("threshold", 20)))
-            settings["morning-duration"] = int(request.form.get(f"{watering_type}_morning-duration", settings.get("morning-duration", 60)))
-            settings["evening-duration"] = int(request.form.get(f"{watering_type}_evening-duration", settings.get("evening-duration", 60)))
+            settings["threshold"] = int(
+                request.form.get(
+                    f"{watering_type}_threshold", settings.get("threshold", 20)
+                )
+            )
+            settings["morning-duration"] = int(
+                request.form.get(
+                    f"{watering_type}_morning-duration",
+                    settings.get("morning-duration", 60),
+                )
+            )
+            settings["evening-duration"] = int(
+                request.form.get(
+                    f"{watering_type}_evening-duration",
+                    settings.get("evening-duration", 60),
+                )
+            )
 
         config["coordinates"] = {
-            "latitude": float(request.form.get("latitude", config.get("coordinates", {}).get("latitude", 48.866667))),
-            "longitude": float(request.form.get("longitude", config.get("coordinates", {}).get("longitude", 2.333333))),
+            "latitude": float(
+                request.form.get(
+                    "latitude", config.get("coordinates", {}).get("latitude", 48.866667)
+                )
+            ),
+            "longitude": float(
+                request.form.get(
+                    "longitude",
+                    config.get("coordinates", {}).get("longitude", 2.333333),
+                )
+            ),
         }
 
         enabled_months = request.form.getlist("enabled_months")

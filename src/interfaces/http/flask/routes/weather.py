@@ -26,7 +26,9 @@ def forecast():
                 {
                     "error": str(exc),
                     "flash": {
-                        "message": _("Error fetching weather data. Please try again later."),
+                        "message": _(
+                            "Error fetching weather data. Please try again later."
+                        ),
                         "category": "warning",
                     },
                 }
@@ -47,7 +49,9 @@ def forecast_minmax_precip():
                 {
                     "error": str(exc),
                     "flash": {
-                        "message": _("Error fetching weather data. Please try again later."),
+                        "message": _(
+                            "Error fetching weather data. Please try again later."
+                        ),
                         "category": "warning",
                     },
                 }
@@ -70,7 +74,9 @@ def temperature_max():
                 {
                     "error": str(exc),
                     "flash": {
-                        "message": _("Error fetching weather data. Please try again later."),
+                        "message": _(
+                            "Error fetching weather data. Please try again later."
+                        ),
                         "category": "warning",
                     },
                 }

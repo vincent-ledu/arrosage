@@ -5,6 +5,7 @@ Revises: 6779c24b57db
 Create Date: 2025-08-22 14:10:49.940620
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -12,22 +13,22 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'b7597a4f9179'
-down_revision: Union[str, Sequence[str], None] = '6779c24b57db'
+revision: str = "b7597a4f9179"
+down_revision: Union[str, Sequence[str], None] = "6779c24b57db"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-  # 1) Add the columns as nullable first
-  with op.batch_alter_table("tasks") as batch_op:
-    batch_op.add_column(sa.Column("min_temp", sa.Float(), nullable=True))
-    batch_op.add_column(sa.Column("max_temp", sa.Float(), nullable=True))
-    batch_op.add_column(sa.Column("precipitation", sa.Float(), nullable=True))
+    # 1) Add the columns as nullable first
+    with op.batch_alter_table("tasks") as batch_op:
+        batch_op.add_column(sa.Column("min_temp", sa.Float(), nullable=True))
+        batch_op.add_column(sa.Column("max_temp", sa.Float(), nullable=True))
+        batch_op.add_column(sa.Column("precipitation", sa.Float(), nullable=True))
 
 
 def downgrade() -> None:
-  with op.batch_alter_table("tasks") as batch_op:
-    batch_op.drop_column("min_temp")  
-    batch_op.drop_column("max_temp")  
-    batch_op.drop_column("precipitation")  
+    with op.batch_alter_table("tasks") as batch_op:
+        batch_op.drop_column("min_temp")
+        batch_op.drop_column("max_temp")
+        batch_op.drop_column("precipitation")

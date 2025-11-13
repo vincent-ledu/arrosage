@@ -18,9 +18,14 @@ from datetime import timedelta
 
 from domain.weather.services import ForecastService
 from infrastructure.configuration.file_repository import FileConfigurationRepository
-from infrastructure.devices.controllers import DeviceTankLevelSensor, create_device_controller
+from infrastructure.devices.controllers import (
+    DeviceTankLevelSensor,
+    create_device_controller,
+)
 from infrastructure.external.open_meteo_client import OpenMeteoClient
-from infrastructure.persistence.watering_task_repository import SqlAlchemyWateringTaskRepository
+from infrastructure.persistence.watering_task_repository import (
+    SqlAlchemyWateringTaskRepository,
+)
 from infrastructure.persistence.weather_repository import SqlForecastCache
 
 
@@ -78,7 +83,9 @@ def build_container(
         ttl_provider,
     )
 
-    start_handler = StartManualWateringHandler(manager_factory, runtime, weather_queries)
+    start_handler = StartManualWateringHandler(
+        manager_factory, runtime, weather_queries
+    )
     stop_handler = StopWateringHandler(runtime, controller)
 
     return ServiceContainer(
