@@ -6,10 +6,9 @@ from datetime import datetime, timedelta, timezone
 import requests
 
 from domain.weather.ports import ForecastProvider
+from services import weather
 
 os.makedirs("/var/log/gunicorn", exist_ok=True)
-
-from services import weather
 
 def _utc_now() -> datetime:
     return datetime.now(timezone.utc)
@@ -60,6 +59,7 @@ def _fallback_partday() -> list[dict]:
 
 
 class OpenMeteoClient(ForecastProvider):
+    """ Client for Open-Meteo weather API. """
     def fetch_daily_forecast(self, latitude: float, longitude: float) -> dict:
         url = (
             "https://api.open-meteo.com/v1/forecast"

@@ -27,7 +27,11 @@ class StartManualWateringHandler:
             try:
                 response, status = compat_getter()
                 if not status or status < 400:
-                    forecast_data = response.get_json() if hasattr(response, "get_json") else response
+                    forecast_data = (
+                        response.get_json()
+                        if hasattr(response, "get_json")
+                        else response
+                    )
             except Exception:  # pragma: no cover - compat fallback
                 forecast_data = None
 

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime
-from typing import Iterable, List
+from datetime import date
+from typing import List
 
 from domain.shared.exceptions import DomainError
-from domain.watering.entities import TankLevelSnapshot, TaskStatus, WateringTask
+from domain.watering.entities import TaskStatus, WateringTask
 from domain.watering.policies import WateringPolicy
 from domain.watering.ports import TankLevelSensor, WateringTaskRepository
 

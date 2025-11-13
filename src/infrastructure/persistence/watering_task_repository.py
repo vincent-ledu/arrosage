@@ -16,7 +16,9 @@ def _as_datetime(value) -> datetime:
 
 
 class SqlAlchemyWateringTaskRepository(WateringTaskRepository):
-    def add(self, duration: int, status: str, created_at: Optional[datetime] = None) -> str:
+    def add(
+        self, duration: int, status: str, created_at: Optional[datetime] = None
+    ) -> str:
         return db_tasks.add_task(duration, status, created_at)
 
     def get(self, task_id: str) -> Optional[WateringTask]:
@@ -34,7 +36,9 @@ class SqlAlchemyWateringTaskRepository(WateringTaskRepository):
     def list_all(self) -> List[WateringTask]:
         return [self._to_entity(task) for task in db_tasks.get_all_tasks()]
 
-    def update_status(self, task_id: str, status: str, error: Optional[str] = None) -> None:
+    def update_status(
+        self, task_id: str, status: str, error: Optional[str] = None
+    ) -> None:
         db_tasks.update_status(task_id, status)
 
     def clear_active_tasks(self) -> None:
@@ -45,7 +49,9 @@ class SqlAlchemyWateringTaskRepository(WateringTaskRepository):
         return WateringTask(
             id=str(task.id),
             duration=int(task.duration),
-            status=TaskStatus(task.status) if task.status in TaskStatus._value2member_map_ else TaskStatus.ERROR,
+            status=TaskStatus(task.status)
+            if task.status in TaskStatus._value2member_map_
+            else TaskStatus.ERROR,
             created_at=_as_datetime(task.created_at),
             updated_at=_as_datetime(task.updated_at),
             error=getattr(task, "error", None),

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import Dict, Iterable, Mapping
+from typing import Iterable, Mapping
 
 from domain.shared.exceptions import DomainError
 from domain.watering.entities import TankLevelSnapshot

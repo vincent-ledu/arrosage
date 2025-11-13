@@ -69,6 +69,10 @@ class ForecastService:
             updated_at = updated_at.astimezone(timezone.utc)
 
         now = datetime.now(timezone.utc)
+        if updated_at > now:
+            # Si les données semblent dater du futur (ex : ancien enregistrement en timezone locale),
+            # on force un rafraîchissement pour corriger la dérive.
+            return False
         return now < updated_at + self._ttl
 
     def set_ttl(self, ttl: timedelta) -> None:

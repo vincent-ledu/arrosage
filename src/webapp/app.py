@@ -6,7 +6,6 @@ import os
 import sys
 from datetime import timedelta
 from pathlib import Path
-from typing import Dict
 
 # Ensure top-level package is importable when running `python app/app.py`
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -163,7 +162,11 @@ def handle_generic_error(error):  # pragma: no cover - fallback
 
 def main() -> None:
     debug_mode = os.environ.get("TESTING", "0") == "1"
-    app.run(host=os.environ.get("HOST", "0.0.0.0"), port=int(os.environ.get("PORT", 3000)), debug=debug_mode)
+    app.run(
+        host=os.environ.get("HOST", "0.0.0.0"),
+        port=int(os.environ.get("PORT", 3000)),
+        debug=debug_mode,
+    )
 
 
 if __name__ == "__main__":

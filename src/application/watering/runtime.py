@@ -9,7 +9,9 @@ from domain.watering.ports import DeviceController, WateringTaskRepository
 
 
 class WateringRuntime:
-    def __init__(self, controller: DeviceController, repository: WateringTaskRepository) -> None:
+    def __init__(
+        self, controller: DeviceController, repository: WateringTaskRepository
+    ) -> None:
         self._controller = controller
         self._repository = repository
         self._cancel_events: Dict[str, threading.Event] = {}

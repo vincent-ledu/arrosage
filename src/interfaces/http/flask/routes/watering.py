@@ -69,10 +69,12 @@ def current_task():
 
 def _error_response(message: str, category: str, status_code: int):
     return (
-        jsonify({
-            "error": message,
-            "flash": {"message": message, "category": category},
-        }),
+        jsonify(
+            {
+                "error": message,
+                "flash": {"message": message, "category": category},
+            }
+        ),
         status_code,
     )
 
@@ -90,10 +92,22 @@ def open_water():
     except DomainError as exc:
         message = str(exc)
         mapping = {
-            "Watering is already in progress.": (409, "error", "Watering is already in progress."),
+            "Watering is already in progress.": (
+                409,
+                "error",
+                "Watering is already in progress.",
+            ),
             "Not enough water.": (507, "error", "Not enough water."),
-            "Temperature is too low to water.": (400, "warning", "Temperature is too low to water."),
-            "Watering is disabled for the current month.": (400, "warning", "Watering is disabled for the current month."),
+            "Temperature is too low to water.": (
+                400,
+                "warning",
+                "Temperature is too low to water.",
+            ),
+            "Watering is disabled for the current month.": (
+                400,
+                "warning",
+                "Watering is disabled for the current month.",
+            ),
             "Invalid duration": (400, "error", "Invalid duration"),
         }
         status_code, category, response_message = mapping.get(
@@ -110,9 +124,14 @@ def close_water():
     if "error" in result:
         return _error_response(_(result["error"]), "warning", 404)
     return (
-        jsonify({
-            "message": result["message"],
-            "flash": {"message": _("Watering task terminated."), "category": "success"},
-        }),
+        jsonify(
+            {
+                "message": result["message"],
+                "flash": {
+                    "message": _("Watering task terminated."),
+                    "category": "success",
+                },
+            }
+        ),
         200,
     )

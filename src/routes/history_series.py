@@ -5,9 +5,13 @@ from sqlalchemy import func, cast, Float, Integer
 from datetime import date, datetime, timedelta, time
 
 from db.db_tasks import get_session
-from db.models import Task, WeatherData  # ForecastStats.date = Date, Task.created_at = DateTime
+from db.models import (
+    Task,
+    WeatherData,
+)  # ForecastStats.date = Date, Task.created_at = DateTime
 
 bp = Blueprint("history_series", __name__)
+
 
 def _parse_date_ymd(s: str | None) -> date | None:
     if not s:
@@ -16,6 +20,7 @@ def _parse_date_ymd(s: str | None) -> date | None:
         return date.fromisoformat(s)  # "YYYY-MM-DD"
     except ValueError:
         return None
+
 
 @bp.get("/api/history/series")
 def history_series():
@@ -34,7 +39,9 @@ def history_series():
 
     # bornes temporelles pour filtrer les DATETIME (intervalle semi-ouvert [start_dt, end_dt_next))
     start_dt = datetime.combine(start_date, time.min)  # 00:00:00
-    end_dt_next = datetime.combine(end_date + timedelta(days=1), time.min)  # jour suivant 00:00:00
+    end_dt_next = datetime.combine(
+        end_date + timedelta(days=1), time.min
+    )  # jour suivant 00:00:00
 
     with get_session() as s:
         # 1) Agrégation des tâches complétées par jour (DATE(Task.created_at))
@@ -57,7 +64,9 @@ def history_series():
                 cast(WeatherData.min_temp, Float).label("min_temp"),
                 cast(WeatherData.max_temp, Float).label("max_temp"),
                 cast(WeatherData.precipitation, Float).label("precip_mm"),
-                cast(func.coalesce(tasks_agg_sq.c.duration_sec, 0), Integer).label("duration_sec"),
+                cast(func.coalesce(tasks_agg_sq.c.duration_sec, 0), Integer).label(
+                    "duration_sec"
+                ),
                 cast(func.coalesce(tasks_agg_sq.c.runs, 0), Integer).label("runs"),
             )
             .outerjoin(tasks_agg_sq, tasks_agg_sq.c.day == WeatherData.date)
@@ -85,13 +94,15 @@ def history_series():
 
     prev_end = (start_date - timedelta(days=1)) if has_prev else None
 
-    return jsonify({
-        "meta": {
-            "days": days,
-            "start": start_date.isoformat(),
-            "end": end_date.isoformat(),
-            "has_prev": has_prev,
-            "prev_end": prev_end.isoformat() if prev_end else None,
-        },
-        "data": data
-    })
+    return jsonify(
+        {
+            "meta": {
+                "days": days,
+                "start": start_date.isoformat(),
+                "end": end_date.isoformat(),
+                "has_prev": has_prev,
+                "prev_end": prev_end.isoformat() if prev_end else None,
+            },
+            "data": data,
+        }
+    )

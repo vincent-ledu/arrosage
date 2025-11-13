@@ -24,7 +24,9 @@ dst_engine = create_engine(MARIADB_URL, pool_pre_ping=True, future=True)
 # crée les tables côté MariaDB
 Base.metadata.create_all(dst_engine)
 
+
 def to_date(v):
+    """ Convertit une valeur en date (sans heure) """
     if v is None:
         return None
     if isinstance(v, date) and not isinstance(v, datetime):
@@ -35,7 +37,9 @@ def to_date(v):
         return v.date()
     raise ValueError(f"Impossible de convertir en date: {v!r}")
 
+
 def to_datetime_naive_utc(v):
+    """ Convertit une valeur en datetime UTC naive (sans info de fuseau) """
     if v is None:
         return None
     if isinstance(v, datetime):
@@ -45,17 +49,20 @@ def to_datetime_naive_utc(v):
         return v
     if isinstance(v, str):
         # best effort: "YYYY-MM-DD HH:MM:SS"
-        return datetime.fromisoformat(v.replace("Z","")).replace(tzinfo=None)
+        return datetime.fromisoformat(v.replace("Z", "")).replace(tzinfo=None)
     raise ValueError(f"Impossible de convertir en datetime: {v!r}")
+
 
 with Session(src_engine) as s_src, Session(dst_engine) as s_dst:
     # Tasks
     for (t,) in s_src.execute(select(Task)).all():
-        s_dst.merge(Task(
-            id=t.id,
-            duration=t.duration,
-            status=t.status,
-            created_at=to_datetime_naive_utc(t.created_at),
-            updated_at=to_datetime_naive_utc(t.updated_at),
-        ))
+        s_dst.merge(
+            Task(
+                id=t.id,
+                duration=t.duration,
+                status=t.status,
+                created_at=to_datetime_naive_utc(t.created_at),
+                updated_at=to_datetime_naive_utc(t.updated_at),
+            )
+        )
     s_dst.commit()
