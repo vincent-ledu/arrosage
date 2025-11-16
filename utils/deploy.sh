@@ -64,6 +64,9 @@ log "ℹ️ [deploy] Copying code to $NEW_RELEASE…"
 mkdir -p "$NEW_RELEASE"
 rsync -a "${RSYNC_EXCLUDES[@]}" "$REPO_ROOT/src"/ "$NEW_RELEASE"/
 
+log "ℹ️ [deploy] Copying scripts…"
+rsync -a "$REPO_ROOT/scripts"/ "$NEW_RELEASE/scripts"/
+
 log "ℹ️ [deploy] Creating venv…"
 $PYTHON_BIN -m venv "$NEW_RELEASE/.venv"
 # shellcheck disable=SC1091
