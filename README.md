@@ -107,6 +107,16 @@ Installed middlewares:
 
 See `utils/deploy.sh`
 
+## Crontab
+
+### morning
+
+```bash
+0 6 * * * cd /opt/arrosage/current && /opt/arrosage/current/.venv/bin/python scripts/cron.py morning >> /var/log/gunicorn/cron-arrosage.log 2>&1
+### evening
+0 20 * * * cd /opt/arrosage/current && /opt/arrosage/current/.venv/bin/python scripts/cron.py evening >> /var/log/gunicorn/cron-arrosage.log 2>&1
+```
+
 # TODO
 
 - [ ] 🚿 Compute water volume per watering (settings with pump capacity)
