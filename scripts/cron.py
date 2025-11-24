@@ -7,12 +7,14 @@ import os
 import logging
 from pathlib import Path
 
-# Ensure the src/ folder is on the Python path so imports work no matter where
-# the script is executed from (cron, deployment symlink, etc.).
+# Ensure project root (and src/ when present) are on the Python path so imports
+# work no matter where the script is executed from (cron, deployment symlink, etc.).
 ROOT_DIR = Path(__file__).resolve().parents[1]
 SRC_DIR = ROOT_DIR / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
+for path in (ROOT_DIR, SRC_DIR):
+    path_str = str(path)
+    if path_str not in sys.path and path.exists():
+        sys.path.insert(0, path_str)
 
 import requests
 import config.config as local_config
