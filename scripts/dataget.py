@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 import requests
-import mysql.connector
+import pymysql
 from datetime import date, timedelta
 from typing import Dict, List, Set
 from urllib.parse import urlparse, parse_qs
@@ -76,7 +76,7 @@ def get_connection():
     }
     if DB_CONFIG.get("charset"):
         connect_kwargs["charset"] = DB_CONFIG["charset"]
-    return mysql.connector.connect(**connect_kwargs)
+    return pymysql.connect(**connect_kwargs)
 
 
 def get_existing_dates(conn, start_date: date, end_date: date) -> Set[date]:
