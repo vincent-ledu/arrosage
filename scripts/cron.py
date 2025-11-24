@@ -5,6 +5,15 @@
 import sys
 import os
 import logging
+from pathlib import Path
+
+# Ensure the src/ folder is on the Python path so imports work no matter where
+# the script is executed from (cron, deployment symlink, etc.).
+ROOT_DIR = Path(__file__).resolve().parents[1]
+SRC_DIR = ROOT_DIR / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
 import requests
 import config.config as local_config
 
