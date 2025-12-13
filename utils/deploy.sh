@@ -87,8 +87,11 @@ cp $REPO_ROOT/utils/backup_arrosage.sh /usr/local/bin/backup_arrosage.sh
 chmod +x /usr/local/bin/backup_arrosage.sh
 # Add a daily cron job for backup at 3:17 AM  
 LINE='17 3 * * * /usr/local/bin/backup_arrosage.sh'
-USER=root
-( crontab -u "$USER" -l 2>/dev/null | grep -Fv "$LINE" ; echo "$LINE" ) | crontab -u "$USER" -
+CRON_USER=root
+EXISTING_CRON="$(crontab -u "$CRON_USER" -l 2>/dev/null || true)"
+if ! grep -Fq "$LINE" <<< "$EXISTING_CRON"; then
+  printf "%s\n%s\n" "$EXISTING_CRON" "$LINE" | crontab -u "$CRON_USER" -
+fi
 
 log "ℹ️ [deploy] Database backup…"
 if command -v /usr/local/bin/backup_arrosage.sh >/dev/null 2>&1; then
