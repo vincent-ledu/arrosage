@@ -63,6 +63,10 @@ mkdir -p "$RELEASES_DIR" "$SHARED_DIR"/{log,run,config,db,backups}
 log "ℹ️ [deploy] Copying code to $NEW_RELEASE…"
 mkdir -p "$NEW_RELEASE"
 rsync -a "${RSYNC_EXCLUDES[@]}" "$REPO_ROOT/src"/ "$NEW_RELEASE"/
+# Alembic expects migrations next to alembic.ini (kept outside src/)
+if [[ -d "$REPO_ROOT/migrations" ]]; then
+  rsync -a "$REPO_ROOT/migrations"/ "$NEW_RELEASE/migrations"/
+fi
 
 log "ℹ️ [deploy] Copying scripts…"
 rsync -a "$REPO_ROOT/scripts"/ "$NEW_RELEASE/scripts"/
