@@ -231,4 +231,5 @@ apt install nginx mariadb-server build-essential python3-dev
 mkdir /run/gunicorn
 chown www-data:www-data /run/gunicorn
 usermod -a -G gpio www-data
+mysql -u root -p < utils/create-database.sql
 ```
