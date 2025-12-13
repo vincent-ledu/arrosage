@@ -222,3 +222,13 @@ See `utils/deploy.sh`
 # Credits
 
 Pictures and diagrams from Frédéric JELMONI is used with his consent.
+
+# Installation prerequisites
+
+```bash
+apt update
+apt install nginx mariadb-server build-essential python3-dev
+mkdir /run/gunicorn
+chown www-data:www-data /run/gunicorn
+usermod -a -G gpio www-data
+```
