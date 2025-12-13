@@ -1,14 +1,19 @@
 [Unit]
 Description=Arrosage App
-After=network-online.target remote-fs.target nss-lookup.target
+After=network-online.target remote-fs.target nss-lookup.target mariadb.service
 Wants=network-online.target
+Requires=mariadb.service
 
 [Service]
 User=www-data
+RuntimeDirectory=gunicorn
+RuntimeDirectoryMode=0755
 WorkingDirectory=/opt/arrosage/current
 EnvironmentFile=/etc/default/arrosage
 ExecStart=/opt/arrosage/current/.venv/bin/gunicorn -c gunicorn_conf.py --workers 1 --bind unix:/run/gunicorn/gunicorn_arrosage.sock webapp.wsgi:app
 #Restart=always
+Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
