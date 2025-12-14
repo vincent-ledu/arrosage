@@ -109,9 +109,8 @@ See `utils/deploy.sh`
 
 ## Crontab
 
-### morning
-
 ```bash
+### morning
 0 6 * * * cd /opt/arrosage/current && /opt/arrosage/current/.venv/bin/python scripts/cron.py morning >> /var/log/gunicorn/cron-arrosage.log 2>&1
 ### evening
 0 20 * * * cd /opt/arrosage/current && /opt/arrosage/current/.venv/bin/python scripts/cron.py evening >> /var/log/gunicorn/cron-arrosage.log 2>&1
@@ -211,6 +210,17 @@ See `utils/deploy.sh`
 
 **Total: ~100€**
 
+# Installation prerequisites
+
+```bash
+apt update
+apt install nginx mariadb-server build-essential python3-dev
+mkdir /run/gunicorn
+chown www-data:www-data /run/gunicorn
+usermod -a -G gpio www-data
+mysql -u root -p < utils/create-database.sql
+```
+
 ## Tools 🔧
 
 - 🔩 Screwdrivers
@@ -222,14 +232,3 @@ See `utils/deploy.sh`
 # Credits
 
 Pictures and diagrams from Frédéric JELMONI is used with his consent.
-
-# Installation prerequisites
-
-```bash
-apt update
-apt install nginx mariadb-server build-essential python3-dev
-mkdir /run/gunicorn
-chown www-data:www-data /run/gunicorn
-usermod -a -G gpio www-data
-mysql -u root -p < utils/create-database.sql
-```

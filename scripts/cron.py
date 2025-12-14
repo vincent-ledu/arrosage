@@ -35,6 +35,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Allow tuning HTTP timeouts without editing the script. Using a separate connect
+# timeout keeps failures quick when the service is down, while a larger read
+# timeout leaves room for the API to compute weather data.
+REQUEST_TIMEOUT = (
+    float(os.getenv("CRON_CONNECT_TIMEOUT", "3")),
+    float(os.getenv("CRON_READ_TIMEOUT", "15")),
+)
+
 
 def watering(time_of_day):
     """ Récupérer les coordonnées depuis l'application Flask
@@ -45,9 +53,24 @@ def watering(time_of_day):
     logger.info("Loaded watering configuration: %s", watering_config)
 
     # Récupération du type d'arrosage
-    watering_type_res = requests.get(
-        "http://localhost/api/watering-type", headers=headers, timeout=5
-    )
+    try:
+        watering_type_res = requests.get(
+            "http://localhost/api/watering-type",
+            headers=headers,
+            timeout=REQUEST_TIMEOUT,
+        )
+    except requests.RequestException as exc:
+        logger.error("Unable to fetch watering type: %s", exc)
+        sys.exit(1)
+
+    if watering_type_res.status_code != 200:
+        logger.error(
+            "Error during watering-type request: %s - %s",
+            watering_type_res.status_code,
+            watering_type_res.text,
+        )
+        sys.exit(1)
+
     watering_type = watering_type_res.text
     logger.info("Watering type: %s", watering_type)
     duration = watering_config[watering_type][time_of_day + "-duration"]
@@ -59,9 +82,16 @@ def watering(time_of_day):
         sys.exit(0)
 
     logger.info("Call for watering %s...", time_of_day)
-    response_arrosage = requests.get(
-        f"http://localhost/api/command/open-water?duration={duration}", headers=headers, timeout=5
-    )
+    try:
+        response_arrosage = requests.get(
+            f"http://localhost/api/command/open-water?duration={duration}",
+            headers=headers,
+            timeout=REQUEST_TIMEOUT,
+        )
+    except requests.RequestException as exc:
+        logger.error("Unable to trigger watering: %s", exc)
+        sys.exit(1)
+
     if response_arrosage.status_code != 200:
         logger.error(
             "Error during watering request: %s - %s",
