@@ -1,0 +1,13 @@
+[Unit]
+Description=Arrosage VM poller for Raspberry Pi (pi-service)
+After=network-online.target remote-fs.target nss-lookup.target mariadb.service
+Wants=network-online.target
+Requires=mariadb.service
+
+[Service]
+Type=oneshot
+User=www-data
+WorkingDirectory=/opt/arrosage/current
+EnvironmentFile=/etc/default/arrosage
+ExecStart=/opt/arrosage/current/.venv/bin/python /opt/arrosage/current/scripts/pi_poll.py
+

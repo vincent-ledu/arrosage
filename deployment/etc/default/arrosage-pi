@@ -1,0 +1,14 @@
+FLASK_ENV=production
+
+# Where the Pi reads its GPIO pin mapping (local file on the Pi).
+ARROSAGE_CONFIG_FILE=/etc/arrosage/config.json
+
+# Optional but recommended (token auth in headers).
+# PI_SERVICE_TOKEN=CHANGE_ME
+
+# Safety limit for watering duration (seconds).
+PI_MAX_WATERING_DURATION_SEC=900
+
+# Ensure venv binaries are preferred.
+PATH=/opt/arrosage/current/.venv/bin:$PATH
+

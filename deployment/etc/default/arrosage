@@ -17,3 +17,13 @@ DBOPTIONS="charset=utf8mb4"
 DBDRIVER="mysql+pymysql"
 
 SQL_ECHO=0
+
+### Raspberry Pi device agent (pi-service)
+# Base URL reachable from this VM (nginx on Pi or direct gunicorn port).
+# PI_SERVICE_URL=http://raspberrypi.local
+# PI_SERVICE_TOKEN=CHANGE_ME
+# PI_SERVICE_TIMEOUT_CONNECT=0.5
+# PI_SERVICE_TIMEOUT_READ=1.0
+
+# Cache staleness threshold for UI (seconds).
+# PI_SNAPSHOT_MAX_AGE_SEC=120

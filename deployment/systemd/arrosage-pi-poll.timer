@@ -1,0 +1,11 @@
+[Unit]
+Description=Run arrosage pi poller periodically
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=30s
+Unit=arrosage-pi-poll.service
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target

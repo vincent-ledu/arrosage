@@ -92,7 +92,7 @@ def watering(time_of_day):
         logger.error("Unable to trigger watering: %s", exc)
         sys.exit(1)
 
-    if response_arrosage.status_code != 200:
+    if response_arrosage.status_code not in (200, 202):
         logger.error(
             "Error during watering request: %s - %s",
             response_arrosage.status_code,

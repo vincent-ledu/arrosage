@@ -1,0 +1,17 @@
+[Unit]
+Description=Arrosage Pi Service (GPIO REST)
+After=network-online.target remote-fs.target nss-lookup.target
+Wants=network-online.target
+
+[Service]
+User=www-data
+RuntimeDirectory=gunicorn
+RuntimeDirectoryMode=0755
+WorkingDirectory=/opt/arrosage/current
+EnvironmentFile=/etc/default/arrosage-pi
+ExecStart=/opt/arrosage/current/.venv/bin/gunicorn --workers 1 --bind unix:/run/gunicorn/gunicorn_arrosage_pi.sock pi_service.wsgi:app
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
