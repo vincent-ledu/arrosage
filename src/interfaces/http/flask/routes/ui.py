@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 from flask import (
     Blueprint,
     current_app,
@@ -42,14 +44,16 @@ def change_language(lang_code: str):
 def settings_page():
     configuration_service = container().configuration_service
     config = configuration_service.load()
+    pi_mode = bool(os.environ.get("PI_SERVICE_URL"))
 
     if request.method == "POST":
-        config["pump"] = int(request.form.get("pump", config.get("pump", 2)))
-        config["valve"] = int(request.form.get("valve", config.get("valve", 3)))
-        config["levels"] = [
-            int(request.form.get(f"level{i}", default))
-            for i, default in enumerate(config.get("levels", [7, 8, 9, 10]))
-        ]
+        if not pi_mode:
+            config["pump"] = int(request.form.get("pump", config.get("pump", 2)))
+            config["valve"] = int(request.form.get("valve", config.get("valve", 3)))
+            config["levels"] = [
+                int(request.form.get(f"level{i}", default))
+                for i, default in enumerate(config.get("levels", [7, 8, 9, 10]))
+            ]
 
         watering_config = config.setdefault("watering", {})
         for watering_type, settings in watering_config.items():
@@ -90,8 +94,9 @@ def settings_page():
             config["enabled_months"] = [int(m) for m in enabled_months]
 
         configuration_service.save(config)
-        container().device_controller.setup()
+        if not pi_mode:
+            container().device_controller.setup()
         flash(_("Settings saved successfully."), "success")
         return redirect(url_for("ui.settings_page"))
 
-    return render_template("settings.html", config=config)
+    return render_template("settings.html", config=config, pi_mode=pi_mode)

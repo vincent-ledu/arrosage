@@ -40,6 +40,29 @@ def add_task(duration, status, created_at=None) -> str:
     return task_id
 
 
+def add_task_with_id(task_id: str, duration, status, created_at=None) -> str:
+    """Insère une tâche avec un id fourni (utile quand l'id vient du Pi)."""
+    dt = _ensure_utc(created_at) if created_at else datetime.now(timezone.utc)
+    with get_session() as s:
+        existing = s.get(Task, str(task_id))
+        if existing:
+            existing.duration = int(duration)
+            existing.status = str(status)
+            existing.updated_at = dt
+            s.commit()
+            return str(existing.id)
+        t = Task(
+            id=str(task_id),
+            duration=int(duration),
+            status=str(status),
+            created_at=dt,
+            updated_at=dt,
+        )
+        s.add(t)
+        s.commit()
+    return str(task_id)
+
+
 def get_tasks_by_status(status):
     """Récupère les tâches par statut, triées par created_at décroissant."""
     with get_session() as s:

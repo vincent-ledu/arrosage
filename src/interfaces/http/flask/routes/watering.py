@@ -4,6 +4,7 @@ from datetime import date
 
 from flask import Blueprint, current_app, jsonify, request
 from flask_babel import gettext as _
+import requests
 
 from application.watering.commands import (
     StartManualWateringCommand,
@@ -11,7 +12,9 @@ from application.watering.commands import (
 )
 from domain.shared.exceptions import DomainError
 from interfaces.http.flask.container import ServiceContainer
+from services.pi_client import PiServiceClient, load_pi_service_config
 from utils.serializer import task_to_dict
+from db import db_device, db_tasks
 
 bp = Blueprint("watering", __name__)
 
@@ -22,8 +25,24 @@ def container() -> ServiceContainer:
 
 @bp.route("/api/water-level")
 def water_level():
-    level = container().device_controller.get_level()
-    return {"level": int(level * 25)}
+    pi_config = load_pi_service_config()
+    if not pi_config:
+        level = container().device_controller.get_level()
+        return {"level": int(level * 25)}
+
+    snapshot = db_device.get_snapshot()
+    if snapshot and snapshot.water_level_percent is not None:
+        return {
+            "level": int(snapshot.water_level_percent),
+            "available": True,
+            "stale": snapshot.status != "online",
+            "last_seen_at": snapshot.last_seen_at.isoformat()
+            if snapshot.last_seen_at
+            else None,
+        }
+
+    # No cache yet -> expose a safe value without breaking the UI.
+    return {"level": 0, "available": False, "stale": True, "last_seen_at": None}
 
 
 @bp.route("/api/water-levels")
@@ -85,6 +104,69 @@ def open_water():
     if duration is None:
         return _error_response("Duration parameter is required", "error", 400)
 
+    pi_config = load_pi_service_config()
+    if pi_config:
+        client = PiServiceClient(pi_config)
+        idempotency_key = request.headers.get("Idempotency-Key")
+        try:
+            db_device.log_command(
+                command="start",
+                payload={"duration_sec": duration},
+                result="requested",
+            )
+            result = client.start_watering(
+                duration_sec=duration,
+                idempotency_key=idempotency_key,
+            )
+            task_id = result.get("job_id")
+            if task_id:
+                db_tasks.add_task_with_id(task_id, duration, "in progress")
+            db_device.log_command(
+                command="start",
+                payload={"duration_sec": duration, "job_id": task_id},
+                result="accepted",
+            )
+            return (
+                jsonify(
+                    {
+                        "task_id": task_id,
+                        "flash": {
+                            "message": _("Watering task started."),
+                            "category": "success",
+                        },
+                    }
+                ),
+                202,
+            )
+        except requests.HTTPError as exc:
+            status_code = getattr(exc.response, "status_code", 500)
+            message = "Pi error"
+            if status_code == 409:
+                message = "Watering is already in progress."
+            db_device.log_command(
+                command="start",
+                payload={"duration_sec": duration},
+                result="failed",
+                error=str(exc),
+            )
+            return _error_response(message, "error", status_code)
+        except requests.RequestException as exc:
+            db_device.log_command(
+                command="start",
+                payload={"duration_sec": duration},
+                result="failed",
+                error=str(exc),
+            )
+            return _error_response("Pi unreachable", "error", 503)
+        except Exception as exc:  # pragma: no cover - defensive
+            db_device.log_command(
+                command="start",
+                payload={"duration_sec": duration},
+                result="failed",
+                error=str(exc),
+            )
+            return _error_response(str(exc), "error", 500)
+
     command = StartManualWateringCommand(duration_seconds=duration)
     try:
         result = container().start_watering_handler.handle(command)
@@ -120,6 +202,39 @@ def open_water():
 
 @bp.route("/api/command/close-water")
 def close_water():
+    pi_config = load_pi_service_config()
+    if pi_config:
+        client = PiServiceClient(pi_config)
+        try:
+            db_device.log_command(command="stop", payload=None, result="requested")
+            client.stop_watering()
+            active = container().watering_repository.get_active_task()
+            if active:
+                db_tasks.update_status(active.id, "canceled")
+            db_device.log_command(command="stop", payload=None, result="accepted")
+            return (
+                jsonify(
+                    {
+                        "message": "stopped",
+                        "flash": {
+                            "message": _("Watering task terminated."),
+                            "category": "success",
+                        },
+                    }
+                ),
+                200,
+            )
+        except requests.RequestException as exc:
+            db_device.log_command(
+                command="stop", payload=None, result="failed", error=str(exc)
+            )
+            return _error_response("Pi unreachable", "error", 503)
+        except Exception as exc:  # pragma: no cover - defensive
+            db_device.log_command(
+                command="stop", payload=None, result="failed", error=str(exc)
+            )
+            return _error_response(str(exc), "error", 500)
+
     result = container().stop_watering_handler.handle(StopWateringCommand())
     if "error" in result:
         return _error_response(_(result["error"]), "warning", 404)

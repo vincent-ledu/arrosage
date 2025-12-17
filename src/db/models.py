@@ -4,6 +4,7 @@ from __future__ import annotations
 from datetime import datetime, date
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Integer, Float, Date, DateTime, func
+from sqlalchemy import Boolean, Text
 
 from db.database import Base
 
@@ -109,6 +110,44 @@ class Task(Base):
         DateTime(timezone=True),
         default=func.now(),
         onupdate=func.now(),
+        nullable=False,
+        index=True,
+    )
+
+
+class DeviceSnapshot(Base):
+    __tablename__ = "device_snapshot"
+
+    device_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
+    last_seen_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
+    water_level_percent: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    watering: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    remaining_sec: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+        index=True,
+    )
+
+
+class DeviceCommandLog(Base):
+    __tablename__ = "device_command_log"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    device_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    command: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    payload: Mapped[str | None] = mapped_column(Text, nullable=True)
+    result: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=func.now(),
         nullable=False,
         index=True,
     )

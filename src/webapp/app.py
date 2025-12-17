@@ -19,7 +19,7 @@ from werkzeug.exceptions import HTTPException
 import config.config as local_config
 from babel.messages import mofile, pofile
 from interfaces.http.flask.container import build_container
-from interfaces.http.flask.routes import system, ui, watering, weather
+from interfaces.http.flask.routes import device, system, ui, watering, weather
 from routes.history_series import bp as history_series_bp
 
 logger = logging.getLogger(__name__)
@@ -133,6 +133,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(ui.bp)
     app.register_blueprint(weather.bp)
     app.register_blueprint(watering.bp)
+    app.register_blueprint(device.bp)
     app.register_blueprint(system.bp)
 
 

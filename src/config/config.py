@@ -10,7 +10,7 @@ if os.path.exists(".env.test"):
 else:
     load_dotenv()
 
-CONFIG_FILE = "config.json"
+CONFIG_FILE = os.getenv("ARROSAGE_CONFIG_FILE", "config.json")
 DEFAULT_CONFIG = {
     "pump": 2,
     "valve": 3,
@@ -37,7 +37,8 @@ SQLALCHEMY_DATABASE_URL = os.getenv(
     "SQLALCHEMY_DATABASE_URL",
     f"{DBDRIVER}://{DBUSER}:{DBPASSWORD}@{DBHOST}:{DBPORT}/{DBNAME}?{DBOPTIONS}",
 )
-print(f"Using database : {SQLALCHEMY_DATABASE_URL.split('/')[3]}")
+if os.getenv("ARROSAGE_LOG_DB_URL", "0") == "1":
+    logger.info("Using database : %s", SQLALCHEMY_DATABASE_URL.split("/")[3])
 SQL_ECHO = os.getenv("SQL_ECHO", "0") == "1"
 
 

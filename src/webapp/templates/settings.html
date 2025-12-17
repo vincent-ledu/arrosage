@@ -4,6 +4,11 @@ block content %}
   <h2 style="margin: 0 0 1rem 0">{{ _('Settings') }}</h2>
 
   <form method="POST">
+    {% if pi_mode %}
+    <p style="padding: 8px 12px; background: #fff3cd; border: 1px solid #ffeeba">
+      {{ _('GPIO pins are configured on the Raspberry Pi (pi-service). This VM does not manage pump/valve/level pins.') }}
+    </p>
+    {% else %}
     <p>
       <label for="pump">{{ _('Pump pin:')}}</label>
       <input
@@ -43,6 +48,7 @@ block content %}
       />
       {% endfor %}
     </fieldset>
+    {% endif %}
     <fieldset style="margin-top: 1rem">
       <legend>{{ _('Coordinates')}}</legend>
       <p>
