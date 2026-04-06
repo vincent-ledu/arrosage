@@ -126,7 +126,8 @@ def _register_routes(app: Flask) -> None:
                 jsonify({"error": f"duration_sec must be <= {max_duration}"}),
                 400,
             )
-
+        if container().device_controller.get_level() * 25 <= 0:
+            return jsonify({"error": "Not enough water."}), 507
         idempotency_key = request.headers.get("Idempotency-Key")
         try:
             job = container().watering_runtime.start(
