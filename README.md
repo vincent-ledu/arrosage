@@ -122,8 +122,6 @@ See `utils/deploy.sh`
 
 # DONE
 
-- [ ] ~~👾 Add freshisness information (last data update)~~
-- [ ] ~~📊 Add an endpoint to resfresh weather data~~
 - [x] 👾 Analyze warning message in venv creation and dependancies installation
 - [x] 🏗️ Go to a Domain Driven Design approach
 - [x] 🇫🇷/🇬🇧 Fix translation bug
