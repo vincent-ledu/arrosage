@@ -36,6 +36,10 @@ class GPIOControl(Control):
         # Configure les sorties
         GPIO.setup(self.control_state["pump"], GPIO.OUT)
         GPIO.setup(self.control_state["valve"], GPIO.OUT)
+        # Relais optocoupleur low-trigger en NO:
+        # l'etat de repos doit rester a HIGH pour garder la pompe/vanne coupees.
+        GPIO.output(self.control_state["pump"], GPIO.HIGH)
+        GPIO.output(self.control_state["valve"], GPIO.HIGH)
 
         # Configure les capteurs de niveau en entrée avec pull-down
         for pin in self.control_state["levels"]:
@@ -62,19 +66,19 @@ class GPIOControl(Control):
         valve_pin = self.control_state["valve"]
         pump_pin = self.control_state["pump"]
         logger.info("Opening valve (GPIO %s)", valve_pin)
-        GPIO.output(valve_pin, GPIO.HIGH)
+        GPIO.output(valve_pin, GPIO.LOW)
         time.sleep(2)
         logger.info("Starting pump (GPIO %s)", pump_pin)
-        GPIO.output(pump_pin, GPIO.HIGH)
+        GPIO.output(pump_pin, GPIO.LOW)
 
     def closeWater(self):
         pump_pin = self.control_state["pump"]
         valve_pin = self.control_state["valve"]
         logger.info("Stopping pump (GPIO %s)", pump_pin)
-        GPIO.output(pump_pin, GPIO.LOW)
+        GPIO.output(pump_pin, GPIO.HIGH)
         time.sleep(2)
         logger.info("Closing valve (GPIO %s)", valve_pin)
-        GPIO.output(valve_pin, GPIO.LOW)
+        GPIO.output(valve_pin, GPIO.HIGH)
 
     def debugWaterLevels(self):
         water_states = {}
