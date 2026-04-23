@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.2"
+     width="2.4in" height="2.2in" viewBox="0 0 240 220">
+  <desc>Custom schematic view for 2 Relay Module 5V (AZDelivery)</desc>
+
+  <rect x="60" y="20" width="120" height="180" fill="none" stroke="#000" stroke-width="2"/>
+  <text x="120" y="38" font-family="Arial" font-size="12" text-anchor="middle">2 Relay Module</text>
+  <text x="120" y="54" font-family="Arial" font-size="9" text-anchor="middle">LOW trigger</text>
+
+  <!-- Left side control pins -->
+  <line id="connector0pin" x1="10" y1="70" x2="60" y2="70" stroke="#000" stroke-width="2"/>
+  <rect id="connector0terminal" x="8" y="68" width="4" height="4" fill="none"/>
+  <text x="64" y="74" font-family="Arial" font-size="10">GND</text>
+
+  <line id="connector1pin" x1="10" y1="95" x2="60" y2="95" stroke="#000" stroke-width="2"/>
+  <rect id="connector1terminal" x="8" y="93" width="4" height="4" fill="none"/>
+  <text x="64" y="99" font-family="Arial" font-size="10">IN1</text>
+
+  <line id="connector2pin" x1="10" y1="120" x2="60" y2="120" stroke="#000" stroke-width="2"/>
+  <rect id="connector2terminal" x="8" y="118" width="4" height="4" fill="none"/>
+  <text x="64" y="124" font-family="Arial" font-size="10">IN2</text>
+
+  <line id="connector3pin" x1="10" y1="145" x2="60" y2="145" stroke="#000" stroke-width="2"/>
+  <rect id="connector3terminal" x="8" y="143" width="4" height="4" fill="none"/>
+  <text x="64" y="149" font-family="Arial" font-size="10">VCC</text>
+
+  <!-- Right side relay outputs -->
+  <line id="connector4pin" x1="180" y1="55" x2="230" y2="55" stroke="#000" stroke-width="2"/>
+  <rect id="connector4terminal" x="228" y="53" width="4" height="4" fill="none"/>
+  <text x="176" y="59" font-family="Arial" font-size="10" text-anchor="end">NO2</text>
+
+  <line id="connector5pin" x1="180" y1="80" x2="230" y2="80" stroke="#000" stroke-width="2"/>
+  <rect id="connector5terminal" x="228" y="78" width="4" height="4" fill="none"/>
+  <text x="176" y="84" font-family="Arial" font-size="10" text-anchor="end">COM2</text>
+
+  <line id="connector6pin" x1="180" y1="105" x2="230" y2="105" stroke="#000" stroke-width="2"/>
+  <rect id="connector6terminal" x="228" y="103" width="4" height="4" fill="none"/>
+  <text x="176" y="109" font-family="Arial" font-size="10" text-anchor="end">NC2</text>
+
+  <line id="connector7pin" x1="180" y1="130" x2="230" y2="130" stroke="#000" stroke-width="2"/>
+  <rect id="connector7terminal" x="228" y="128" width="4" height="4" fill="none"/>
+  <text x="176" y="134" font-family="Arial" font-size="10" text-anchor="end">NO1</text>
+
+  <line id="connector8pin" x1="180" y1="155" x2="230" y2="155" stroke="#000" stroke-width="2"/>
+  <rect id="connector8terminal" x="228" y="153" width="4" height="4" fill="none"/>
+  <text x="176" y="159" font-family="Arial" font-size="10" text-anchor="end">COM1</text>
+
+  <line id="connector9pin" x1="180" y1="180" x2="230" y2="180" stroke="#000" stroke-width="2"/>
+  <rect id="connector9terminal" x="228" y="178" width="4" height="4" fill="none"/>
+  <text x="176" y="184" font-family="Arial" font-size="10" text-anchor="end">NC1</text>
+
+  <!-- Internal indication -->
+  <line x1="120" y1="70" x2="150" y2="70" stroke="#000" stroke-width="1.5"/>
+  <line x1="150" y1="70" x2="150" y2="105" stroke="#000" stroke-width="1.5"/>
+  <line x1="120" y1="130" x2="150" y2="130" stroke="#000" stroke-width="1.5"/>
+  <line x1="150" y1="130" x2="150" y2="165" stroke="#000" stroke-width="1.5"/>
+  <text x="120" y="86" font-family="Arial" font-size="9">Relay 1</text>
+  <text x="120" y="146" font-family="Arial" font-size="9">Relay 2</text>
+</svg>

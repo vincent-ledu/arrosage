@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module fritzingVersion="0.9.0" moduleId="2relay_module_azdelivery">
+  <version>1.0</version>
+  <author>OpenAI</author>
+  <title>2 Relay Module 5V (AZDelivery)</title>
+  <label>Relay x2</label>
+  <date>2026-04-09</date>
+  <description>
+    2-channel relay module with optocoupler.
+    Trigger: LOW level.
+    Control pins on the right: GND, IN1, IN2, VCC.
+    Screw terminals on the left: NO2, COM2, NC2, NO1, COM1, NC1.
+    Board size: 49 x 51 mm.
+  </description>
+
+  <tags>
+    <tag>relay</tag>
+    <tag>module</tag>
+    <tag>arduino</tag>
+    <tag>optocoupler</tag>
+    <tag>azdelivery</tag>
+  </tags>
+
+  <properties>
+    <property name="family">Relay Module</property>
+    <property name="variant">2-channel</property>
+    <property name="voltage">5V</property>
+    <property name="trigger">LOW</property>
+  </properties>
+
+  <views>
+    <breadboardView>
+      <layers image="breadboard.svg"/>
+    </breadboardView>
+    <schematicView>
+      <layers image="schematic.svg"/>
+    </schematicView>
+    <pcbView>
+      <layers image="pcb.svg"/>
+    </pcbView>
+  </views>
+
+  <connectors>
+    <connector id="connector0" name="GND" type="male">
+      <description>Ground</description>
+      <views>
+        <breadboardView><p svgId="connector0pin"/></breadboardView>
+        <schematicView><p svgId="connector0pin"/></schematicView>
+        <pcbView><p svgId="connector0pad"/></pcbView>
+      </views>
+    </connector>
+
+    <connector id="connector1" name="IN1" type="male">
+      <description>Input 1 (LOW trigger)</description>
+      <views>
+        <breadboardView><p svgId="connector1pin"/></breadboardView>
+        <schematicView><p svgId="connector1pin"/></schematicView>
+        <pcbView><p svgId="connector1pad"/></pcbView>
+      </views>
+    </connector>
+
+    <connector id="connector2" name="IN2" type="male">
+      <description>Input 2 (LOW trigger)</description>
+      <views>
+        <breadboardView><p svgId="connector2pin"/></breadboardView>
+        <schematicView><p svgId="connector2pin"/></schematicView>
+        <pcbView><p svgId="connector2pad"/></pcbView>
+      </views>
+    </connector>
+
+    <connector id="connector3" name="VCC" type="male">
+      <description>5V Power</description>
+      <views>
+        <breadboardView><p svgId="connector3pin"/></breadboardView>
+        <schematicView><p svgId="connector3pin"/></schematicView>
+        <pcbView><p svgId="connector3pad"/></pcbView>
+      </views>
+    </connector>
+
+    <connector id="connector4" name="NO2" type="male">
+      <description>Normally Open 2</description>
+      <views>
+        <breadboardView><p svgId="connector4pin"/></breadboardView>
+        <schematicView><p svgId="connector4pin"/></schematicView>
+        <pcbView><p svgId="connector4pad"/></pcbView>
+      </views>
+    </connector>
+
+    <connector id="connector5" name="COM2" type="male">
+      <description>Common 2</description>
+      <views>
+        <breadboardView><p svgId="connector5pin"/></breadboardView>
+        <schematicView><p svgId="connector5pin"/></schematicView>
+        <pcbView><p svgId="connector5pad"/></pcbView>
+      </views>
+    </connector>
+
+    <connector id="connector6" name="NC2" type="male">
+      <description>Normally Closed 2</description>
+      <views>
+        <breadboardView><p svgId="connector6pin"/></breadboardView>
+        <schematicView><p svgId="connector6pin"/></schematicView>
+        <pcbView><p svgId="connector6pad"/></pcbView>
+      </views>
+    </connector>
+
+    <connector id="connector7" name="NO1" type="male">
+      <description>Normally Open 1</description>
+      <views>
+        <breadboardView><p svgId="connector7pin"/></breadboardView>
+        <schematicView><p svgId="connector7pin"/></schematicView>
+        <pcbView><p svgId="connector7pad"/></pcbView>
+      </views>
+    </connector>
+
+    <connector id="connector8" name="COM1" type="male">
+      <description>Common 1</description>
+      <views>
+        <breadboardView><p svgId="connector8pin"/></breadboardView>
+        <schematicView><p svgId="connector8pin"/></schematicView>
+        <pcbView><p svgId="connector8pad"/></pcbView>
+      </views>
+    </connector>
+
+    <connector id="connector9" name="NC1" type="male">
+      <description>Normally Closed 1</description>
+      <views>
+        <breadboardView><p svgId="connector9pin"/></breadboardView>
+        <schematicView><p svgId="connector9pin"/></schematicView>
+        <pcbView><p svgId="connector9pad"/></pcbView>
+      </views>
+    </connector>
+  </connectors>
+</module>
